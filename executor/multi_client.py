@@ -89,7 +89,6 @@ def runner(
 
     file = open(
         out_dir / "aurora_trace/repeating_olap_batch_{}.csv".format(runner_idx),
-        # out_dir / "redshift_trace/repeating_olap_batch_{}.csv".format(runner_idx),
         "w",
         encoding="UTF-8",
     )

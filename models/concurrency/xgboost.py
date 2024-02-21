@@ -12,6 +12,7 @@ class XGBoostPredictor(ConcurPredictor):
          Concatenate two features together to build simple XGboost model to predict the runtime
     """
     def __init__(self, k=100):
+        super().__init__()
         self.clustering = None
         self.isolated_rt_cache = dict()
         self.xgboost = None
