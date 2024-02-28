@@ -4,22 +4,28 @@ import numpy as np
 class ConcurPredictor:
     def __init__(self):
         self.isolated_rt_cache = dict()
+        self.average_rt_cache = dict()
 
-    def get_isolated_runtime_cache(self, trace_df, isolated_trace_df=None):
+    def get_isolated_runtime_cache(
+        self, trace_df, isolated_trace_df=None, get_avg_runtime=False
+    ):
         if isolated_trace_df is None:
-            isolated_trace_df = trace_df[trace_df['num_concurrent_queries'] == 0]
+            isolated_trace_df = trace_df[trace_df["num_concurrent_queries"] == 0]
         # ignore queries that do not run insolation
         for i, rows in isolated_trace_df.groupby("query_idx"):
             self.isolated_rt_cache[i] = np.median(rows["runtime"])
+        if get_avg_runtime:
+            for i, rows in trace_df.groupby("query_idx"):
+                self.average_rt_cache[i] = np.median(rows["runtime"])
 
     def train(self, trace_df):
         raise NotImplemented
 
-    def predict(self, eval_trace_df, use_global, use_train):
+    def predict(self, eval_trace_df, use_global):
         raise NotImplemented
 
-    def evaluate_performance(self, eval_trace_df, use_global=False, use_train=True):
-        predictions, labels = self.predict(eval_trace_df, use_global, use_train)
+    def evaluate_performance(self, eval_trace_df, use_global=False):
+        predictions, labels = self.predict(eval_trace_df, use_global)
         pred_all = []
         labels_all = []
         result_overall = []

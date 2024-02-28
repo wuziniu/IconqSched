@@ -10,7 +10,3 @@ def get_table_feature(sql, all_table_list):
         i = all_table_list.index(table)
         feature[i] = 1
     return feature
-
-
-
-

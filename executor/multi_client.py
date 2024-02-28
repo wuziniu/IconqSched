@@ -24,7 +24,7 @@ STARTUP_FAILED = "startup_failed"
 
 
 def get_time_of_the_day_unsimulated(
-        now: datetime, time_scale_factor: Optional[int]
+    now: datetime, time_scale_factor: Optional[int]
 ) -> int:
     # Get the time of the day in minute in real-time
     assert time_scale_factor is not None, "need to specify args.time_scale_factor"
@@ -46,14 +46,14 @@ def time_in_minute_to_datetime_str(time_unsimulated: Optional[int]) -> str:
 
 
 def runner(
-        runner_idx: int,
-        start_queue: mp.Queue,
-        control_semaphore: mp.Semaphore,  # type: ignore
-        args,
-        query_bank: List[str],
-        queries: List[int],
-        query_frequency: Optional[npt.NDArray] = None,
-        execution_gap_dist: Optional[npt.NDArray] = None
+    runner_idx: int,
+    start_queue: mp.Queue,
+    control_semaphore: mp.Semaphore,  # type: ignore
+    args,
+    query_bank: List[str],
+    queries: List[int],
+    query_frequency: Optional[npt.NDArray] = None,
+    execution_gap_dist: Optional[npt.NDArray] = None,
 ) -> None:
     def noop(_signal, _frame):
         pass
@@ -70,8 +70,14 @@ def runner(
         out_dir = pathlib.Path(".")
 
     try:
-        conn = psycopg2.connect(host=args.host, port=args.port, database=args.schema_name, user=args.user,
-                                password=args.password, sslrootcert="SSLCERTIFICATE")
+        conn = psycopg2.connect(
+            host=args.host,
+            port=args.port,
+            database=args.schema_name,
+            user=args.user,
+            password=args.password,
+            sslrootcert="SSLCERTIFICATE",
+        )
         cur = conn.cursor()
         if args.engine == "redshift":
             cur.execute("SET enable_result_cache_for_session = OFF;")
@@ -214,11 +220,15 @@ def runner(
         print(f"Runner {runner_idx} has exited.", flush=True, file=sys.stderr)
 
 
-def run_warmup(args,
-               query_bank: List[str],
-               queries: List[int]):
-    conn = psycopg2.connect(host=args.host, port=args.port, database=args.schema_name, user=args.user,
-                            password=args.password, sslrootcert="SSLCERTIFICATE")
+def run_warmup(args, query_bank: List[str], queries: List[int]):
+    conn = psycopg2.connect(
+        host=args.host,
+        port=args.port,
+        database=args.schema_name,
+        user=args.user,
+        password=args.password,
+        sslrootcert="SSLCERTIFICATE",
+    )
     cur = conn.cursor()
     if args.engine == "redshift":
         cur.execute("SET enable_result_cache_for_session = OFF;")
@@ -240,7 +250,7 @@ def run_warmup(args,
             flush=True,
         )
         with open(
-                out_dir / "repeating_olap_batch_warmup.csv", "w", encoding="UTF-8"
+            out_dir / "repeating_olap_batch_warmup.csv", "w", encoding="UTF-8"
         ) as file:
             print("timestamp,query_idx,run_time_s,engine", file=file)
             for _ in range(args.run_warmup_times):
@@ -385,7 +395,7 @@ def main():
         query_bank = [line.strip() for line in file]
 
     if args.query_frequency_path is not None and os.path.exists(
-            args.query_frequency_path
+        args.query_frequency_path
     ):
         query_frequency = np.load(args.query_frequency_path)
         assert len(query_frequency) == len(
@@ -395,9 +405,9 @@ def main():
         query_frequency = None
 
     if (
-            args.gap_dist_path is not None
-            and os.path.exists(args.gap_dist_path)
-            and args.time_scale_factor is not None
+        args.gap_dist_path is not None
+        and os.path.exists(args.gap_dist_path)
+        and args.time_scale_factor is not None
     ):
         # we can only set the num_concurrent_query trace in presence of time_scale_factor
         execution_gap_dist = np.load(args.gap_dist_path)
@@ -405,9 +415,9 @@ def main():
         execution_gap_dist = None
 
     if (
-            args.num_client_path is not None
-            and os.path.exists(args.num_client_path)
-            and args.time_scale_factor is not None
+        args.num_client_path is not None
+        and os.path.exists(args.num_client_path)
+        and args.time_scale_factor is not None
     ):
         # we can only set the num_concurrent_query trace in presence of time_scale_factor
         with open(args.num_client_path, "rb") as f:

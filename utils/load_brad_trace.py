@@ -18,7 +18,9 @@ def load_trace(directory, num_client=10, concat=True, version=None):
             if version is None:
                 file = os.path.join(directory, f"repeating_olap_batch_{i}.csv")
             else:
-                file = os.path.join(directory, f"repeating_olap_batch_{i}_{version}.csv")
+                file = os.path.join(
+                    directory, f"repeating_olap_batch_{i}_{version}.csv"
+                )
         if not os.path.exists(file):
             print(f"client {i} trace not found")
             continue
@@ -43,12 +45,14 @@ def load_trace(directory, num_client=10, concat=True, version=None):
         if "time_since_execution_s" in df2.columns:
             df2["g_offset_since_start_s"] = df2["time_since_execution_s"] - starting_s
         else:
-            df2["g_offset_since_start_s"] = df2["g_offset_since_start"].dt.total_seconds()
+            df2["g_offset_since_start_s"] = df2[
+                "g_offset_since_start"
+            ].dt.total_seconds()
         initial_start = df2["g_offset_since_start_s"].iloc[0]
         df2 = df2.sort_values(by=["g_offset_since_start_s"])
         df2["g_issue_gap_s"] = (
-                df2["g_offset_since_start_s"]
-                - df2["g_offset_since_start_s"].shift(periods=1)
+            df2["g_offset_since_start_s"]
+            - df2["g_offset_since_start_s"].shift(periods=1)
         ).fillna(initial_start)
         trace.append(df2)
 
@@ -144,14 +148,18 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
         concur_info.append(cur_concur_info)
         num_concurrent_queries.append(len(cur_concur_info))
 
-    concurrency_df = pd.DataFrame({'query_idx': query_idx,
-                                   'runtime': runtime,
-                                   'start_time': start_time,
-                                   'end_time': end_time,
-                                   'pre_exec_info': pre_exec_info,
-                                   'concur_info': concur_info,
-                                   'num_concurrent_queries': num_concurrent_queries,
-                                   'concur_info_train': concur_info_train,
-                                   'num_concurrent_queries_train': num_concurrent_queries_train})
+    concurrency_df = pd.DataFrame(
+        {
+            "query_idx": query_idx,
+            "runtime": runtime,
+            "start_time": start_time,
+            "end_time": end_time,
+            "pre_exec_info": pre_exec_info,
+            "concur_info": concur_info,
+            "num_concurrent_queries": num_concurrent_queries,
+            "concur_info_train": concur_info_train,
+            "num_concurrent_queries_train": num_concurrent_queries_train,
+        }
+    )
     concurrency_df = concurrency_df.reset_index()
     return concurrency_df
