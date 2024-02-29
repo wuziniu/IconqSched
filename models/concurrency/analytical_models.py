@@ -105,7 +105,7 @@ class SimpleFitCurve(ConcurPredictor):
 
 
 def interaction_func(
-    x, q1, i1, i2, c1, m1, m2, m3, cm1, r1, r2, max_concurrency, avg_io_speed
+    x, q1, i1, i2, c1, m1, m2, m3, cm1, r1, r2, max_concurrency, avg_io_speed, memory_size
 ):
     """
     An analytical function that can consider 3 types of resource sharing/contention: IO, memory, CPU
@@ -121,9 +121,6 @@ def interaction_func(
         avg_est_card: average estimated cardinality in the query plan of this query (reflect average memory usage)
         max_concurrent_card: maximum estimated cardinality for all concurrent queries
         avg_concurrent_card: average estimated cardinality for all concurrent queries
-    Instance-optimizable parameters::
-        max_concurrency: the maximal number of concurrent queries to run at the same time
-        avg_io_speed: how many MB to read per second on average
     TODO: adding memory and CPU information
     """
     (
@@ -139,9 +136,11 @@ def interaction_func(
         max_concurrent_card,
         avg_concurrent_card,
     ) = x
+    # fraction of running queries (as opposed to queueing queries)
     running_frac = np.minimum(num_concurrency, max_concurrency) / np.maximum(
         num_concurrency, 1
     )
+    # estimate queueing time of a query based on the sum of concurrent queries' run time
     queueing_time = (
         q1
         * (
@@ -150,23 +149,35 @@ def interaction_func(
         )
         * sum_concurrent_runtime
     )
+    # estimate io_speed of a query assuming each query has a base io_speed of i1 + the io speed due to contention
     io_speed = i1 + avg_io_speed / np.minimum(
         np.maximum(num_concurrency, 1), max_concurrency
     )
+    # estimate time speed on IO as the (estimated scan - data in cache) / estimated io_speed
+    # use i2 to adjust the estimation error in est_scan and scan_sharing_percentage
     io_time = i2 * est_scan * (1 - scan_sharing_percentage) / io_speed
+    # estimate the amount of CPU work/time as the weighted average of isolated_runtime and avg_runtime - io_time
     cpu_time_isolated = (r1 * isolated_runtime + r2 * avg_runtime) - io_time
+    # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
     cpu_concurrent = (running_frac * sum_concurrent_runtime) / avg_runtime
-    memory_concurrent = (
-        m1 * (running_frac * max_concurrent_card) / max_est_card
-        + m2 * (running_frac * avg_concurrent_card) / avg_est_card
-    )
+    # estimate the amount of memory imposed by the concurrent queries
+    max_mem_usage_perc = max_concurrent_card / (max_concurrent_card + max_est_card)
+    avg_mem_usage_perc = avg_concurrent_card / (avg_concurrent_card + avg_est_card)
+    memory_concurrent = np.log(
+        m1 * np.maximum(max_concurrent_card + max_est_card - memory_size, 0.01) * max_mem_usage_perc
+        + m2 * np.maximum(avg_concurrent_card + avg_est_card - memory_size, 0.01) * avg_mem_usage_perc
+        + 0.0001
+    ) * np.log(m1 * max_est_card + m2 * avg_est_card + 0.0001)
+    memory_concurrent = np.maximum(memory_concurrent, 0)
+    # estimate the CPU time of a query by considering the contention of CPU and memory of other queries
     cpu_time = (
         1
         + c1 * cpu_concurrent
         + m3 * memory_concurrent
         + cm1 * np.sqrt(cpu_concurrent * memory_concurrent)
     ) * cpu_time_isolated
-    return queueing_time + io_time + cpu_time
+    # final runtime of a query is estimated to be the queueing time + io_time + cpu_time
+    return np.maximum(queueing_time + io_time + cpu_time, 0.01)
 
 
 class ComplexFitCurve(ConcurPredictor):
@@ -201,9 +212,10 @@ class ComplexFitCurve(ConcurPredictor):
         self.r2 = 0.2
         self.max_concurrency = 10
         self.avg_io_speed = 200
+        self.memory_size = 16000
         self.bound = optimization.Bounds(
-            [0.1, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.05, 2, 200],
-            [1, 100, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000],
+            [0.1, 10, 0.01, 0.001, 0.001, 0.001, 0.001, 0.001, 0.5, 0.05, 2, 20, 10000],
+            [1, 200, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
         )
 
     def _compute_table_size(self):
@@ -311,10 +323,10 @@ class ComplexFitCurve(ConcurPredictor):
             global_num_concurrency.append(num_concurrency)
             global_est_scan.append(np.ones(n_rows) * query_info["est_scan"])
             global_max_est_card.append(
-                np.ones(n_rows) * np.max(query_info["all_cardinality"])
+                np.ones(n_rows) * np.max(query_info["all_cardinality"]) / (1024 * 1024)
             )
             global_avg_est_card.append(
-                np.ones(n_rows) * np.average(query_info["all_cardinality"])
+                np.ones(n_rows) * np.average(query_info["all_cardinality"]) / (1024 * 1024)
             )
             for j in range(n_rows):
                 sum_concurrent_runtime = 0
@@ -337,9 +349,9 @@ class ComplexFitCurve(ConcurPredictor):
                     global_max_concurrent_card.append(0)
                     global_avg_concurrent_card.append(0)
                 else:
-                    global_max_concurrent_card.append(np.log(np.max(concurrent_card)))
+                    global_max_concurrent_card.append(np.max(concurrent_card) / (1024 * 1024))
                     global_avg_concurrent_card.append(
-                        np.log(np.average(concurrent_card))
+                        np.average(concurrent_card) / (1024 * 1024)
                     )
                 global_scan_sharing_percentage.append(
                     self.estimate_data_share_percentage(
@@ -396,6 +408,7 @@ class ComplexFitCurve(ConcurPredictor):
                 self.r2,
                 self.max_concurrency,
                 self.avg_io_speed,
+                self.memory_size
             ]
         )
         fit, _ = optimization.curve_fit(
@@ -420,6 +433,7 @@ class ComplexFitCurve(ConcurPredictor):
         self.r2 = fit[9]
         self.max_concurrency = fit[10]
         self.avg_io_speed = fit[11]
+        self.memory_size = fit[12]
 
     def predict(self, eval_trace_df, use_global=False, return_per_query=True):
         feature, labels, query_idx = self.featurize_data(eval_trace_df)
@@ -437,6 +451,7 @@ class ComplexFitCurve(ConcurPredictor):
             self.r2,
             self.max_concurrency,
             self.avg_io_speed,
+            self.memory_size
         )
         if return_per_query:
             preds_per_query = dict()
