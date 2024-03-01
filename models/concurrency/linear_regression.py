@@ -72,3 +72,15 @@ class SimpleLinearReg(ConcurPredictor):
             pred = np.maximum(pred, 0.001)
             predictions[i] = pred
         return predictions, labels
+
+    def predict_naive(self, eval_trace_df, use_global=False):
+        predictions = dict()
+        labels = dict()
+        for i, rows in eval_trace_df.groupby("query_idx"):
+            if i not in self.isolated_rt_cache:
+                continue
+            isolated_rt = self.isolated_rt_cache[i]
+            label = rows["runtime"].values
+            labels[i] = label
+            predictions[i] = np.ones(len(label)) * isolated_rt
+        return predictions, labels

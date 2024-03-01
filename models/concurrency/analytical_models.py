@@ -1,6 +1,12 @@
 import numpy as np
+from xgboost import XGBRegressor
+import torch
+import torch.optim as optim
+from torch.nn.functional import l1_loss
 import scipy.optimize as optimization
+from torch.utils.data import DataLoader
 from models.concurrency.base_model import ConcurPredictor
+from models.concurrency.utils import QueryFeatureDataset, SimpleNet
 from parser.utils import load_json, dfs_cardinality, estimate_scan_in_mb
 
 
@@ -104,8 +110,21 @@ class SimpleFitCurve(ConcurPredictor):
         return predictions, labels
 
 
-def interaction_func(
-    x, q1, i1, i2, c1, m1, m2, m3, cm1, r1, r2, max_concurrency, avg_io_speed, memory_size
+def interaction_func_scipy(
+    x,
+    q1,
+    i1,
+    i2,
+    c1,
+    m1,
+    m2,
+    m3,
+    cm1,
+    r1,
+    r2,
+    max_concurrency,
+    avg_io_speed,
+    memory_size,
 ):
     """
     An analytical function that can consider 3 types of resource sharing/contention: IO, memory, CPU
@@ -160,12 +179,16 @@ def interaction_func(
     cpu_time_isolated = (r1 * isolated_runtime + r2 * avg_runtime) - io_time
     # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
     cpu_concurrent = (running_frac * sum_concurrent_runtime) / avg_runtime
-    # estimate the amount of memory imposed by the concurrent queries
+    # estimate the amount of memory load imposed by the concurrent queries
     max_mem_usage_perc = max_concurrent_card / (max_concurrent_card + max_est_card)
     avg_mem_usage_perc = avg_concurrent_card / (avg_concurrent_card + avg_est_card)
     memory_concurrent = np.log(
-        m1 * np.maximum(max_concurrent_card + max_est_card - memory_size, 0.01) * max_mem_usage_perc
-        + m2 * np.maximum(avg_concurrent_card + avg_est_card - memory_size, 0.01) * avg_mem_usage_perc
+        m1
+        * np.maximum(max_concurrent_card + max_est_card - memory_size, 0.01)
+        * max_mem_usage_perc
+        + m2
+        * np.maximum(avg_concurrent_card + avg_est_card - memory_size, 0.01)
+        * avg_mem_usage_perc
         + 0.0001
     ) * np.log(m1 * max_est_card + m2 * avg_est_card + 0.0001)
     memory_concurrent = np.maximum(memory_concurrent, 0)
@@ -180,15 +203,121 @@ def interaction_func(
     return np.maximum(queueing_time + io_time + cpu_time, 0.01)
 
 
+def interaction_func_torch(
+    x,
+    q1,
+    i1,
+    i2,
+    c1,
+    m1,
+    m2,
+    m3,
+    cm1,
+    r1,
+    r2,
+    max_concurrency,
+    avg_io_speed,
+    memory_size,
+):
+    # See interaction_func_scipy for explanation
+    (
+        isolated_runtime,
+        avg_runtime,
+        num_concurrency,
+        sum_concurrent_runtime,
+        est_scan,
+        est_concurrent_scan,
+        scan_sharing_percentage,
+        max_est_card,
+        avg_est_card,
+        max_concurrent_card,
+        avg_concurrent_card,
+    ) = x
+    num_query = len(num_concurrency)
+    running_frac = torch.minimum(num_concurrency, max_concurrency) / torch.maximum(
+        num_concurrency, torch.tensor(1)
+    )
+    # estimate queueing time of a query based on the sum of concurrent queries' run time
+    queueing_time = (
+        q1
+        * (
+            torch.maximum(num_concurrency - max_concurrency, torch.tensor(0))
+            / torch.maximum(num_concurrency, torch.tensor(1))
+        )
+        * sum_concurrent_runtime
+    )
+    # estimate io_speed of a query assuming each query has a base io_speed of i1 + the io speed due to contention
+    io_speed = i1 + avg_io_speed / torch.minimum(
+        torch.maximum(num_concurrency, torch.tensor(1)), max_concurrency
+    )
+    # estimate time speed on IO as the (estimated scan - data in cache) / estimated io_speed
+    # use i2 to adjust the estimation error in est_scan and scan_sharing_percentage
+    io_time = i2 * est_scan * (1 - scan_sharing_percentage) / io_speed
+    # estimate the amount of CPU work/time as the weighted average of isolated_runtime and avg_runtime - io_time
+    cpu_time_isolated = (r1 * isolated_runtime + r2 * avg_runtime) - io_time
+    # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
+    cpu_concurrent = (running_frac * sum_concurrent_runtime) / avg_runtime
+    # estimate the amount of memory load imposed by the concurrent queries
+    max_mem_usage_perc = max_concurrent_card / (max_concurrent_card + max_est_card)
+    avg_mem_usage_perc = avg_concurrent_card / (avg_concurrent_card + avg_est_card)
+    memory_concurrent = torch.log(
+        m1
+        * torch.maximum(max_concurrent_card + max_est_card - memory_size, torch.tensor(0) + 0.01)
+        * max_mem_usage_perc
+        + m2
+        * torch.maximum(avg_concurrent_card + avg_est_card - memory_size, torch.tensor(0) + 0.01)
+        * avg_mem_usage_perc
+        + 0.0001
+    ) * torch.log(m1 * max_est_card + m2 * avg_est_card + 0.0001)
+    memory_concurrent = torch.maximum(memory_concurrent, torch.tensor(0))
+    # estimate the CPU time of a query by considering the contention of CPU and memory of other queries
+    cpu_time = (
+        1
+        + c1 * cpu_concurrent
+        + m3 * memory_concurrent
+        + cm1 * torch.sqrt(cpu_concurrent * memory_concurrent)
+    ) * cpu_time_isolated
+    # final runtime of a query is estimated to be the queueing time + io_time + cpu_time
+    return torch.maximum(queueing_time + io_time + cpu_time, torch.tensor(0) + 0.01)
+
+
+def fit_curve_loss_torch(x, y, params, constrain, loss_func="soft_l1", penalties=None):
+    pred = interaction_func_torch(x, *params)
+    lb = constrain.lb
+    ub = constrain.ub
+    if loss_func == "mae":
+        loss = torch.abs(pred - y)
+    elif loss_func == "mse":
+        loss = (pred - y) ** 2
+    elif loss_func == "soft_l1":
+        loss = torch.sqrt(1 + (pred - y) ** 2) - 1
+    else:
+        assert False, f"loss func {loss_func} not implemented"
+    loss = torch.mean(loss)
+    for i, p in enumerate(params):
+        if penalties is not None:
+            penalty = penalties[i]
+        else:
+            penalty = 1
+        pen = torch.exp(penalty * (p - ub[i])) + torch.exp(-1 * penalty * (p - lb[i]))
+        loss += pen
+    return loss
+
+
 class ComplexFitCurve(ConcurPredictor):
     """
-    Simple fit curve model for runtime prediction with concurrency
-    runtime = queue_time(num_concurrency) + alpha(num_concurrency) * isolated_runtime
-            = (a1 * max(num_concurrency-b1, 0)) + (1 + a2*min(num_concurrency, b1)) * isolated_runtime
-    optimize a1, b1, b2
+    Complex fit curve model for runtime prediction with concurrency
+    See interaction_func_scipy for detailed analytical functions
     """
 
-    def __init__(self):
+    def __init__(self, is_column_store=False, opt_method='scipy'):
+        """
+
+        :param is_column_store:
+        :param opt_method:
+        """
+        # indicate whether the DBMS is a column_store
+        #
         super().__init__()
         self.isolated_rt_cache = dict()
         self.average_rt_cache = dict()
@@ -199,24 +328,21 @@ class ComplexFitCurve(ConcurPredictor):
         self.table_nrows_by_index = dict()
         self.table_column_map = dict()
         self.use_train = True
-        self.is_column_store = False
-        self.q1 = 0.5
-        self.i1 = 10
-        self.i2 = 2
-        self.c1 = 0.2
-        self.m1 = 0.5
-        self.m2 = 0.5
-        self.m3 = 0.1
-        self.cm1 = 0.2
-        self.r1 = 0.8
-        self.r2 = 0.2
-        self.max_concurrency = 10
-        self.avg_io_speed = 200
-        self.memory_size = 16000
+        self.is_column_store = is_column_store
+        self.opt_method = opt_method
+        self.batch_size = 1024
+        self.analytic_params = [0.5, 20, 2, 0.2, 0.5, 0.5, 0.1, 0.2, 0.8, 0.2, 10, 200, 16000]
         self.bound = optimization.Bounds(
             [0.1, 10, 0.01, 0.001, 0.001, 0.001, 0.001, 0.001, 0.5, 0.05, 2, 20, 10000],
             [1, 200, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
         )
+        self.constrain = optimization.Bounds(
+            [0.1, 10, 0.1, 0.01, 0.01, 0.01, 0.01, 0.1, 0.5, 0.05, 2, 20, 10000],
+            [1, 200, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
+        )
+        self.penalty = [100, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 1, 0.1, 0.01]
+        self.loss_func = "soft_l1"
+        self.model = None
 
     def _compute_table_size(self):
         for col in self.db_stats["column_stats"]:
@@ -326,7 +452,9 @@ class ComplexFitCurve(ConcurPredictor):
                 np.ones(n_rows) * np.max(query_info["all_cardinality"]) / (1024 * 1024)
             )
             global_avg_est_card.append(
-                np.ones(n_rows) * np.average(query_info["all_cardinality"]) / (1024 * 1024)
+                np.ones(n_rows)
+                * np.average(query_info["all_cardinality"])
+                / (1024 * 1024)
             )
             for j in range(n_rows):
                 sum_concurrent_runtime = 0
@@ -349,7 +477,9 @@ class ComplexFitCurve(ConcurPredictor):
                     global_max_concurrent_card.append(0)
                     global_avg_concurrent_card.append(0)
                 else:
-                    global_max_concurrent_card.append(np.max(concurrent_card) / (1024 * 1024))
+                    global_max_concurrent_card.append(
+                        np.max(concurrent_card) / (1024 * 1024)
+                    )
                     global_avg_concurrent_card.append(
                         np.average(concurrent_card) / (1024 * 1024)
                     )
@@ -384,6 +514,12 @@ class ComplexFitCurve(ConcurPredictor):
             global_max_concurrent_card,
             global_avg_concurrent_card,
         )
+        if self.opt_method == "torch" or self.opt_method == "nn":
+            feature = list(feature)
+            for i in range(len(feature)):
+                feature[i] = torch.from_numpy(feature[i])
+            feature = tuple(feature)
+            global_y = torch.from_numpy(global_y)
         return feature, global_y, global_query_idx
 
     def train(self, trace_df, use_train=True, isolated_trace_df=None):
@@ -394,65 +530,113 @@ class ComplexFitCurve(ConcurPredictor):
         concurrent_df = trace_df[trace_df["num_concurrent_queries"] > 0]
         feature, label, _ = self.featurize_data(concurrent_df)
 
-        initial_param_value = np.array(
-            [
-                self.q1,
-                self.i1,
-                self.i2,
-                self.c1,
-                self.m1,
-                self.m2,
-                self.m3,
-                self.cm1,
-                self.r1,
-                self.r2,
-                self.max_concurrency,
-                self.avg_io_speed,
-                self.memory_size
-            ]
-        )
-        fit, _ = optimization.curve_fit(
-            interaction_func,
-            feature,
-            label,
-            initial_param_value,
-            bounds=self.bound,
-            jac="3-point",
-            method="trf",
-            loss="soft_l1",
-        )
-        self.q1 = fit[0]
-        self.i1 = fit[1]
-        self.i2 = fit[2]
-        self.c1 = fit[3]
-        self.m1 = fit[4]
-        self.m2 = fit[5]
-        self.m3 = fit[6]
-        self.cm1 = fit[7]
-        self.r1 = fit[8]
-        self.r2 = fit[9]
-        self.max_concurrency = fit[10]
-        self.avg_io_speed = fit[11]
-        self.memory_size = fit[12]
+        initial_param_value = np.asarray(self.analytic_params)
+        if self.opt_method == "scipy":
+            fit, _ = optimization.curve_fit(
+                interaction_func_scipy,
+                feature,
+                label,
+                initial_param_value,
+                bounds=self.bound,
+                jac="3-point",
+                method="trf",
+                loss="soft_l1",
+                verbose=1
+            )
+            self.analytic_params = list(fit)
+        elif self.opt_method == "torch":
+            torch_analytic_params = []
+            torch_analytic_params_lr = []
+            for p in self.analytic_params:
+                if p == 10:
+                    t_p = torch.tensor(float(p), requires_grad=False)
+                else:
+                    t_p = torch.tensor(float(p), requires_grad=True)
+                torch_analytic_params.append(t_p)
+                torch_analytic_params_lr.append({'params': t_p, 'lr': 0.01 * p ** 0.3})
+            optimizer = optim.Adam(torch_analytic_params_lr, weight_decay=2e-5)
+            dataset = QueryFeatureDataset(feature, label)
+            train_dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+            for epoch in range(200):
+                for X, y in train_dataloader:
+                    optimizer.zero_grad()
+                    loss = fit_curve_loss_torch(X, y, torch_analytic_params,
+                                                self.constrain, loss_func=self.loss_func, penalties=self.penalty)
+                    loss.backward()
+                    optimizer.step()
+                if epoch % 10 == 0:
+                    print(epoch, loss.item())
+                    print(torch_analytic_params)
+            for i in range(len(self.analytic_params)):
+                self.analytic_params[i] = torch_analytic_params[i].detach()
+        elif self.opt_method == "nn":
+            dataset = QueryFeatureDataset(feature, label)
+            train_dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+            self.model = SimpleNet(len(feature))
+            optimizer = optim.Adam(self.model.parameters(), lr=0.01, weight_decay=2e-5)
+            for epoch in range(200):
+                for X, y in train_dataloader:
+                    X = torch.stack(X).float()
+                    X = torch.transpose(X, 0, 1)
+                    optimizer.zero_grad()
+                    pred = self.model(X)
+                    pred = pred.reshape(-1)
+                    loss = l1_loss(pred, y)
+                    loss.backward()
+                    optimizer.step()
+                if epoch % 10 == 0:
+                    print(epoch, loss.item())
+        elif self.opt_method == "xgboost":
+            feature = np.stack(feature).T
+            model = XGBRegressor(
+                n_estimators=1000,
+                max_depth=8,
+                eta=0.2,
+                subsample=1.0,
+                eval_metric="mae",
+                early_stopping_rounds=100,
+            )
+            train_idx = np.random.choice(
+                len(feature), size=int(0.8 * len(feature)), replace=False
+            )
+            val_idx = [i for i in range(len(feature)) if i not in train_idx]
+            model.fit(
+                feature[train_idx],
+                label[train_idx],
+                eval_set=[(feature[val_idx], label[val_idx])],
+                verbose=False,
+            )
+            self.model = model
+        else:
+            assert False, f"unrecognized optimization method {self.opt_method}"
 
     def predict(self, eval_trace_df, use_global=False, return_per_query=True):
         feature, labels, query_idx = self.featurize_data(eval_trace_df)
-        preds = interaction_func(
-            feature,
-            self.q1,
-            self.i1,
-            self.i2,
-            self.c1,
-            self.m1,
-            self.m2,
-            self.m3,
-            self.cm1,
-            self.r1,
-            self.r2,
-            self.max_concurrency,
-            self.avg_io_speed,
-            self.memory_size
-        )
+        if self.opt_method == "scipy":
+            preds = interaction_func_scipy(
+                feature,
+                *self.analytic_params
+            )
+        elif self.opt_method == "torch":
+            preds = interaction_func_torch(
+                feature,
+                *self.analytic_params
+            )
+            preds = preds.numpy()
+            labels = labels.numpy()
+        elif self.opt_method == "nn":
+            feature = torch.stack(feature).float()
+            feature = torch.transpose(feature, 0, 1)
+            preds = self.model(feature)
+            preds = preds.reshape(-1)
+            preds = preds.detach().numpy()
+            labels = labels.numpy()
+        elif self.opt_method == "xgboost":
+            feature = np.stack(feature).T
+            preds = self.model.predict(feature)
+            preds = np.maximum(preds, 0.001)
+        else:
+            assert False, f"unrecognized optimization method {self.opt_method}"
         if return_per_query:
             preds_per_query = dict()
             labels_per_query = dict()
