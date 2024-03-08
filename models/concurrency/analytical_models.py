@@ -7,19 +7,12 @@ import scipy.optimize as optimization
 from torch.utils.data import DataLoader
 from models.concurrency.base_model import ConcurPredictor
 from models.concurrency.utils import QueryFeatureDataset, SimpleNet
+from models.concurrency.analytical_functions import (
+    simple_queueing_func,
+    interaction_func_torch,
+    interaction_func_scipy,
+)
 from parser.utils import load_json, dfs_cardinality, estimate_scan_in_mb
-
-
-def simple_queueing_func(x, a1, a2, b1):
-    """
-    a1 represents the average exec-time of a random query under concurrency
-    b1 represents the max level of concurrency in a system
-    a2 represents the average impact on a query's runtime when executed concurrently with other queries
-    """
-    num_concurrency, isolated_runtime = x
-    return (a1 * np.maximum(num_concurrency - b1, 0)) + (
-        1 + a2 * np.minimum(num_concurrency, b1)
-    ) * isolated_runtime
 
 
 class SimpleFitCurve(ConcurPredictor):
@@ -110,187 +103,22 @@ class SimpleFitCurve(ConcurPredictor):
         return predictions, labels
 
 
-def interaction_func_scipy(
-    x,
-    q1,
-    i1,
-    i2,
-    c1,
-    m1,
-    m2,
-    m3,
-    cm1,
-    r1,
-    r2,
-    max_concurrency,
-    avg_io_speed,
-    memory_size,
-):
-    """
-    An analytical function that can consider 3 types of resource sharing/contention: IO, memory, CPU
-    x:: input tuple containing:
-        isolated_runtime: the isolated runtime without concurrency of a query
-        avg_runtime: average or median observed runtime of a query under any concurrency
-        num_concurrency: number of concurrent queries running with this query
-        sum_concurrent_runtime: sum of the estimated runtime of all queries concurrently running with this query (CPU)
-        est_scan: estimated MB of data that this query will need to scan (IO)
-        est_concurrent_scan: estimated MB of data that the concurrently running queries will need to scan (IO)
-        scan_sharing_percentage: estimated percentage of data in cache (sharing) according to concurrent queries
-        max_est_card: maximum estimated cardinality in the query plan of this query (reflect peak memory usage)
-        avg_est_card: average estimated cardinality in the query plan of this query (reflect average memory usage)
-        max_concurrent_card: maximum estimated cardinality for all concurrent queries
-        avg_concurrent_card: average estimated cardinality for all concurrent queries
-    TODO: adding memory and CPU information
-    """
-    (
-        isolated_runtime,
-        avg_runtime,
-        num_concurrency,
-        sum_concurrent_runtime,
-        est_scan,
-        est_concurrent_scan,
-        scan_sharing_percentage,
-        max_est_card,
-        avg_est_card,
-        max_concurrent_card,
-        avg_concurrent_card,
-    ) = x
-    # fraction of running queries (as opposed to queueing queries)
-    running_frac = np.minimum(num_concurrency, max_concurrency) / np.maximum(
-        num_concurrency, 1
-    )
-    # estimate queueing time of a query based on the sum of concurrent queries' run time
-    queueing_time = (
-        q1
-        * (
-            np.maximum(num_concurrency - max_concurrency, 0)
-            / np.maximum(num_concurrency, 1)
-        )
-        * sum_concurrent_runtime
-    )
-    # estimate io_speed of a query assuming each query has a base io_speed of i1 + the io speed due to contention
-    io_speed = i1 + avg_io_speed / np.minimum(
-        np.maximum(num_concurrency, 1), max_concurrency
-    )
-    # estimate time speed on IO as the (estimated scan - data in cache) / estimated io_speed
-    # use i2 to adjust the estimation error in est_scan and scan_sharing_percentage
-    io_time = i2 * est_scan * (1 - scan_sharing_percentage) / io_speed
-    # estimate the amount of CPU work/time as the weighted average of isolated_runtime and avg_runtime - io_time
-    cpu_time_isolated = (r1 * isolated_runtime + r2 * avg_runtime) - io_time
-    # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
-    cpu_concurrent = (running_frac * sum_concurrent_runtime) / avg_runtime
-    # estimate the amount of memory load imposed by the concurrent queries
-    max_mem_usage_perc = max_concurrent_card / (max_concurrent_card + max_est_card)
-    avg_mem_usage_perc = avg_concurrent_card / (avg_concurrent_card + avg_est_card)
-    memory_concurrent = np.log(
-        m1
-        * np.maximum(max_concurrent_card + max_est_card - memory_size, 0.01)
-        * max_mem_usage_perc
-        + m2
-        * np.maximum(avg_concurrent_card + avg_est_card - memory_size, 0.01)
-        * avg_mem_usage_perc
-        + 0.0001
-    ) * np.log(m1 * max_est_card + m2 * avg_est_card + 0.0001)
-    memory_concurrent = np.maximum(memory_concurrent, 0)
-    # estimate the CPU time of a query by considering the contention of CPU and memory of other queries
-    cpu_time = (
-        1
-        + c1 * cpu_concurrent
-        + m3 * memory_concurrent
-        + cm1 * np.sqrt(cpu_concurrent * memory_concurrent)
-    ) * cpu_time_isolated
-    # final runtime of a query is estimated to be the queueing time + io_time + cpu_time
-    return np.maximum(queueing_time + io_time + cpu_time, 0.01)
-
-
-def interaction_func_torch(
-    x,
-    q1,
-    i1,
-    i2,
-    c1,
-    m1,
-    m2,
-    m3,
-    cm1,
-    r1,
-    r2,
-    max_concurrency,
-    avg_io_speed,
-    memory_size,
-):
-    # See interaction_func_scipy for explanation
-    (
-        isolated_runtime,
-        avg_runtime,
-        num_concurrency,
-        sum_concurrent_runtime,
-        est_scan,
-        est_concurrent_scan,
-        scan_sharing_percentage,
-        max_est_card,
-        avg_est_card,
-        max_concurrent_card,
-        avg_concurrent_card,
-    ) = x
-    num_query = len(num_concurrency)
-    running_frac = torch.minimum(num_concurrency, max_concurrency) / torch.maximum(
-        num_concurrency, torch.tensor(1)
-    )
-    # estimate queueing time of a query based on the sum of concurrent queries' run time
-    queueing_time = (
-        q1
-        * (
-            torch.maximum(num_concurrency - max_concurrency, torch.tensor(0))
-            / torch.maximum(num_concurrency, torch.tensor(1))
-        )
-        * sum_concurrent_runtime
-    )
-    # estimate io_speed of a query assuming each query has a base io_speed of i1 + the io speed due to contention
-    io_speed = i1 + avg_io_speed / torch.minimum(
-        torch.maximum(num_concurrency, torch.tensor(1)), max_concurrency
-    )
-    # estimate time speed on IO as the (estimated scan - data in cache) / estimated io_speed
-    # use i2 to adjust the estimation error in est_scan and scan_sharing_percentage
-    io_time = i2 * est_scan * (1 - scan_sharing_percentage) / io_speed
-    # estimate the amount of CPU work/time as the weighted average of isolated_runtime and avg_runtime - io_time
-    cpu_time_isolated = (r1 * isolated_runtime + r2 * avg_runtime) - io_time
-    # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
-    cpu_concurrent = (running_frac * sum_concurrent_runtime) / avg_runtime
-    # estimate the amount of memory load imposed by the concurrent queries
-    max_mem_usage_perc = max_concurrent_card / (max_concurrent_card + max_est_card)
-    avg_mem_usage_perc = avg_concurrent_card / (avg_concurrent_card + avg_est_card)
-    memory_concurrent = torch.log(
-        m1
-        * torch.maximum(max_concurrent_card + max_est_card - memory_size, torch.tensor(0) + 0.01)
-        * max_mem_usage_perc
-        + m2
-        * torch.maximum(avg_concurrent_card + avg_est_card - memory_size, torch.tensor(0) + 0.01)
-        * avg_mem_usage_perc
-        + 0.0001
-    ) * torch.log(m1 * max_est_card + m2 * avg_est_card + 0.0001)
-    memory_concurrent = torch.maximum(memory_concurrent, torch.tensor(0))
-    # estimate the CPU time of a query by considering the contention of CPU and memory of other queries
-    cpu_time = (
-        1
-        + c1 * cpu_concurrent
-        + m3 * memory_concurrent
-        + cm1 * torch.sqrt(cpu_concurrent * memory_concurrent)
-    ) * cpu_time_isolated
-    # final runtime of a query is estimated to be the queueing time + io_time + cpu_time
-    return torch.maximum(queueing_time + io_time + cpu_time, torch.tensor(0) + 0.01)
-
-
 def fit_curve_loss_torch(x, y, params, constrain, loss_func="soft_l1", penalties=None):
     pred = interaction_func_torch(x, *params)
     lb = constrain.lb
     ub = constrain.ub
+
+
     if loss_func == "mae":
         loss = torch.abs(pred - y)
     elif loss_func == "mse":
-        loss = (pred - y) ** 2
+        # loss = (pred - y) ** 2
+        criterion = torch.nn.MSELoss(reduction='sum')
+        loss = criterion(pred, y)
     elif loss_func == "soft_l1":
-        loss = torch.sqrt(1 + (pred - y) ** 2) - 1
+        # loss = torch.sqrt(1 + (pred - y) ** 2) - 1
+        criterion = torch.nn.SmoothL1Loss()
+        loss = criterion(pred, y)
     else:
         assert False, f"loss func {loss_func} not implemented"
     loss = torch.mean(loss)
@@ -310,7 +138,7 @@ class ComplexFitCurve(ConcurPredictor):
     See interaction_func_scipy for detailed analytical functions
     """
 
-    def __init__(self, is_column_store=False, opt_method='scipy'):
+    def __init__(self, is_column_store=False, opt_method="scipy"):
         """
 
         :param is_column_store:
@@ -327,11 +155,26 @@ class ComplexFitCurve(ConcurPredictor):
         self.table_sizes_by_index = dict()
         self.table_nrows_by_index = dict()
         self.table_column_map = dict()
-        self.use_train = True
+        self.use_pre_info = False
+        self.use_post_info = False
         self.is_column_store = is_column_store
         self.opt_method = opt_method
         self.batch_size = 1024
-        self.analytic_params = [0.5, 20, 2, 0.2, 0.5, 0.5, 0.1, 0.2, 0.8, 0.2, 10, 200, 16000]
+        self.analytic_params = [
+            0.5,
+            20,
+            2,
+            0.2,
+            0.5,
+            0.5,
+            0.1,
+            0.2,
+            0.8,
+            0.2,
+            10,
+            200,
+            16000,
+        ]
         self.bound = optimization.Bounds(
             [0.1, 10, 0.01, 0.001, 0.001, 0.001, 0.001, 0.001, 0.5, 0.05, 2, 20, 10000],
             [1, 200, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
@@ -341,8 +184,9 @@ class ComplexFitCurve(ConcurPredictor):
             [1, 200, 2, 1, 0.9, 0.9, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
         )
         self.penalty = [100, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 1, 0.1, 0.01]
-        self.loss_func = "soft_l1"
+        self.loss_func = "mse"
         self.model = None
+        self.analytic_func = None
 
     def _compute_table_size(self):
         for col in self.db_stats["column_stats"]:
@@ -433,7 +277,7 @@ class ComplexFitCurve(ConcurPredictor):
             concurrent_rt = rows["runtime"].values
             query_info = self.query_info[i]
             n_rows = len(rows)
-            if self.use_train:
+            if self.use_pre_info:
                 num_concurrency = rows["num_concurrent_queries_train"].values
                 concur_info = rows["concur_info_train"].values
             else:
@@ -522,8 +366,13 @@ class ComplexFitCurve(ConcurPredictor):
             global_y = torch.from_numpy(global_y)
         return feature, global_y, global_query_idx
 
-    def train(self, trace_df, use_train=True, isolated_trace_df=None):
-        self.use_train = use_train
+    def train(
+        self, trace_df, use_train=True, isolated_trace_df=None, analytic_func=None
+    ):
+        if analytic_func is None:
+            analytic_func = interaction_func_scipy
+        self.analytic_func = analytic_func
+        self.use_pre_info = use_train
         self.get_isolated_runtime_cache(
             trace_df, isolated_trace_df, get_avg_runtime=True
         )
@@ -533,7 +382,7 @@ class ComplexFitCurve(ConcurPredictor):
         initial_param_value = np.asarray(self.analytic_params)
         if self.opt_method == "scipy":
             fit, _ = optimization.curve_fit(
-                interaction_func_scipy,
+                self.analytic_func,
                 feature,
                 label,
                 initial_param_value,
@@ -541,7 +390,7 @@ class ComplexFitCurve(ConcurPredictor):
                 jac="3-point",
                 method="trf",
                 loss="soft_l1",
-                verbose=1
+                verbose=1,
             )
             self.analytic_params = list(fit)
         elif self.opt_method == "torch":
@@ -552,26 +401,36 @@ class ComplexFitCurve(ConcurPredictor):
                     t_p = torch.tensor(float(p), requires_grad=False)
                 else:
                     t_p = torch.tensor(float(p), requires_grad=True)
+                # t_p = torch.tensor(float(p), requires_grad=True)
+                # t_p.requires_grad = True
+                # torch_analytic_params_lr.append({'params': t_p, 'lr': 0.01 * p ** 0.3})
+                torch_analytic_params_lr.append({'params': t_p, 'lr': 1e-4})
                 torch_analytic_params.append(t_p)
-                torch_analytic_params_lr.append({'params': t_p, 'lr': 0.01 * p ** 0.3})
-            optimizer = optim.Adam(torch_analytic_params_lr, weight_decay=2e-5)
+            print(len(torch_analytic_params))
+            optimizer = optim.AdamW(torch_analytic_params_lr, weight_decay=2e-5)
             dataset = QueryFeatureDataset(feature, label)
             train_dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
-            for epoch in range(200):
+            for epoch in range(800):
                 for X, y in train_dataloader:
+                    # X = X.to('mps')
+                    # y = y.to(torch.float32).to('mps')
                     optimizer.zero_grad()
                     loss = fit_curve_loss_torch(X, y, torch_analytic_params,
                                                 self.constrain, loss_func=self.loss_func, penalties=self.penalty)
                     loss.backward()
+                    # for p in torch_analytic_params:
+                    #     print(p.grad)
                     optimizer.step()
-                if epoch % 10 == 0:
+                if epoch % 50 == 0:
                     print(epoch, loss.item())
-                    print(torch_analytic_params)
+                    # print(torch_analytic_params)
             for i in range(len(self.analytic_params)):
                 self.analytic_params[i] = torch_analytic_params[i].detach()
         elif self.opt_method == "nn":
             dataset = QueryFeatureDataset(feature, label)
-            train_dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+            train_dataloader = DataLoader(
+                dataset, batch_size=self.batch_size, shuffle=True
+            )
             self.model = SimpleNet(len(feature))
             optimizer = optim.Adam(self.model.parameters(), lr=0.01, weight_decay=2e-5)
             for epoch in range(200):
@@ -611,13 +470,14 @@ class ComplexFitCurve(ConcurPredictor):
             assert False, f"unrecognized optimization method {self.opt_method}"
 
     def predict(self, eval_trace_df, use_global=False, return_per_query=True):
+        if self.analytic_func is None:
+            self.analytic_func = interaction_func_scipy
         feature, labels, query_idx = self.featurize_data(eval_trace_df)
         if self.opt_method == "scipy":
-            preds = interaction_func_scipy(
-                feature,
-                *self.analytic_params
-            )
+            preds = self.analytic_func(feature, *self.analytic_params)
         elif self.opt_method == "torch":
+            feature = torch.stack(feature).float()
+            feature = torch.transpose(feature, 0, 1)
             preds = interaction_func_torch(
                 feature,
                 *self.analytic_params
@@ -647,3 +507,332 @@ class ComplexFitCurve(ConcurPredictor):
             return preds_per_query, labels_per_query
         else:
             return preds, labels
+
+
+class ComplexFitCurveSeparation(ComplexFitCurve):
+    """
+    Complex fit curve model for runtime prediction with concurrency
+    See interaction_func_scipy for detailed analytical functions
+    """
+
+    def __init__(self, is_column_store=False, opt_method="scipy"):
+        super().__init__(is_column_store, opt_method)
+        self.analytic_params = [
+            0.3,
+            0.5,
+            20,
+            2,
+            0.2,
+            0.1,
+            0.3,
+            0.3,
+            0.3,
+            0.3,
+            0.1,
+            0.2,
+            0.8,
+            0.2,
+            10,
+            200,
+            16000,
+        ]
+        self.bound = optimization.Bounds(
+            [
+                0.1,
+                0.1,
+                10,
+                0.01,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.5,
+                0.05,
+                2,
+                20,
+                10000,
+            ],
+            [
+                1,
+                1,
+                200,
+                2,
+                1,
+                0.9,
+                0.9,
+                0.9,
+                0.5,
+                0.5,
+                0.5,
+                0.5,
+                0.95,
+                0.4,
+                20,
+                2000,
+                50000,
+            ],
+        )
+        self.constrain = optimization.Bounds(
+            [
+                0.1,
+                0.1,
+                10,
+                0.1,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.1,
+                0.5,
+                0.05,
+                2,
+                20,
+                10000,
+            ],
+            [
+                1,
+                1,
+                200,
+                2,
+                1,
+                0.9,
+                0.9,
+                0.9,
+                0.5,
+                0.5,
+                0.5,
+                0.5,
+                0.95,
+                0.4,
+                20,
+                2000,
+                50000,
+            ],
+        )
+        self.penalty = [
+            100,
+            100,
+            0.1,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            1,
+            0.1,
+            0.01,
+        ]
+
+    def featurize_data(self, concurrent_df):
+        global_y = []
+        global_isolated_runtime = []
+        global_avg_runtime = []
+        global_num_concurrency_pre = []
+        global_num_concurrency_post = []
+        global_sum_concurrent_runtime_pre = []
+        global_sum_concurrent_runtime_post = []
+        global_avg_time_elapsed_pre = []
+        global_sum_time_overlap_post = []
+        global_est_scan = []
+        global_est_concurrent_scan_pre = []
+        global_est_concurrent_scan_post = []
+        global_scan_sharing_percentage = []
+        global_max_est_card = []
+        global_avg_est_card = []
+        global_max_concurrent_card_pre = []
+        global_max_concurrent_card_post = []
+        global_avg_concurrent_card_pre = []
+        global_avg_concurrent_card_post = []
+        global_query_idx = dict()
+        start = 0
+        for i, rows in concurrent_df.groupby("query_idx"):
+            if (
+                i not in self.isolated_rt_cache
+                or i not in self.query_info
+                or i not in self.average_rt_cache
+            ):
+                continue
+            concurrent_rt = rows["runtime"].values
+            start_time = rows["start_time"].values
+            end_time = rows["end_time"].values
+            query_info = self.query_info[i]
+            n_rows = len(rows)
+            num_concurrency_pre = rows["num_concurrent_queries_train"].values
+            global_num_concurrency_pre.append(num_concurrency_pre)
+            concur_info_prev = rows["concur_info_train"].values
+            full_concur_info = rows["concur_info"].values
+            concur_info_post = []
+            for j in range(len(full_concur_info)):
+                new_info = [
+                    c for c in full_concur_info[j] if c not in full_concur_info[j]
+                ]
+                concur_info_post.append(new_info)
+            pre_exec_info = rows["pre_exec_info"].values
+
+            global_query_idx[i] = (start, start + n_rows)
+            start += n_rows
+            global_y.append(concurrent_rt)
+            global_isolated_runtime.append(np.ones(n_rows) * self.isolated_rt_cache[i])
+            global_avg_runtime.append(np.ones(n_rows) * self.average_rt_cache[i])
+            global_est_scan.append(np.ones(n_rows) * query_info["est_scan"])
+            global_max_est_card.append(
+                np.ones(n_rows) * np.max(query_info["all_cardinality"]) / (1024 * 1024)
+            )
+            global_avg_est_card.append(
+                np.ones(n_rows)
+                * np.average(query_info["all_cardinality"])
+                / (1024 * 1024)
+            )
+            for j in range(n_rows):
+                sum_concurrent_runtime_pre = 0
+                sum_concurrent_runtime_post = 0
+                sum_concurrent_scan_pre = 0
+                sum_concurrent_scan_post = 0
+                avg_time_elapsed_pre = 0
+                sum_time_overlap_post = 0
+                concurrent_card_pre = []
+                concurrent_card_post = []
+                for c in full_concur_info[j]:
+                    if c[0] in self.average_rt_cache:
+                        if c in concur_info_prev[j]:
+                            sum_concurrent_runtime_pre += self.average_rt_cache[c[0]]
+                            avg_time_elapsed_pre += start_time[j] - c[1]
+                        else:
+                            sum_concurrent_runtime_post += self.average_rt_cache[c[0]]
+                            # TODO: this is not practical, make it an estimation
+                            sum_time_overlap_post += end_time[j] - c[1]
+                    else:
+                        print(c[0])
+                    if c[0] in self.query_info:
+                        if c in concur_info_prev[j]:
+                            sum_concurrent_scan_pre += self.query_info[c[0]]["est_scan"]
+                            concurrent_card_pre.extend(
+                                self.query_info[c[0]]["all_cardinality"]
+                            )
+                        else:
+                            sum_concurrent_scan_post += self.query_info[c[0]][
+                                "est_scan"
+                            ]
+                            concurrent_card_post.extend(
+                                self.query_info[c[0]]["all_cardinality"]
+                            )
+                    else:
+                        print(c[0])
+
+                global_sum_concurrent_runtime_pre.append(sum_concurrent_runtime_pre)
+                global_avg_time_elapsed_pre.append(
+                    avg_time_elapsed_pre / len(concur_info_prev[j])
+                )
+                global_est_concurrent_scan_pre.append(sum_concurrent_scan_pre)
+                if len(concurrent_card_pre) == 0:
+                    global_max_concurrent_card_pre.append(0)
+                    global_avg_concurrent_card_pre.append(0)
+                else:
+                    global_max_concurrent_card_pre.append(
+                        np.max(concurrent_card_pre) / (1024 * 1024)
+                    )
+                    global_avg_concurrent_card_pre.append(
+                        np.average(concurrent_card_pre) / (1024 * 1024)
+                    )
+                # TODO: may be able to change concur_info_prev to full_concur_info?
+                global_scan_sharing_percentage.append(
+                    self.estimate_data_share_percentage(
+                        i, concur_info_prev[j], pre_exec_info[j]
+                    )
+                )
+                if self.use_pre_info:
+                    global_sum_concurrent_runtime_post.append(0)
+                    global_est_concurrent_scan_post.append(0)
+                    global_sum_time_overlap_post.append(0)
+                    global_max_concurrent_card_post.append(0)
+                    global_avg_concurrent_card_post.append(0)
+                else:
+                    global_sum_concurrent_runtime_post.append(
+                        sum_concurrent_runtime_post
+                    )
+                    global_est_concurrent_scan_post.append(sum_concurrent_scan_post)
+                    global_sum_time_overlap_post.append(sum_time_overlap_post)
+                    if len(concurrent_card_post) == 0:
+                        global_max_concurrent_card_post.append(0)
+                        global_avg_concurrent_card_post.append(0)
+                    else:
+                        global_max_concurrent_card_post.append(
+                            np.max(concurrent_card_post) / (1024 * 1024)
+                        )
+                        global_avg_concurrent_card_post.append(
+                            np.average(concurrent_card_post) / (1024 * 1024)
+                        )
+
+            if self.use_pre_info:
+                num_concurrency_post = np.zeros(n_rows)
+            else:
+                num_concurrency_post = (
+                    rows["num_concurrent_queries"].values
+                    - rows["num_concurrent_queries_train"].values
+                )
+            global_num_concurrency_post.append(num_concurrency_post)
+
+        global_y = np.concatenate(global_y)
+        global_isolated_runtime = np.concatenate(global_isolated_runtime)
+        global_avg_runtime = np.concatenate(global_avg_runtime)
+        global_num_concurrency_pre = np.concatenate(global_num_concurrency_pre)
+        global_num_concurrency_post = np.concatenate(global_num_concurrency_post)
+
+        global_est_scan = np.concatenate(global_est_scan)
+        global_max_est_card = np.concatenate(global_max_est_card)
+        global_avg_est_card = np.concatenate(global_avg_est_card)
+        global_avg_time_elapsed_pre = np.asarray(global_avg_time_elapsed_pre)
+        global_sum_time_overlap_post = np.asarray(global_sum_time_overlap_post)
+        global_sum_concurrent_runtime_pre = np.asarray(
+            global_sum_concurrent_runtime_pre
+        )
+        global_sum_concurrent_runtime_post = np.asarray(
+            global_sum_concurrent_runtime_post
+        )
+        global_est_concurrent_scan_pre = np.asarray(global_est_concurrent_scan_pre)
+        global_est_concurrent_scan_post = np.asarray(global_est_concurrent_scan_post)
+        global_max_concurrent_card_pre = np.asarray(global_max_concurrent_card_pre)
+        global_max_concurrent_card_post = np.asarray(global_max_concurrent_card_post)
+        global_avg_concurrent_card_pre = np.asarray(global_avg_concurrent_card_pre)
+        global_avg_concurrent_card_post = np.asarray(global_avg_concurrent_card_post)
+        global_scan_sharing_percentage = np.asarray(global_scan_sharing_percentage)
+        feature = (
+            global_isolated_runtime,
+            global_avg_runtime,
+            global_num_concurrency_pre,
+            global_num_concurrency_post,
+            global_sum_concurrent_runtime_pre,
+            global_sum_concurrent_runtime_post,
+            global_avg_time_elapsed_pre,
+            global_sum_time_overlap_post,
+            global_est_scan,
+            global_est_concurrent_scan_pre,
+            global_est_concurrent_scan_post,
+            global_scan_sharing_percentage,
+            global_max_est_card,
+            global_avg_est_card,
+            global_max_concurrent_card_pre,
+            global_max_concurrent_card_post,
+            global_avg_concurrent_card_pre,
+            global_avg_concurrent_card_post,
+        )
+        if self.opt_method == "torch" or self.opt_method == "nn":
+            feature = list(feature)
+            for i in range(len(feature)):
+                feature[i] = torch.from_numpy(feature[i])
+            feature = tuple(feature)
+            global_y = torch.from_numpy(global_y)
+        return feature, global_y, global_query_idx

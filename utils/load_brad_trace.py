@@ -22,7 +22,6 @@ def load_trace(directory, num_client=10, concat=True, version=None):
                     directory, f"repeating_olap_batch_{i}_{version}.csv"
                 )
         if not os.path.exists(file):
-            print(f"client {i} trace not found")
             continue
         df = pd.read_csv(file)
         df["timestamp"] = pd.to_datetime(df["timestamp"])

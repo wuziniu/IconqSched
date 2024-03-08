@@ -94,7 +94,7 @@ def runner(
     exec_count = 0
 
     file = open(
-        out_dir / "aurora_trace/repeating_olap_batch_{}.csv".format(runner_idx),
+        out_dir / f"{args.engine}_trace/repeating_olap_batch_{runner_idx}.csv",
         "w",
         encoding="UTF-8",
     )
@@ -172,8 +172,8 @@ def runner(
                     )
                 else:
                     time_unsimulated_str = "xxx"
-                if args.engine == "aurora":
-                    cur.execute("SET statement_timeout to 1000000")
+                if args.engine == "aurora" or args.engine == "postgres":
+                    cur.execute("SET statement_timeout to 1000000;")
                     conn.commit()
                 start = time.time()
                 cur.execute(query)
@@ -250,7 +250,7 @@ def run_warmup(args, query_bank: List[str], queries: List[int]):
             flush=True,
         )
         with open(
-            out_dir / "repeating_olap_batch_warmup.csv", "w", encoding="UTF-8"
+            out_dir / f"{args.engine}_trace/repeating_olap_batch_warmup.csv", "w", encoding="UTF-8"
         ) as file:
             print("timestamp,query_idx,run_time_s,engine", file=file)
             for _ in range(args.run_warmup_times):
@@ -258,8 +258,8 @@ def run_warmup(args, query_bank: List[str], queries: List[int]):
                     try:
                         query = query_bank[qidx]
                         now = datetime.now().astimezone(pytz.utc)
-                        if args.engine == "aurora":
-                            cur.execute("SET statement_timeout to 1000000")
+                        if args.engine == "aurora" or args.engine == "postgres":
+                            cur.execute("SET statement_timeout to 1000000;")
                             conn.commit()
                         start = time.time()
                         cur.execute(query)

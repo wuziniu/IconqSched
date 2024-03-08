@@ -5,17 +5,15 @@ import torch.nn as nn
 
 class QueryFeatureDataset(Dataset):
     def __init__(self, feature, label):
-        self.feature = feature
+        self.feature = torch.vstack(feature).T
+        print(self.feature.shape)
         self.label = label
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, idx):
-        return_feature = []
-        for f in self.feature:
-            return_feature.append(f[idx])
-        return tuple(return_feature), self.label[idx]
+        return self.feature[idx], self.label[idx]
 
 
 class SimpleNet(nn.Module):
