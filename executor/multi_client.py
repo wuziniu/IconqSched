@@ -269,6 +269,9 @@ def run_warmup(args, query_bank: List[str], queries: List[int]):
                         if args.engine == "aurora" or args.engine == "postgres":
                             cur.execute("SET statement_timeout to 1000000;")
                             conn.commit()
+                        elif args.engine == "redshift":
+                            cur.execute("set statement_timeout = 1000000;")
+                            conn.commit()
                         start = time.time()
                         cur.execute(query)
                         cur.fetchall()
