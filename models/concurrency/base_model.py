@@ -24,12 +24,15 @@ class ConcurPredictor:
     def predict(self, eval_trace_df, use_global):
         raise NotImplemented
 
-    def evaluate_performance(self, eval_trace_df, use_global=False):
+    def evaluate_performance(self, eval_trace_df, use_global=False, interval=None):
         predictions, labels = self.predict(eval_trace_df, use_global)
         pred_all = []
         labels_all = []
         result_overall = []
         result_per_query = dict()
+        pred_by_interval = dict()
+        labels_by_interval = dict()
+        result_by_interval = dict()
         for i in predictions:
             result_per_query[i] = []
             pred_all.append(predictions[i])
@@ -39,6 +42,21 @@ class ConcurPredictor:
             for p in [50, 90, 95]:
                 result_per_query[i].append(np.percentile(abs_error, p))
                 result_per_query[i].append(np.percentile(q_error, p))
+            if interval is not None:
+                for j in range(len(interval)):
+                    low = interval[j]
+                    if j+1 < len(interval):
+                        high = interval[j+1]
+                    else:
+                        high = np.infty
+                    rt_i = np.median(labels[i])
+                    if low <= rt_i < high:
+                        if j not in pred_by_interval:
+                            pred_by_interval[j] = []
+                            labels_by_interval[j] = []
+                            result_by_interval[j] = []
+                        pred_by_interval[j].append(predictions[i])
+                        labels_by_interval[j].append(labels[i])
 
         pred_all = np.concatenate(pred_all)
         labels_all = np.concatenate(labels_all)
@@ -50,4 +68,23 @@ class ConcurPredictor:
             print(f"{p}% absolute error is {p_a}, q-error is {p_q}")
             result_overall.append(p_a)
             result_overall.append(p_q)
-        return result_overall, result_per_query
+        if interval is not None:
+            for j in range(len(interval)):
+                low = interval[j]
+                if j + 1 < len(interval):
+                    high = interval[j + 1]
+                else:
+                    high = np.infty
+                pred = np.concatenate(pred_by_interval[j])
+                label = np.concatenate(labels_by_interval[j])
+                print("================================================================")
+                print(f"For query in range {low}s to {high}s, there are {len(label)} executions")
+                abs_error = np.abs(pred - label)
+                q_error = np.maximum(pred / label, label / pred)
+                for p in [50, 90, 95]:
+                    p_a = np.percentile(abs_error, p)
+                    p_q = np.percentile(q_error, p)
+                    print(f"{p}% absolute error is {p_a}, q-error is {p_q}")
+                    result_by_interval[j].append(p_a)
+                    result_by_interval[j].append(p_q)
+        return result_overall, result_per_query, result_by_interval

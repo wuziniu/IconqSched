@@ -160,6 +160,7 @@ class ComplexFitCurve(ConcurPredictor):
         self.is_column_store = is_column_store
         self.opt_method = opt_method
         self.batch_size = 1024
+        self.buffer_pool_size = 128
         self.analytic_params = [
             0.5,
             20,

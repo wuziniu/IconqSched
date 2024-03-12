@@ -175,9 +175,17 @@ def runner(
                 if args.engine == "aurora" or args.engine == "postgres":
                     cur.execute("SET statement_timeout to 1000000;")
                     conn.commit()
+                elif args.engine == "redshift":
+                    cur.execute("set statement_timeout = 1000000;")
+                    conn.commit()
                 start = time.time()
-                cur.execute(query)
-                cur.fetchall()
+                try:
+                    cur.execute(query)
+                    cur.fetchall()
+                except psycopg2.errors.QueryCanceled as e:
+                    print(f"query {qidx} timeout")
+                except:
+                    continue
                 end = time.time()
                 print(
                     "{},{},{},{},{},{}".format(
