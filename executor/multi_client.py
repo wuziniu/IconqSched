@@ -220,6 +220,18 @@ def runner(
                     flush=True,
                     file=sys.stderr,
                 )
+                conn = psycopg2.connect(
+                    host=args.host,
+                    port=args.port,
+                    database=args.schema_name,
+                    user=args.user,
+                    password=args.password,
+                    sslrootcert="SSLCERTIFICATE",
+                )
+                cur = conn.cursor()
+                if args.engine == "redshift":
+                    cur.execute("SET enable_result_cache_for_session = OFF;")
+                    conn.commit()
 
     finally:
         os.fsync(file.fileno())
@@ -301,6 +313,18 @@ def run_warmup(args, query_bank: List[str], queries: List[int]):
                             flush=True,
                             file=sys.stderr,
                         )
+                        conn = psycopg2.connect(
+                            host=args.host,
+                            port=args.port,
+                            database=args.schema_name,
+                            user=args.user,
+                            password=args.password,
+                            sslrootcert="SSLCERTIFICATE",
+                        )
+                        cur = conn.cursor()
+                        if args.engine == "redshift":
+                            cur.execute("SET enable_result_cache_for_session = OFF;")
+                            conn.commit()
     finally:
         conn.close()
 
