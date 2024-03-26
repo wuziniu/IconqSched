@@ -6,6 +6,7 @@ import torch.nn as nn
 class QueryFeatureDataset(Dataset):
     def __init__(self, feature, label):
         self.feature = torch.vstack(feature).T
+        self.feature = self.feature.type('torch.FloatTensor')
         print(self.feature.shape)
         self.label = label
 
