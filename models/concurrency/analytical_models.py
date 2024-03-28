@@ -493,7 +493,7 @@ class ComplexFitCurve(ConcurPredictor):
         elif self.opt_method == "xgboost":
             feature = np.stack(feature).T
             preds = self.model.predict(feature)
-            preds = np.maximum(preds, 0.001)
+            preds = np.maximum(preds, 0.01)
         else:
             assert False, f"unrecognized optimization method {self.opt_method}"
         if return_per_query:
