@@ -161,6 +161,7 @@ class ConcurrentRNN:
             all_pred.append(pred)
             all_label.append(label)
         all_pred = np.concatenate(all_pred)
+        all_pred = np.maximum(all_pred, 0.01)
         all_label = np.concatenate(all_label)
         abs_error = np.abs(all_pred - all_label)
         q_error = np.maximum(all_pred / all_label, all_label / all_pred)
