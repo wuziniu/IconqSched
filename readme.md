@@ -13,3 +13,8 @@ python3 executor/multi_client.py --schema-name imdb_60g --query-bank-file ~/data
 python3 executor/multi_client.py --schema-name imdb_60g --query-bank-file ~/data/imdb/workloads/aurora_mixed.sql --avg-gap-s 5 --engine aurora --num-clients 5 --avg-gap-std-s 3 --host 'imdb-100g-primary-00000.xxxx' --port 5432 --user postgres --password 'postgres'
 ```
 
+Train LSTM
+```angular2html
+python3 run.py 
+```
+

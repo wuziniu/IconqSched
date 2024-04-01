@@ -45,8 +45,8 @@ class ConcurPredictor:
             if interval is not None:
                 for j in range(len(interval)):
                     low = interval[j]
-                    if j+1 < len(interval):
-                        high = interval[j+1]
+                    if j + 1 < len(interval):
+                        high = interval[j + 1]
                     else:
                         high = np.infty
                     rt_i = np.median(labels[i])
@@ -77,8 +77,12 @@ class ConcurPredictor:
                     high = np.infty
                 pred = np.concatenate(pred_by_interval[j])
                 label = np.concatenate(labels_by_interval[j])
-                print("================================================================")
-                print(f"For query in range {low}s to {high}s, there are {len(label)} executions")
+                print(
+                    "================================================================"
+                )
+                print(
+                    f"For query in range {low}s to {high}s, there are {len(label)} executions"
+                )
                 abs_error = np.abs(pred - label)
                 q_error = np.maximum(pred / label, label / pred)
                 for p in [50, 90, 95]:

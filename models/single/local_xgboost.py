@@ -3,7 +3,14 @@ from xgboost import XGBRegressor
 
 
 class SingleXGBoost:
-    def __init__(self, n_estimators=1000, max_depth=8, eta=0.2, eval_metric="mae", early_stopping_rounds=100):
+    def __init__(
+        self,
+        n_estimators=1000,
+        max_depth=8,
+        eta=0.2,
+        eval_metric="mae",
+        early_stopping_rounds=100,
+    ):
         self.model = XGBRegressor(
             n_estimators=n_estimators,
             max_depth=max_depth,

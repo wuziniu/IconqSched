@@ -270,7 +270,9 @@ def run_warmup(args, query_bank: List[str], queries: List[int]):
             flush=True,
         )
         with open(
-            out_dir / f"{args.engine}_trace/repeating_olap_batch_warmup.csv", "w", encoding="UTF-8"
+            out_dir / f"{args.engine}_trace/repeating_olap_batch_warmup.csv",
+            "w",
+            encoding="UTF-8",
         ) as file:
             print("timestamp,query_idx,run_time_s,engine", file=file)
             for _ in range(args.run_warmup_times):

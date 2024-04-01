@@ -108,12 +108,11 @@ def fit_curve_loss_torch(x, y, params, constrain, loss_func="soft_l1", penalties
     lb = constrain.lb
     ub = constrain.ub
 
-
     if loss_func == "mae":
         loss = torch.abs(pred - y)
     elif loss_func == "mse":
         # loss = (pred - y) ** 2
-        criterion = torch.nn.MSELoss(reduction='sum')
+        criterion = torch.nn.MSELoss(reduction="sum")
         loss = criterion(pred, y)
     elif loss_func == "soft_l1":
         # loss = torch.sqrt(1 + (pred - y) ** 2) - 1
@@ -405,19 +404,27 @@ class ComplexFitCurve(ConcurPredictor):
                 # t_p = torch.tensor(float(p), requires_grad=True)
                 # t_p.requires_grad = True
                 # torch_analytic_params_lr.append({'params': t_p, 'lr': 0.01 * p ** 0.3})
-                torch_analytic_params_lr.append({'params': t_p, 'lr': 1e-4})
+                torch_analytic_params_lr.append({"params": t_p, "lr": 1e-4})
                 torch_analytic_params.append(t_p)
             print(len(torch_analytic_params))
             optimizer = optim.AdamW(torch_analytic_params_lr, weight_decay=2e-5)
             dataset = QueryFeatureDataset(feature, label)
-            train_dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+            train_dataloader = DataLoader(
+                dataset, batch_size=self.batch_size, shuffle=True
+            )
             for epoch in range(800):
                 for X, y in train_dataloader:
                     # X = X.to('mps')
                     # y = y.to(torch.float32).to('mps')
                     optimizer.zero_grad()
-                    loss = fit_curve_loss_torch(X, y, torch_analytic_params,
-                                                self.constrain, loss_func=self.loss_func, penalties=self.penalty)
+                    loss = fit_curve_loss_torch(
+                        X,
+                        y,
+                        torch_analytic_params,
+                        self.constrain,
+                        loss_func=self.loss_func,
+                        penalties=self.penalty,
+                    )
                     loss.backward()
                     # for p in torch_analytic_params:
                     #     print(p.grad)
@@ -477,10 +484,7 @@ class ComplexFitCurve(ConcurPredictor):
         elif self.opt_method == "torch":
             feature = torch.stack(feature).float()
             feature = torch.transpose(feature, 0, 1)
-            preds = interaction_func_torch(
-                feature,
-                *self.analytic_params
-            )
+            preds = interaction_func_torch(feature, *self.analytic_params)
             preds = preds.numpy()
             labels = labels.numpy()
         elif self.opt_method == "nn":
@@ -514,20 +518,127 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
     See interaction_func_scipy for detailed analytical functions
     """
 
-    def __init__(self, is_column_store=False, opt_method='scipy'):
+    def __init__(self, is_column_store=False, opt_method="scipy"):
         super().__init__(is_column_store, opt_method)
-        self.analytic_params = [0.3, 0.5, 20, 2, 0.2, 0.9, 0.3, 0.3, 0.3, 0.3, 0.1, 0.2, 0.5, 0.5, 10, 200, 16000]
-        self.param_names = ['n1', 'q1', 'i1', 'i2', 'c1', 'c2', 'm1', 'm2', 'm3', 'm4', 'm5', 'cm1',
-                            'r1', 'r2', 'max_concurrency', 'avg_io_speed', 'memory_size',]
+        self.analytic_params = [
+            0.3,
+            0.5,
+            20,
+            2,
+            0.2,
+            0.9,
+            0.3,
+            0.3,
+            0.3,
+            0.3,
+            0.1,
+            0.2,
+            0.5,
+            0.5,
+            10,
+            200,
+            16000,
+        ]
+        self.param_names = [
+            "n1",
+            "q1",
+            "i1",
+            "i2",
+            "c1",
+            "c2",
+            "m1",
+            "m2",
+            "m3",
+            "m4",
+            "m5",
+            "cm1",
+            "r1",
+            "r2",
+            "max_concurrency",
+            "avg_io_speed",
+            "memory_size",
+        ]
         self.bound = optimization.Bounds(
-            [0.01, 0.1, 10, 0.1, 0.0001, 0.0001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.4, 0.4, 10, 20, 10000],
+            [
+                0.01,
+                0.1,
+                10,
+                0.1,
+                0.0001,
+                0.0001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.001,
+                0.4,
+                0.4,
+                10,
+                20,
+                10000,
+            ],
             [1, 1, 200, 2, 1, 1, 1, 0.9, 0.5, 0.5, 0.5, 0.5, 0.8, 0.8, 20, 2000, 25000],
         )
         self.constrain = optimization.Bounds(
-            [0.1, 0.1, 10, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.5, 0.05, 2, 20, 10000],
-            [1, 1, 200, 2, 1, 0.9, 0.9, 0.9, 0.5, 0.5, 0.5, 0.5, 0.95, 0.4, 20, 2000, 50000],
+            [
+                0.1,
+                0.1,
+                10,
+                0.1,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.01,
+                0.1,
+                0.5,
+                0.05,
+                2,
+                20,
+                10000,
+            ],
+            [
+                1,
+                1,
+                200,
+                2,
+                1,
+                0.9,
+                0.9,
+                0.9,
+                0.5,
+                0.5,
+                0.5,
+                0.5,
+                0.95,
+                0.4,
+                20,
+                2000,
+                50000,
+            ],
         )
-        self.penalty = [100, 100, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1, 0.1, 0.01]
+        self.penalty = [
+            100,
+            100,
+            0.1,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            1,
+            0.1,
+            0.01,
+        ]
 
     def featurize_data(self, concurrent_df):
         global_y = []
@@ -554,9 +665,9 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
         start = 0
         for i, rows in concurrent_df.groupby("query_idx"):
             if (
-                    i not in self.isolated_rt_cache
-                    or i not in self.query_info
-                    or i not in self.average_rt_cache
+                i not in self.isolated_rt_cache
+                or i not in self.query_info
+                or i not in self.average_rt_cache
             ):
                 continue
             concurrent_rt = rows["runtime"].values
@@ -570,7 +681,9 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
             full_concur_info = rows["concur_info"].values
             concur_info_post = []
             for j in range(len(full_concur_info)):
-                new_info = [c for c in full_concur_info[j] if c not in full_concur_info[j]]
+                new_info = [
+                    c for c in full_concur_info[j] if c not in full_concur_info[j]
+                ]
                 concur_info_post.append(new_info)
             pre_exec_info = rows["pre_exec_info"].values
 
@@ -602,26 +715,34 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
                     if c[0] in self.average_rt_cache:
                         if c in concur_info_prev[j]:
                             sum_concurrent_runtime_pre += self.average_rt_cache[c[0]]
-                            avg_time_elapsed_pre += (start_time[j] - c[1])
+                            avg_time_elapsed_pre += start_time[j] - c[1]
                         else:
                             sum_concurrent_runtime_post += self.average_rt_cache[c[0]]
                             # TODO: this is not practical, make it an estimation
-                            sum_time_overlap_post += (end_time[j] - c[1])
-                            sum_time_elapsed_post += (c[1] - start_time[j])
+                            sum_time_overlap_post += end_time[j] - c[1]
+                            sum_time_elapsed_post += c[1] - start_time[j]
                     else:
                         print(c[0])
                     if c[0] in self.query_info:
                         if c in concur_info_prev[j]:
                             sum_concurrent_scan_pre += self.query_info[c[0]]["est_scan"]
-                            concurrent_card_pre.extend(self.query_info[c[0]]["all_cardinality"])
+                            concurrent_card_pre.extend(
+                                self.query_info[c[0]]["all_cardinality"]
+                            )
                         else:
-                            sum_concurrent_scan_post += self.query_info[c[0]]["est_scan"]
-                            concurrent_card_post.extend(self.query_info[c[0]]["all_cardinality"])
+                            sum_concurrent_scan_post += self.query_info[c[0]][
+                                "est_scan"
+                            ]
+                            concurrent_card_post.extend(
+                                self.query_info[c[0]]["all_cardinality"]
+                            )
                     else:
                         print(c[0])
 
                 global_sum_concurrent_runtime_pre.append(sum_concurrent_runtime_pre)
-                global_avg_time_elapsed_pre.append(avg_time_elapsed_pre / (len(concur_info_prev[j]) + 0.001))
+                global_avg_time_elapsed_pre.append(
+                    avg_time_elapsed_pre / (len(concur_info_prev[j]) + 0.001)
+                )
                 global_est_concurrent_scan_pre.append(sum_concurrent_scan_pre)
                 if len(concurrent_card_pre) == 0:
                     global_max_concurrent_card_pre.append(0)
@@ -647,7 +768,9 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
                     global_max_concurrent_card_post.append(0)
                     global_avg_concurrent_card_post.append(0)
                 else:
-                    global_sum_concurrent_runtime_post.append(sum_concurrent_runtime_post)
+                    global_sum_concurrent_runtime_post.append(
+                        sum_concurrent_runtime_post
+                    )
                     global_est_concurrent_scan_post.append(sum_concurrent_scan_post)
                     global_sum_time_overlap_post.append(sum_time_overlap_post)
                     global_sum_time_elapsed_post.append(sum_time_elapsed_post)
@@ -665,7 +788,10 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
             if self.use_pre_info:
                 num_concurrency_post = np.zeros(n_rows)
             else:
-                num_concurrency_post = rows["num_concurrent_queries"].values - rows["num_concurrent_queries_train"].values
+                num_concurrency_post = (
+                    rows["num_concurrent_queries"].values
+                    - rows["num_concurrent_queries_train"].values
+                )
             global_num_concurrency_post.append(num_concurrency_post)
 
         global_y = np.concatenate(global_y)
@@ -680,8 +806,12 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
         global_avg_time_elapsed_pre = np.asarray(global_avg_time_elapsed_pre)
         global_sum_time_elapsed_post = np.asarray(global_sum_time_elapsed_post)
         global_sum_time_overlap_post = np.asarray(global_sum_time_overlap_post)
-        global_sum_concurrent_runtime_pre = np.asarray(global_sum_concurrent_runtime_pre)
-        global_sum_concurrent_runtime_post = np.asarray(global_sum_concurrent_runtime_post)
+        global_sum_concurrent_runtime_pre = np.asarray(
+            global_sum_concurrent_runtime_pre
+        )
+        global_sum_concurrent_runtime_post = np.asarray(
+            global_sum_concurrent_runtime_post
+        )
         global_est_concurrent_scan_pre = np.asarray(global_est_concurrent_scan_pre)
         global_est_concurrent_scan_post = np.asarray(global_est_concurrent_scan_post)
         global_max_concurrent_card_pre = np.asarray(global_max_concurrent_card_pre)
@@ -707,7 +837,7 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
             global_max_concurrent_card_pre,
             global_max_concurrent_card_post,
             global_avg_concurrent_card_pre,
-            global_avg_concurrent_card_post
+            global_avg_concurrent_card_post,
         )
         if self.opt_method == "torch" or self.opt_method == "nn":
             feature = list(feature)

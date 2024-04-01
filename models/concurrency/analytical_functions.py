@@ -329,25 +329,25 @@ def interaction_separation_func_scipy(
 
 
 def interaction_separation_func_scipy_v2(
-        x,
-        n1,
-        q1,
-        i1,
-        i2,
-        c1,
-        c2,
-        m1,
-        m2,
-        m3,
-        m4,
-        m5,
-        cm1,
-        r1,
-        r2,
-        max_concurrency,
-        avg_io_speed,
-        memory_size,
-        debug=False
+    x,
+    n1,
+    q1,
+    i1,
+    i2,
+    c1,
+    c2,
+    m1,
+    m2,
+    m3,
+    m4,
+    m5,
+    cm1,
+    r1,
+    r2,
+    max_concurrency,
+    avg_io_speed,
+    memory_size,
+    debug=False,
 ):
     """
     An analytical function that can consider 3 types of resource sharing/contention: IO, memory, CPU
@@ -383,52 +383,73 @@ def interaction_separation_func_scipy_v2(
         max_concurrent_card_pre,
         max_concurrent_card_post,
         avg_concurrent_card_pre,
-        avg_concurrent_card_post
+        avg_concurrent_card_post,
     ) = x
     # fraction of running queries (as opposed to queueing queries)
-    running_frac = np.minimum(num_concurrency_pre + num_concurrency_post, max_concurrency) / np.maximum(
-        num_concurrency_pre + num_concurrency_post, 1
-    )
+    running_frac = np.minimum(
+        num_concurrency_pre + num_concurrency_post, max_concurrency
+    ) / np.maximum(num_concurrency_pre + num_concurrency_post, 1)
     # estimate queueing time of a query based on the sum of concurrent queries' run time
     queueing_time = (
-            q1
-            * (
-                    np.maximum(num_concurrency_pre + n1 * num_concurrency_post - max_concurrency, 0)
-                    / np.maximum(num_concurrency_pre + n1 * num_concurrency_post, 1)
+        q1
+        * (
+            np.maximum(
+                num_concurrency_pre + n1 * num_concurrency_post - max_concurrency, 0
             )
-            *
-            (sum_concurrent_runtime_pre + n1 * sum_concurrent_runtime_post - avg_time_elapsed_pre * num_concurrency_pre)
+            / np.maximum(num_concurrency_pre + n1 * num_concurrency_post, 1)
+        )
+        * (
+            sum_concurrent_runtime_pre
+            + n1 * sum_concurrent_runtime_post
+            - avg_time_elapsed_pre * num_concurrency_pre
+        )
     )
     queueing_time = np.maximum(queueing_time, 0)
     if debug:
         print("queueing_time", queueing_time)
     discount_pre = (
-                               sum_concurrent_runtime_pre - avg_time_elapsed_pre * num_concurrency_pre) * running_frac / np.maximum(
-        sum_concurrent_runtime_pre, 0.1)
+        (sum_concurrent_runtime_pre - avg_time_elapsed_pre * num_concurrency_pre)
+        * running_frac
+        / np.maximum(sum_concurrent_runtime_pre, 0.1)
+    )
     discount_pre = np.maximum(discount_pre, 0.1)
     if debug:
         print("discount_pre", discount_pre)
     discount_post = sum_time_overlap_post / np.maximum(sum_concurrent_runtime_post, 0.1)
     # estimate io_speed of a query assuming each query has a base io_speed of i1 + the io speed due to contention
     io_speed = i1 + avg_io_speed / np.minimum(
-        np.maximum(num_concurrency_pre * discount_pre + n1 * num_concurrency_post * discount_post, 1), max_concurrency
+        np.maximum(
+            num_concurrency_pre * discount_pre
+            + n1 * num_concurrency_post * discount_post,
+            1,
+        ),
+        max_concurrency,
     )
     if debug:
         print("io_speed", io_speed)
     # estimate time speed on IO as the (estimated scan - data in cache) / estimated io_speed
     # use i2 to adjust the estimation error in est_scan and scan_sharing_percentage
-    io_time = i2 * est_scan * np.maximum((1 - scan_sharing_percentage * running_frac), 0) / io_speed
+    io_time = (
+        i2
+        * est_scan
+        * np.maximum((1 - scan_sharing_percentage * running_frac), 0)
+        / io_speed
+    )
     if debug:
         print("io_time", io_time)
     io_time_old = i2 * est_scan / io_speed
     if debug:
         print("io_time_old", io_time_old)
     # estimate the amount of CPU work/time as the weighted average of isolated_runtime and avg_runtime - io_time
-    cpu_time_isolated = np.maximum((r1 * isolated_runtime + (1 - r1) * avg_runtime) - io_time_old, 0.1)
+    cpu_time_isolated = np.maximum(
+        (r1 * isolated_runtime + (1 - r1) * avg_runtime) - io_time_old, 0.1
+    )
     if debug:
         print("cpu_time_isolated", cpu_time_isolated)
     # estimate the amount of CPU work imposed by the concurrent queries (approximated by their estimate runtime)
-    cpu_concurrent_pre = (sum_concurrent_runtime_pre * discount_pre) / np.maximum(avg_runtime, 2)
+    cpu_concurrent_pre = (sum_concurrent_runtime_pre * discount_pre) / np.maximum(
+        avg_runtime, 2
+    )
     cpu_concurrent_post = sum_time_overlap_post / np.maximum(avg_runtime, 2)
     # cpu_concurrent_pre = np.sqrt((sum_concurrent_runtime_pre * discount_pre) / np.maximum(avg_runtime, 2))
     # cpu_concurrent_post = np.sqrt(sum_time_overlap_post / np.maximum(avg_runtime, 2))
@@ -438,28 +459,37 @@ def interaction_separation_func_scipy_v2(
     avg_mem_usage_perc_pre = avg_est_card / (avg_concurrent_card_pre + avg_est_card)
     max_mem_usage_perc_post = max_est_card / (max_concurrent_card_post + max_est_card)
     avg_mem_usage_perc_post = avg_est_card / (avg_concurrent_card_post + avg_est_card)
-    peak_mem_usage = (np.maximum(m1 * (max_concurrent_card_pre + max_est_card) - memory_size,
-                                 0) * max_mem_usage_perc_pre +
-                      np.maximum(m1 * (max_concurrent_card_post + max_est_card) - memory_size, 0)
-                      * max_mem_usage_perc_post
-                      ) / memory_size
-    avg_mem_usage = (np.maximum(m2 * (avg_concurrent_card_pre + avg_est_card) - memory_size, 0)
-                     * avg_mem_usage_perc_pre + np.maximum(m2 * (avg_concurrent_card_post + avg_est_card) - memory_size,
-                                                           0)
-                     * avg_mem_usage_perc_post
-                     ) / memory_size
+    peak_mem_usage = (
+        np.maximum(m1 * (max_concurrent_card_pre + max_est_card) - memory_size, 0)
+        * max_mem_usage_perc_pre
+        + np.maximum(m1 * (max_concurrent_card_post + max_est_card) - memory_size, 0)
+        * max_mem_usage_perc_post
+    ) / memory_size
+    avg_mem_usage = (
+        np.maximum(m2 * (avg_concurrent_card_pre + avg_est_card) - memory_size, 0)
+        * avg_mem_usage_perc_pre
+        + np.maximum(m2 * (avg_concurrent_card_post + avg_est_card) - memory_size, 0)
+        * avg_mem_usage_perc_post
+    ) / memory_size
     mem_usage = m3 * np.sqrt(peak_mem_usage) + m4 * np.sqrt(avg_mem_usage)
     if debug:
         print("mem_usage", mem_usage)
     # estimate the CPU time of a query by considering the contention of CPU and memory of other queries
 
-    cpu_time_scale_factor = (
-                                    c1 * (cpu_concurrent_pre + c2 * cpu_concurrent_post)
-                            ) * (1 + mem_usage + cm1 * np.sqrt((cpu_concurrent_pre + cpu_concurrent_post) * mem_usage))
+    cpu_time_scale_factor = (c1 * (cpu_concurrent_pre + c2 * cpu_concurrent_post)) * (
+        1
+        + mem_usage
+        + cm1 * np.sqrt((cpu_concurrent_pre + cpu_concurrent_post) * mem_usage)
+    )
     cpu_time = (1 + cpu_time_scale_factor) * cpu_time_isolated
     if debug:
         print("cpu_scale", c1 * (cpu_concurrent_pre + c2 * cpu_concurrent_post))
-        print("mem_scale", 1 + mem_usage + cm1 * np.sqrt((cpu_concurrent_pre + cpu_concurrent_post) * mem_usage))
+        print(
+            "mem_scale",
+            1
+            + mem_usage
+            + cm1 * np.sqrt((cpu_concurrent_pre + cpu_concurrent_post) * mem_usage),
+        )
     if debug:
         print("cpu_time_isolated", cpu_time_isolated)
     if debug:

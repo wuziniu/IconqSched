@@ -6,32 +6,15 @@ import torch.nn as nn
 class QueryFeatureDataset(Dataset):
     def __init__(self, feature, label):
         self.feature = torch.vstack(feature).T
-        self.feature = self.feature.type('torch.FloatTensor')
+        self.feature = self.feature.type("torch.FloatTensor")
         print(self.feature.shape)
-        self.label = label.type('torch.FloatTensor')
-
+        self.label = label.type("torch.FloatTensor")
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, idx):
         return self.feature[idx], self.label[idx]
-
-
-class QueryFeatureSeparatedDataset(Dataset):
-    def __init__(self, feature, label, x1_idx, x2_idx, x3_idx):
-        self.feature = torch.vstack(feature).T
-        self.feature = self.feature.type('torch.FloatTensor')
-        self.label = label
-        self.x1_idx = x1_idx
-        self.x2_idx = x2_idx
-        self.x3_idx = x3_idx
-
-    def __len__(self):
-        return len(self.label)
-
-    def __getitem__(self, idx):
-        return self.feature[idx][:, self.x1_idx], self.feature[idx][:, self.x2_idx], self.feature[idx][:, self.x3_idx], self.label[idx]
 
 
 class SimpleNet(nn.Module):
