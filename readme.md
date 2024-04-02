@@ -15,6 +15,6 @@ python3 executor/multi_client.py --schema-name imdb_60g --query-bank-file ~/data
 
 Train LSTM
 ```angular2html
-python3 run.py 
+python3 run.py --use_size --use_log --use_table_features --parsed_queries_path ~/data/concurrency/mixed_aurora/aurora_mixed_parsed_queries.json --directory ~/data/concurrency/mixed_aurora --hidden_size 128 --num_layers 1 --lr 0.01 --loss_function l1_loss --val_on_test
 ```
 

@@ -64,7 +64,7 @@ def featurize_queries_complex(
                     concur_query_feature = np.zeros(l_feature * 2 + 5)
                     concur_query_feature[:l_feature] = query_feature
                     concur_query_feature[
-                        (l_feature + 2) : (2 * l_feature + 2)
+                        (l_feature + 2): (2 * l_feature + 2)
                     ] = np.concatenate(
                         (np.asarray([predictions[c[0]]]), single_query_features[c[0]])
                     )

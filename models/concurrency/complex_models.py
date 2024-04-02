@@ -13,6 +13,24 @@ from models.feature.complex_rnn_features import (
 )
 
 
+def q_loss_func(input, target, min_val=0.001, penalty_negative=1e5):
+    qerror = []
+    for i in range(len(target)):
+        # penalty for negative/too small estimates
+        if (input[i] < min_val).data.numpy():
+            # influence on loss for a negative estimate is >= penalty_negative constant
+            q_err = (1 - input[i]) * penalty_negative
+        # otherwise normal q error
+        else:
+            if (input[i] > target[i]).data.numpy():
+                q_err = torch.log(input[i]) - torch.log(target[i])
+            else:
+                q_err = torch.log(target[i]) - torch.log(input[i])
+        qerror.append(q_err)
+    loss = torch.mean(torch.cat(qerror))
+    return loss
+
+
 class MLP(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, layers=3):
         super(MLP, self).__init__()
@@ -133,6 +151,8 @@ class ConcurrentRNN:
                     loss = l1_loss(pred, y)
                 elif loss_function == "mse_loss":
                     loss = mse_loss(pred, y)
+                elif loss_function == "q_loss":
+                    loss = q_loss_func(pred, y)
                 else:
                     assert False, f"loss function {loss_function} is unrecognized"
                 loss.backward()
