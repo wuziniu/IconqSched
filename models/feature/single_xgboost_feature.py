@@ -72,7 +72,10 @@ def dfs_find_operator_size(
             idx = operators.index(op)
             features[idx * 2] += 1
             if true_card:
-                card = plan["plan_parameters"]["act_card"]
+                if "act_card" not in plan["plan_parameters"]:
+                    card = plan["plan_parameters"]["est_card"]
+                else:
+                    card = plan["plan_parameters"]["act_card"]
             else:
                 card = plan["plan_parameters"]["est_card"]
             if use_size:
@@ -88,7 +91,10 @@ def dfs_find_operator_size(
                         table_idx = list(all_table_size.keys()).index(table_name)
                         if use_table_selectivity:
                             if true_card:
-                                card = plan["plan_parameters"]["act_card"]
+                                if "act_card" not in plan["plan_parameters"]:
+                                    card = plan["plan_parameters"]["est_card"]
+                                else:
+                                    card = plan["plan_parameters"]["act_card"]
                             else:
                                 card = plan["plan_parameters"]["est_card"]
                             table_features[table_idx] = (
