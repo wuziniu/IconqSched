@@ -6,30 +6,57 @@ from torch.nn.utils.rnn import pad_sequence
 
 def collate_fn_padding(batch):
     # Sort batch by sequence length (optional but recommended for efficiency)
-    (feature, label, pre_info_length) = zip(*batch)
+    (feature, label, pre_info_length, query_idx) = zip(*batch)
     seq_lengths = [len(x) for x in feature]
     sort_idx = list(np.argsort(seq_lengths)[::-1])
     feature = [feature[i] for i in sort_idx]
     label = torch.tensor(label, dtype=torch.float)
     label = label[sort_idx]
     pre_info_length = torch.tensor(pre_info_length, dtype=torch.long)[sort_idx]
+    query_idx = torch.tensor(query_idx, dtype=torch.long)[sort_idx]
     seq_lengths = torch.tensor(seq_lengths, dtype=torch.long)[sort_idx]
     # Pad sequences to the maximum length per batch
     padded_feature = pad_sequence(feature, batch_first=True, padding_value=0)
-    return padded_feature, seq_lengths, label, pre_info_length
+    return padded_feature, seq_lengths, label, pre_info_length, query_idx
+
+
+def collate_fn_padding_transformer(batch):
+    (feature, label, pre_info_length, query_idx) = zip(*batch)
+    seq_lengths = [len(x) for x in feature]
+    sort_idx = list(np.argsort(seq_lengths)[::-1])
+    feature = [feature[i] for i in sort_idx]
+    label = torch.tensor(label, dtype=torch.float)
+    label = label[sort_idx]
+    pre_info_length = torch.tensor(pre_info_length, dtype=torch.long)[sort_idx]
+    query_idx = torch.tensor(query_idx, dtype=torch.long)[sort_idx]
+    # Pad sequences to the maximum length per batch
+    padded_feature = pad_sequence(feature, batch_first=True, padding_value=0)
+    seq_lengths = [seq_lengths[i] for i in sort_idx]
+    src_key_padding_mask = torch.zeros(
+        (padded_feature.shape[0], padded_feature.shape[1]), dtype=int
+    )
+    for i, seq_len in enumerate(seq_lengths):
+        src_key_padding_mask[i, :seq_len] = 1
+    return padded_feature, src_key_padding_mask, label, pre_info_length, query_idx
 
 
 class QueryFeatureSeparatedDataset(Dataset):
-    def __init__(self, feature, label, pre_info_length):
+    def __init__(self, feature, label, pre_info_length, query_idx):
         self.feature = feature
         self.label = label
         self.pre_info_length = pre_info_length
+        self.query_idx = query_idx
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, idx):
-        return self.feature[idx], self.label[idx], self.pre_info_length[idx]
+        return (
+            self.feature[idx],
+            self.label[idx],
+            self.pre_info_length[idx],
+            self.query_idx[idx],
+        )
 
 
 def featurize_queries_complex(
@@ -39,6 +66,7 @@ def featurize_queries_complex(
     global_y = []
     global_x = []
     global_pre_info_length = []
+    global_query_idx = []
     for i, rows in concurrent_df.groupby("query_idx"):
         if i not in predictions or i not in single_query_features:
             continue
@@ -55,6 +83,7 @@ def featurize_queries_complex(
         for j in range(n_rows):
             x = []
             global_pre_info_length.append(len(concur_info_train[j]))
+            global_query_idx.append(i)
             if len(concur_info_full[j]) == 0:
                 concur_query_feature = np.zeros(l_feature * 2 + 5)
                 concur_query_feature[:l_feature] = query_feature
@@ -64,7 +93,7 @@ def featurize_queries_complex(
                     concur_query_feature = np.zeros(l_feature * 2 + 5)
                     concur_query_feature[:l_feature] = query_feature
                     concur_query_feature[
-                        (l_feature + 2): (2 * l_feature + 2)
+                        (l_feature + 2) : (2 * l_feature + 2)
                     ] = np.concatenate(
                         (np.asarray([predictions[c[0]]]), single_query_features[c[0]])
                     )
@@ -86,5 +115,6 @@ def featurize_queries_complex(
             global_x.append(torch.stack(x))
     global_y = torch.FloatTensor(np.concatenate(global_y))
     global_pre_info_length = torch.LongTensor(global_pre_info_length)
+    global_query_idx = torch.LongTensor(global_query_idx)
 
-    return global_x, global_y, global_pre_info_length
+    return global_x, global_y, global_pre_info_length, global_query_idx
