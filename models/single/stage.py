@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from typing import Optional
 from models.single.cache import CachePredictor
 from models.single.local_xgboost import SingleXGBoost
 from models.feature.single_xgboost_feature import (
@@ -43,7 +45,12 @@ class SingleStage:
         self.all_feature = []
         self.all_table_size = None
 
-    def featurize_data(self, df, parsed_queries_path, save_feature_file=None):
+    def featurize_data(
+        self,
+        df: pd.DataFrame,
+        parsed_queries_path: str,
+        save_feature_file: Optional[str] = None,
+    ):
         plans = load_json(parsed_queries_path, namespace=False)
         self.operators = find_top_k_operators(plans=plans, k=self.num_operators)
         if self.use_table_features:
@@ -76,11 +83,20 @@ class SingleStage:
             df.to_csv(save_feature_file, header=True, index=False)
         return df
 
-    def train(self, df):
+    def featurize_online(self, query_idx: int) -> np.ndarray:
+        # Todo: should include data featurization for adhoc_queries, should be straight forward to add in
+        feature = self.all_feature[query_idx]
+        pred = self.cache.online_inference(query_idx, feature)
+        if pred is None:
+            pred = self.local_model.online_inference(feature)
+        query_feature = np.concatenate((np.asarray([pred]), feature))
+        return query_feature
+
+    def train(self, df: pd.DataFrame) -> None:
         self.cache.ingest_data(df)
         self.local_model.train(df)
 
-    def predict(self, df):
+    def predict(self, df: pd.DataFrame) -> np.ndarray:
         predictions, not_cached_idx = self.cache.predict(df)
         predictions = np.asarray(predictions)
         if len(not_cached_idx) != 0:

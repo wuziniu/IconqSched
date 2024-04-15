@@ -1,5 +1,7 @@
 import torch
+import pandas as pd
 import numpy as np
+from typing import Optional, Mapping, Tuple, List
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 
@@ -59,15 +61,71 @@ class QueryFeatureSeparatedDataset(Dataset):
         )
 
 
+def featurize_queries_complex_online(
+    existing_query_features: List[np.ndarray],
+    existing_query_concur_features: List[Optional[torch.Tensor]],
+    existing_pre_info_length: List[int],
+    queued_query_features: List[np.ndarray],
+    existing_start_time: List[float],
+    current_time: float,
+) -> Tuple[List[torch.Tensor], torch.Tensor]:
+    global_x = []
+    global_pre_info_length = []
+    for query_feature in queued_query_features:
+        l_feature = len(query_feature)
+        x = []
+        # concurrent feature for the current queued query
+        if len(existing_query_features) == 0:
+            concur_query_feature = np.zeros(l_feature * 2 + 5)
+            concur_query_feature[:l_feature] = query_feature
+            x.append(torch.FloatTensor(concur_query_feature))
+        for i, exist_q in enumerate(existing_query_features):
+            concur_query_feature = np.zeros(l_feature * 2 + 5)
+            concur_query_feature[:l_feature] = query_feature
+            concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = exist_q
+            concur_query_feature[l_feature] = 1
+            concur_query_feature[2 * l_feature + 2] = (
+                existing_start_time[i] - current_time
+            )
+            x.append(torch.FloatTensor(concur_query_feature))
+        global_pre_info_length.append(len(x))
+        global_x.append(torch.stack(x))
+
+        # concurrent features for all existing (running queries) when this queued query is submitted
+        for i in range(len(existing_query_concur_features)):
+            global_pre_info_length.append(existing_pre_info_length[i])
+            concur_query_feature = torch.zeros(l_feature * 2 + 5, dtype=torch.float)
+            concur_query_feature[:l_feature] = x[0, :l_feature]
+            concur_query_feature[
+                (l_feature + 2) : (2 * l_feature + 2)
+            ] = torch.FloatTensor(query_feature)
+            concur_query_feature[l_feature + 1] = 1.0
+            concur_query_feature[2 * l_feature + 2] = (
+                current_time - existing_start_time[i]
+            )
+            if existing_query_concur_features[i] is None:
+                x = concur_query_feature.reshape(1, -1)
+            else:
+                x = torch.clone(existing_query_concur_features[i])
+                x = torch.cat((x, concur_query_feature), dim=0)
+            global_x.append(x)
+    global_pre_info_length = torch.LongTensor(global_pre_info_length)
+    return global_x, global_pre_info_length
+
+
 def featurize_queries_complex(
-    concurrent_df, predictions, single_query_features, include_exit=False
-):
+    concurrent_df: pd.DataFrame,
+    predictions: np.ndarray,
+    single_query_features: Mapping[int, np.ndarray],
+    include_exit: bool = False,
+) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
     global_y = []
     global_x = []
     global_pre_info_length = []
     global_query_idx = []
     for i, rows in concurrent_df.groupby("query_idx"):
+        i = int(i)
         if i not in predictions or i not in single_query_features:
             continue
         concurrent_rt = rows["runtime"].values

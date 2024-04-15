@@ -1,3 +1,4 @@
+import copy
 import torch
 from torch.utils.data import Dataset
 import torch.nn as nn
@@ -33,3 +34,22 @@ class SimpleNet(nn.Module):
     def forward(self, x):
         pred = self.model(x)
         return torch.maximum(pred, torch.tensor(0.01))
+
+
+def pre_info_train_test_seperation(concurrency_df):
+    # picking out all the query without post_info as testing data and the rest as training data
+    train_idx = []
+    test_idx = []
+    concur_info_train = concurrency_df["concur_info_train"].values
+    concur_info_full = concurrency_df["concur_info"].values
+    for i in range(len(concurrency_df)):
+        if len(concur_info_train[i]) == len(concur_info_full[i]):
+            test_idx.append(i)
+        else:
+            train_idx.append(i)
+    train_trace_df = copy.deepcopy(concurrency_df.iloc[train_idx])
+    eval_trace_df = concurrency_df.iloc[test_idx]
+    eval_trace_df = copy.deepcopy(
+        eval_trace_df[eval_trace_df["num_concurrent_queries"] > 0]
+    )
+    return train_trace_df, eval_trace_df

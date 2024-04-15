@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 
 class CachePredictor:
@@ -17,7 +18,7 @@ class CachePredictor:
         self.hash_bits = hash_bits
         self.use_index = use_index
 
-    def hash_feature(self, feature):
+    def hash_feature(self, feature: np.ndarray) -> int:
         hash_val = hash(tuple(list(feature)))
         if self.hash_bits is not None:
             hash_val = hash_val % (2**self.hash_bits)
@@ -75,3 +76,16 @@ class CachePredictor:
                 ] * (1 - self.alpha)
                 predictions.append(pred)
         return predictions, not_cached_idx
+
+    def online_inference(self, query_idx: int, feature: np.ndarray) -> Optional[float]:
+        if self.use_index:
+            hash_val = query_idx
+        else:
+            hash_val = self.hash_feature(feature)
+        if hash_val not in self.running_average:
+            return None
+        else:
+            pred = self.running_average[hash_val] * self.alpha + self.most_recent[
+                hash_val
+            ] * (1 - self.alpha)
+            return pred

@@ -1,17 +1,20 @@
 import os
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.nn.functional import l1_loss, mse_loss
 from tqdm import tqdm
+from typing import Union, Mapping, Tuple, List, Optional
 from models.concurrency.seq_to_seq import RNN, LSTM, TransformerModel
 from models.feature.complex_rnn_features import (
     collate_fn_padding,
     collate_fn_padding_transformer,
     QueryFeatureSeparatedDataset,
     featurize_queries_complex,
+    featurize_queries_complex_online,
 )
 
 
@@ -82,7 +85,9 @@ class ConcurrentRNN:
         dropout=0.2,
         include_exit=False,
         last_output=True,
+        loss_function="q_loss",
         rnn_type="lstm",
+        use_seperation=False,
     ):
         self.stage_model = stage_model
         self.embedding_dim = embedding_dim
@@ -93,8 +98,9 @@ class ConcurrentRNN:
         self.include_exit = include_exit
         self.batch_size = batch_size
         self.rnn_type = rnn_type
-        self.loss_func = None
+        self.loss_func = loss_function
         self.last_output = last_output
+        self.use_seperation = use_seperation
         if rnn_type == "vanilla":
             self.model = RNN(input_size, hidden_size, output_size, num_layers)
         elif rnn_type == "lstm":
@@ -106,6 +112,7 @@ class ConcurrentRNN:
                 num_layers,
                 dropout,
                 last_output,
+                use_seperation=use_seperation,
             )
         elif rnn_type == "transformer":
             self.model = TransformerModel(
@@ -118,7 +125,6 @@ class ConcurrentRNN:
                 output_size,
             )
         else:
-            # Todo: implement transformer
             assert False, f"unrecognized rnn type: {rnn_type}"
 
     def train(
@@ -128,11 +134,12 @@ class ConcurrentRNN:
         lr=0.001,
         weight_decay=2e-5,
         epochs=200,
-        loss_function="l1_loss",
+        loss_function=None,
         report_every=5,
         val_on_test=False,
     ):
-        self.loss_func = loss_function
+        if loss_function is not None:
+            self.loss_func = loss_function
         predictions = self.stage_model.cache.running_average
         single_query_features = dict()
         for i, f in enumerate(self.stage_model.all_feature):
@@ -169,7 +176,7 @@ class ConcurrentRNN:
             train_x, train_y, train_pre_info_length, train_query_idx
         )
         if self.rnn_type == "transformer":
-            collate_fn = collate_fn_padding_transformer()
+            collate_fn = collate_fn_padding_transformer
         else:
             collate_fn = collate_fn_padding
         train_dataloader = DataLoader(
@@ -196,16 +203,16 @@ class ConcurrentRNN:
             self.model.train()
             for X, x_lengths, y, pre_info_length, query_idx in train_dataloader:
                 optimizer.zero_grad()
-                pred = self.model(X, x_lengths)
+                pred = self.model(X, x_lengths, pre_info_length)
                 y = y.reshape(-1, 1)
-                if loss_function == "l1_loss":
+                if self.loss_func == "l1_loss":
                     loss = l1_loss(pred, y)
-                elif loss_function == "mse_loss":
+                elif self.loss_func == "mse_loss":
                     loss = mse_loss(pred, y)
-                elif loss_function == "q_loss":
+                elif self.loss_func == "q_loss":
                     loss = q_loss_func(pred, y)
                 else:
-                    assert False, f"loss function {loss_function} is unrecognized"
+                    assert False, f"loss function {self.loss_func} is unrecognized"
                 loss.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), 2)
                 optimizer.step()
@@ -213,13 +220,19 @@ class ConcurrentRNN:
                 num_batch += 1
             if epoch % report_every == 0:
                 train_loss = batch_loss / num_batch
-                # Todo: implement eval loss
                 print(
                     f"********Epoch {epoch}, training loss: {train_loss} || evaluation loss: ********"
                 )
                 _ = self.evaluate(val_dataloader, return_per_query=False)
 
-    def predict(self, df, return_per_query=True):
+    def predict(
+        self,
+        df: pd.DataFrame,
+        return_per_query: bool = True,
+        use_pre_info_only: bool = False,
+    ) -> Union[
+        Tuple[Mapping[int, list], Mapping[int, list]], Tuple[np.ndarray, np.ndarray]
+    ]:
         predictions = self.stage_model.cache.running_average
         single_query_features = dict()
         for i, f in enumerate(self.stage_model.all_feature):
@@ -236,15 +249,29 @@ class ConcurrentRNN:
             shuffle=False,
             collate_fn=collate_fn_padding,
         )
-        return self.evaluate(val_dataloader, return_per_query=return_per_query)
+        return self.evaluate(
+            val_dataloader,
+            return_per_query=return_per_query,
+            use_pre_info_only=use_pre_info_only,
+        )
 
-    def evaluate(self, val_dataloader, return_per_query=False):
+    def evaluate(
+        self,
+        val_dataloader: DataLoader,
+        return_per_query: bool = False,
+        use_pre_info_only: bool = False,
+    ) -> Union[
+        Tuple[Mapping[int, list], Mapping[int, list]], Tuple[np.ndarray, np.ndarray]
+    ]:
         self.model.eval()
         all_pred = []
         all_label = []
         all_query_idx = []
         for X, x_lengths, y, pre_info_length, query_idx in tqdm(val_dataloader):
-            pred = self.model(X, x_lengths)
+            if use_pre_info_only:
+                pred = self.model.model_forward_pre_info(X, pre_info_length)
+            else:
+                pred = self.model(X, x_lengths, pre_info_length)
             pred = pred.reshape(-1).detach().numpy()
             label = y.numpy()
             all_pred.append(pred)
@@ -273,16 +300,38 @@ class ConcurrentRNN:
             return preds_per_query, labels_per_query
         return all_pred, all_label
 
-    def save_model(self, directory):
+    def online_inference(
+        self,
+        existing_query_features: List[np.ndarray],
+        existing_query_concur_features: List[Optional[torch.Tensor]],
+        existing_pre_info_length: List[int],
+        queued_query_features: List[np.ndarray],
+        existing_start_time: List[float],
+        current_time: float,
+    ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
+        global_x, global_pre_info_length = featurize_queries_complex_online(
+            existing_query_features,
+            existing_query_concur_features,
+            existing_pre_info_length,
+            queued_query_features,
+            existing_start_time,
+            current_time,
+        )
+        predictions = self.model(global_x, None, global_pre_info_length, False)
+        return predictions, global_x, global_pre_info_length
+
+    def save_model(self, directory: str):
+        sep = "w_sep" if self.use_seperation else "wo_sep"
         model_path = os.path.join(
             directory,
-            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}",
+            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
         )
         torch.save(self.model.state_dict(), model_path)
 
-    def load_model(self, directory):
+    def load_model(self, directory: str):
+        sep = "w_sep" if self.use_seperation else "wo_sep"
         model_path = os.path.join(
             directory,
-            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}",
+            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
         )
         self.model.load_state_dict(torch.load(model_path))

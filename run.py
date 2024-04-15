@@ -18,6 +18,9 @@ if __name__ == "__main__":
     parser.add_argument("--use_size", action="store_true")
     parser.add_argument("--use_log", action="store_true")
     parser.add_argument("--true_card", action="store_true")
+    parser.add_argument("--rnn_type", default="lstm", type=str)
+    parser.add_argument("--use_separation", action="store_true")
+
     parser.add_argument("--use_table_features", action="store_true")
     parser.add_argument("--use_table_selectivity", action="store_true")
 
@@ -74,6 +77,8 @@ if __name__ == "__main__":
         embedding_dim=args.embedding_dim,
         hidden_size=args.hidden_size,
         num_layers=args.num_layers,
+        rnn_type=args.rnn_type,
+        use_seperation=args.use_separation,
     )
     rnn.train(
         train_trace_df,

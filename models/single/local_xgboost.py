@@ -40,3 +40,7 @@ class SingleXGBoost:
         preds = self.model.predict(features)
         preds = np.maximum(preds, 0.01)
         return preds
+
+    def online_inference(self, feature: np.ndarray) -> float:
+        pred = self.model.predict(feature)
+        return pred
