@@ -47,8 +47,8 @@ def load_trace(directory, num_client=10, concat=True, version=None):
             df2["g_offset_since_start_s"] = df2[
                 "g_offset_since_start"
             ].dt.total_seconds()
-        initial_start = df2["g_offset_since_start_s"].iloc[0]
         df2 = df2.sort_values(by=["g_offset_since_start_s"])
+        initial_start = df2["g_offset_since_start_s"].iloc[0]
         df2["g_issue_gap_s"] = (
             df2["g_offset_since_start_s"]
             - df2["g_offset_since_start_s"].shift(periods=1)

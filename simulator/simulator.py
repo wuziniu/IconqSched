@@ -61,15 +61,17 @@ class Simulator:
 
     def replay_workload(self, directory: str) -> Tuple[np.ndarray, np.ndarray]:
         all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
-        original_predictions = self.scheduler.make_original_prediction(all_trace)
-        assert len(all_trace) == len(original_predictions)
+        concurrency_df = create_concurrency_dataset(all_trace, engine=None, pre_exec_interval=200)
+        concurrency_df = concurrency_df.sort_values(by=['start_time'], ascending=True)
+        original_predictions = self.scheduler.make_original_prediction(concurrency_df)
+        assert len(concurrency_df) == len(original_predictions)
         original_runtime = []
-        all_start_time = all_trace["time_since_execution_s"].values
-        all_query_idx = all_trace["query_idx"].values
-        for i in range(len(all_trace)):
+        all_start_time = concurrency_df["start_time"].values
+        all_query_idx = concurrency_df["query_idx"].values
+        for i in range(len(concurrency_df)):
             original_runtime.append(original_predictions[i])
             # replaying the query one-by-one
-            if i < len(all_trace):
+            if i < len(concurrency_df):
                 next_query_start_time = all_start_time[i + 1]
             else:
                 next_query_start_time = None
@@ -77,7 +79,7 @@ class Simulator:
         # finish all queries
         self.scheduler.finish_query(np.infty)
         new_runtime = []
-        for i in range(len(all_trace)):
+        for i in range(len(concurrency_df)):
             new_runtime.append(self.scheduler.all_query_runtime[i])
         original_runtime = np.asarray(original_runtime)
         new_runtime = np.asarray(new_runtime)

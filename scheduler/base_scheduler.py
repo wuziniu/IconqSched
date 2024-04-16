@@ -17,11 +17,23 @@ class BaseScheduler:
         self,
         stage_model: SingleStage,
         predictor: ConcurrentRNN,
-        max_concurrency_level: int = 5,
+        max_concurrency_level: int = 10,
+        min_concurrency_level: int = 2
     ):
+        """
+        The class for basic scheduler with a naive scheduling algorithm
+        :param stage_model: the staged single query runtime prediction model
+        :param predictor: the LSTM based runtime predictor for concurrent queries
+        :param max_concurrency_level: the maximum number of concurrently running queries a system can take
+        :param min_concurrency_level: when there are less than min_concurrency_level queries running,
+                                      can consider the system to be underloaded
+        TODO: instead of definding system under/overload through the number of concurrently running queries,
+              we can define based on predicted runtime
+        """
         self.stage_model = stage_model
         self.predictor = predictor
         self.max_concurrency_level = max_concurrency_level
+        self.min_concurrency_level = min_concurrency_level
 
         self.existing_query_features: List[np.ndarray] = []
         self.existing_query_concur_features: List[Optional[torch.Tensor]] = []
@@ -44,6 +56,11 @@ class BaseScheduler:
 
     def ingest_query(self, start_t: float, query_idx: int):
         return None
+
+    def print_state(self):
+        print("current time: ", self.current_time)
+        print("running_queries: ", list(zip(self.running_queries, self.existing_runtime_prediction)))
+        print("queued_queries: ", self.queued_queries)
 
     def submit_query(
         self,
@@ -178,12 +195,14 @@ class BaseScheduler:
                     None,
                     int(global_pre_info_length[idx]),
                 )
+            return should_immediate_re_ingest, should_pause_and_re_ingest
         elif len(self.running_queries) >= self.max_concurrency_level:
             # when the server is running at its full capacity, should pause and retry
             should_pause_and_re_ingest = True
             return should_immediate_re_ingest, should_pause_and_re_ingest
         else:
             # Todo: implement some better algos
+            # Todo: add another logic: if the currently queued queries are all "bad" for the system load, pause and retry
             all_new_existing_pred = []
             all_curr_pred = []
             all_delta_sum = []
@@ -198,7 +217,9 @@ class BaseScheduler:
                 all_curr_pred.append(curr_pred)
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[(pred_idx + 1): (pred_idx + len(self.existing_query_concur_features) + 1)]
-                curr_existing_query_concur_feature = global_x[(pred_idx + 1): (pred_idx + len(self.existing_query_concur_features) + 1)]
+                curr_existing_query_concur_feature = []
+                for j in range(pred_idx + 1, pred_idx + len(self.existing_query_concur_features) + 1):
+                    curr_existing_query_concur_feature.append(global_x[j])
                 all_new_existing_pred.append(new_existing_pred)
                 all_query_concur_feature.append(curr_concur_feature)
                 all_existing_query_concur_feature.append(curr_existing_query_concur_feature)
@@ -222,7 +243,7 @@ class BaseScheduler:
                 all_query_concur_feature[selected_idx],
                 int(global_pre_info_length[selected_idx]),
                 new_existing_finish_time,
-                all_new_existing_pred[selected_idx],
+                list(all_new_existing_pred[selected_idx]),
                 all_existing_query_concur_feature[selected_idx]
             )
             # immediately resubmit the next
