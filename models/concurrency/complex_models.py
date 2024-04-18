@@ -11,6 +11,7 @@ from typing import Union, Mapping, Tuple, List, Optional
 from models.concurrency.seq_to_seq import RNN, LSTM, TransformerModel
 from models.feature.complex_rnn_features import (
     collate_fn_padding,
+    collate_fn_padding_preserve_order,
     collate_fn_padding_transformer,
     QueryFeatureSeparatedDataset,
     featurize_queries_complex,
@@ -238,7 +239,11 @@ class ConcurrentRNN:
         for i, f in enumerate(self.stage_model.all_feature):
             single_query_features[i] = f
         val_x, val_y, val_pre_info_length, val_query_idx = featurize_queries_complex(
-            df, predictions, single_query_features, include_exit=self.include_exit
+            df,
+            predictions,
+            single_query_features,
+            include_exit=self.include_exit,
+            preserve_order=True,
         )
         val_dataset = QueryFeatureSeparatedDataset(
             val_x, val_y, val_pre_info_length, val_query_idx
@@ -247,7 +252,7 @@ class ConcurrentRNN:
             val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            collate_fn=collate_fn_padding,
+            collate_fn=collate_fn_padding_preserve_order,
         )
         return self.evaluate(
             val_dataloader,

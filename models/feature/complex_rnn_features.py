@@ -22,6 +22,18 @@ def collate_fn_padding(batch):
     return padded_feature, seq_lengths, label, pre_info_length, query_idx
 
 
+def collate_fn_padding_preserve_order(batch):
+    (feature, label, pre_info_length, query_idx) = zip(*batch)
+    seq_lengths = [len(x) for x in feature]
+    label = torch.tensor(label, dtype=torch.float)
+    pre_info_length = torch.tensor(pre_info_length, dtype=torch.long)
+    query_idx = torch.tensor(query_idx, dtype=torch.long)
+    seq_lengths = torch.tensor(seq_lengths, dtype=torch.long)
+    # Pad sequences to the maximum length per batch
+    padded_feature = pad_sequence(feature, batch_first=True, padding_value=0)
+    return padded_feature, seq_lengths, label, pre_info_length, query_idx
+
+
 def collate_fn_padding_transformer(batch):
     (feature, label, pre_info_length, query_idx) = zip(*batch)
     seq_lengths = [len(x) for x in feature]
@@ -103,7 +115,7 @@ def featurize_queries_complex_online(
             ] = torch.FloatTensor(query_feature)
             concur_query_feature[l_feature + 1] = 1.0
             concur_query_feature[2 * l_feature + 2] = (
-                current_time - existing_start_time[i]
+                existing_start_time[i] - current_time
             )
             if existing_query_concur_features[i] is None:
                 x = concur_query_feature.reshape(1, -1)
@@ -120,16 +132,22 @@ def featurize_queries_complex(
     predictions: np.ndarray,
     single_query_features: Mapping[int, np.ndarray],
     include_exit: bool = False,
+    preserve_order: bool = False,
 ) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
     global_y = []
     global_x = []
     global_pre_info_length = []
     global_query_idx = []
+    query_order = []
+    # reindexing the column to preserve the index
+    concurrent_df["index"] = np.arange(len(concurrent_df))
     for i, rows in concurrent_df.groupby("query_idx"):
         i = int(i)
         if i not in predictions or i not in single_query_features:
             continue
+        index_in_df = rows["index"].values
+        query_order.append(index_in_df)
         concurrent_rt = rows["runtime"].values
         start_time = rows["start_time"].values
         global_y.append(concurrent_rt)
@@ -180,5 +198,15 @@ def featurize_queries_complex(
     global_y = torch.FloatTensor(np.concatenate(global_y))
     global_pre_info_length = torch.LongTensor(global_pre_info_length)
     global_query_idx = torch.LongTensor(global_query_idx)
-
+    query_order = np.concatenate(query_order)
+    assert len(np.unique(query_order)) == len(query_order)
+    if preserve_order:
+        query_order = list(query_order)
+        query_order_loc = []
+        for i in range(len(query_order)):
+            query_order_loc.append(query_order.index(i))
+        global_x = [global_x[i] for i in query_order_loc]
+        global_y = global_y[query_order_loc]
+        global_pre_info_length = global_pre_info_length[query_order_loc]
+        global_query_idx = global_query_idx[query_order_loc]
     return global_x, global_y, global_pre_info_length, global_query_idx
