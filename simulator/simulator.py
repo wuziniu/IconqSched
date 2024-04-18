@@ -39,30 +39,48 @@ class QueryBank:
 
 class Simulator:
     def __init__(
-        self, scheduler: BaseScheduler, query_bank: Optional[QueryBank] = None, pause_wait_s: float = 1.0
+        self,
+        scheduler: BaseScheduler,
+        query_bank: Optional[QueryBank] = None,
+        pause_wait_s: float = 5.0,
     ):
         self.scheduler = scheduler
         self.query_bank = query_bank
         self.pause_wait_s = pause_wait_s
 
-    def replay_one_query(self, start_time: float, next_query_start_time: Optional[float] = None,
-                         query_str: Optional[int] = None, query_idx: Optional[int] = None):
+    def replay_one_query(
+        self,
+        start_time: float,
+        next_query_start_time: Optional[float] = None,
+        query_str: Optional[int] = None,
+        query_idx: Optional[int] = None,
+    ):
         # Todo: this logical should go to the scheduler
-        should_immediate_re_ingest, should_pause_and_re_ingest = self.scheduler.ingest_query_simulation(
+        (
+            should_immediate_re_ingest,
+            should_pause_and_re_ingest,
+            scheduled_submit,
+        ) = self.scheduler.ingest_query_simulation(
             start_time, query_str=query_str, query_idx=query_idx
         )
+        print(should_immediate_re_ingest, should_pause_and_re_ingest)
         if should_immediate_re_ingest:
             # the scheduler schedules one query at a time even if there are multiple queries in the queue, so need to call again
             self.replay_one_query(start_time + 0.001)
         if should_pause_and_re_ingest:
-            if next_query_start_time is not None and next_query_start_time <= start_time + self.pause_wait_s:
+            if (
+                next_query_start_time is not None
+                and next_query_start_time <= start_time + self.pause_wait_s
+            ):
                 return
             self.replay_one_query(start_time + self.pause_wait_s)
 
     def replay_workload(self, directory: str) -> Tuple[np.ndarray, np.ndarray]:
         all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
-        concurrency_df = create_concurrency_dataset(all_trace, engine=None, pre_exec_interval=200)
-        concurrency_df = concurrency_df.sort_values(by=['start_time'], ascending=True)
+        concurrency_df = create_concurrency_dataset(
+            all_trace, engine=None, pre_exec_interval=200
+        )
+        concurrency_df = concurrency_df.sort_values(by=["start_time"], ascending=True)
         original_predictions = self.scheduler.make_original_prediction(concurrency_df)
         assert len(concurrency_df) == len(original_predictions)
         original_runtime = []
@@ -75,7 +93,9 @@ class Simulator:
                 next_query_start_time = all_start_time[i + 1]
             else:
                 next_query_start_time = None
-            self.replay_one_query(all_start_time[i], next_query_start_time, i, all_query_idx[i])
+            self.replay_one_query(
+                all_start_time[i], next_query_start_time, i, all_query_idx[i]
+            )
         # finish all queries
         self.scheduler.finish_query(np.infty)
         new_runtime = []

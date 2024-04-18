@@ -82,7 +82,7 @@ def featurize_queries_complex_online(
         for i, exist_q in enumerate(existing_query_features):
             concur_query_feature = np.zeros(l_feature * 2 + 5)
             concur_query_feature[:l_feature] = query_feature
-            concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = exist_q
+            concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = exist_q
             concur_query_feature[l_feature] = 1
             concur_query_feature[2 * l_feature + 2] = (
                 existing_start_time[i] - current_time
@@ -95,9 +95,11 @@ def featurize_queries_complex_online(
         for i in range(len(existing_query_concur_features)):
             global_pre_info_length.append(existing_pre_info_length[i])
             concur_query_feature = torch.zeros(l_feature * 2 + 5, dtype=torch.float)
-            concur_query_feature[:l_feature] = torch.FloatTensor(existing_query_features[i])
+            concur_query_feature[:l_feature] = torch.FloatTensor(
+                existing_query_features[i]
+            )
             concur_query_feature[
-                (l_feature + 2): (2 * l_feature + 2)
+                (l_feature + 2) : (2 * l_feature + 2)
             ] = torch.FloatTensor(query_feature)
             concur_query_feature[l_feature + 1] = 1.0
             concur_query_feature[2 * l_feature + 2] = (
@@ -156,13 +158,17 @@ def featurize_queries_complex(
                         (np.asarray([predictions[c[0]]]), single_query_features[c[0]])
                     )
                     if c in concur_info_train[j]:
-                        assert c[1] <= start_time[j], f"parsing error in row {i}, info number {j}"
+                        assert (
+                            c[1] <= start_time[j]
+                        ), f"parsing error in row {i}, info number {j}"
                         concur_query_feature[l_feature] = 1
                         # encode the timestamp with a relative time in second, this is a negative value
                         # Todo: explore more timestamp embedding options
                         concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
                     else:
-                        assert c[1] >= start_time[j], f"parsing error in row {i}, info number {j}"
+                        assert (
+                            c[1] >= start_time[j]
+                        ), f"parsing error in row {i}, info number {j}"
                         concur_query_feature[l_feature + 1] = 1
                         # this is a negative value
                         concur_query_feature[2 * l_feature + 2] = start_time[j] - c[1]
