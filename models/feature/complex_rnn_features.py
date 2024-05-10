@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import pandas as pd
 import numpy as np
@@ -80,17 +82,25 @@ def featurize_queries_complex_online(
     queued_query_features: List[np.ndarray],
     existing_start_time: List[float],
     current_time: float,
+    next_finish_idx: Optional[int] = None,
+    next_finish_time: Optional[float] = None,
+    get_next_finish: bool = False,
 ) -> Tuple[List[torch.Tensor], torch.Tensor]:
     global_x = []
     global_pre_info_length = []
     for query_feature in queued_query_features:
         l_feature = len(query_feature)
         x = []
+        next_finish_x = (
+            []
+        )  # the feature of the current query when the next running query finishes running
         # concurrent feature for the current queued query
         if len(existing_query_features) == 0:
             concur_query_feature = np.zeros(l_feature * 2 + 5)
             concur_query_feature[:l_feature] = query_feature
             x.append(torch.FloatTensor(concur_query_feature))
+            if get_next_finish:
+                next_finish_x.append(torch.FloatTensor(concur_query_feature))
         for i, exist_q in enumerate(existing_query_features):
             concur_query_feature = np.zeros(l_feature * 2 + 5)
             concur_query_feature[:l_feature] = query_feature
@@ -100,10 +110,28 @@ def featurize_queries_complex_online(
                 existing_start_time[i] - current_time
             )
             x.append(torch.FloatTensor(concur_query_feature))
+            if get_next_finish and next_finish_idx is not None:
+                if next_finish_idx != i:
+                    unfinished_concur_query_feature = copy.deepcopy(
+                        concur_query_feature
+                    )
+                    unfinished_concur_query_feature[2 * l_feature + 2] = (
+                        existing_start_time[i] - next_finish_time
+                    )
+                    next_finish_x.append(torch.FloatTensor(concur_query_feature))
         global_pre_info_length.append(len(x))
         global_x.append(torch.stack(x))
+        if get_next_finish:
+            if len(next_finish_x) == 0:
+                # this can happen when there is exactly one query running in the system
+                concur_query_feature = np.zeros(l_feature * 2 + 5)
+                concur_query_feature[:l_feature] = query_feature
+                next_finish_x.append(torch.FloatTensor(concur_query_feature))
+            global_pre_info_length.append(len(next_finish_x))
+            global_x.append(torch.stack(next_finish_x))
 
         # concurrent features for all existing (running queries) when this queued query is submitted
+        # Todo: add info for next finish query
         for i in range(len(existing_query_concur_features)):
             global_pre_info_length.append(existing_pre_info_length[i])
             concur_query_feature = torch.zeros(l_feature * 2 + 5, dtype=torch.float)

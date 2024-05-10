@@ -30,8 +30,11 @@ class SingleStage:
         true_card=False,
         use_table_features=False,
         use_table_selectivity=False,
+        use_median=False,
     ):
-        self.cache = CachePredictor(capacity, alpha, hash_bits, store_all, use_index)
+        self.cache = CachePredictor(
+            capacity, alpha, hash_bits, store_all, use_index, use_median
+        )
         self.local_model = SingleXGBoost(
             n_estimators, max_depth, eta, eval_metric, early_stopping_rounds
         )

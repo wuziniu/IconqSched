@@ -63,17 +63,16 @@ class Simulator:
         ) = self.scheduler.ingest_query_simulation(
             start_time, query_str=query_str, query_idx=query_idx
         )
-        print(should_immediate_re_ingest, should_pause_and_re_ingest)
         if should_immediate_re_ingest:
             # the scheduler schedules one query at a time even if there are multiple queries in the queue, so need to call again
-            self.replay_one_query(start_time + 0.001)
+            self.replay_one_query(start_time + 0.001, next_query_start_time)
         if should_pause_and_re_ingest:
             if (
                 next_query_start_time is not None
                 and next_query_start_time <= start_time + self.pause_wait_s
             ):
                 return
-            self.replay_one_query(start_time + self.pause_wait_s)
+            self.replay_one_query(start_time + self.pause_wait_s, next_query_start_time)
 
     def replay_workload(self, directory: str) -> Tuple[np.ndarray, np.ndarray]:
         all_raw_trace, all_trace = load_trace(directory, 8, concat=True)

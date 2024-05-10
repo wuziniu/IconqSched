@@ -313,6 +313,9 @@ class ConcurrentRNN:
         queued_query_features: List[np.ndarray],
         existing_start_time: List[float],
         current_time: float,
+        next_finish_idx: Optional[int] = None,
+        next_finish_time: Optional[float] = None,
+        get_next_finish: bool = False,
     ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
         global_x, global_pre_info_length = featurize_queries_complex_online(
             existing_query_features,
@@ -321,6 +324,9 @@ class ConcurrentRNN:
             queued_query_features,
             existing_start_time,
             current_time,
+            next_finish_idx,
+            next_finish_time,
+            get_next_finish,
         )
         predictions = self.model(global_x, None, global_pre_info_length, False)
         return predictions, global_x, global_pre_info_length

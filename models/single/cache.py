@@ -4,10 +4,17 @@ from typing import Optional
 
 class CachePredictor:
     def __init__(
-        self, capacity=5000, alpha=1.0, hash_bits=None, store_all=False, use_index=False
+        self,
+        capacity=5000,
+        alpha=1.0,
+        hash_bits=None,
+        store_all=False,
+        use_index=False,
+        use_median=False,
     ):
         self.all_query_hash_val = []
         self.running_average = dict()
+        self.median = dict()
         self.most_recent = dict()
         self.running_std = dict()
         self.num_obervation = dict()
@@ -17,6 +24,7 @@ class CachePredictor:
         self.store_all = store_all
         self.hash_bits = hash_bits
         self.use_index = use_index
+        self.use_median = use_median
 
     def hash_feature(self, feature: np.ndarray) -> int:
         hash_val = hash(tuple(list(feature)))
@@ -33,6 +41,7 @@ class CachePredictor:
             if hash_val not in self.running_average:
                 self.all_query_hash_val.append(hash_val)
                 self.running_average[hash_val] = np.average(rows["runtime"])
+                self.median[hash_val] = np.median(rows["runtime"])
                 self.most_recent[hash_val] = rows["runtime"].values[-1]
                 self.running_std[hash_val] = np.std(rows["runtime"])
                 self.num_obervation[hash_val] = len(rows)
@@ -71,9 +80,14 @@ class CachePredictor:
                 predictions.append(-1)
                 not_cached_idx.append(i)
             else:
-                pred = self.running_average[hash_val] * self.alpha + self.most_recent[
-                    hash_val
-                ] * (1 - self.alpha)
+                if self.use_median:
+                    pred = self.median[hash_val] * self.alpha + self.most_recent[
+                        hash_val
+                    ] * (1 - self.alpha)
+                else:
+                    pred = self.running_average[
+                        hash_val
+                    ] * self.alpha + self.most_recent[hash_val] * (1 - self.alpha)
                 predictions.append(pred)
         return predictions, not_cached_idx
 
@@ -85,7 +99,12 @@ class CachePredictor:
         if hash_val not in self.running_average:
             return None
         else:
-            pred = self.running_average[hash_val] * self.alpha + self.most_recent[
-                hash_val
-            ] * (1 - self.alpha)
+            if self.use_median:
+                pred = self.median[hash_val] * self.alpha + self.most_recent[
+                    hash_val
+                ] * (1 - self.alpha)
+            else:
+                pred = self.running_average[hash_val] * self.alpha + self.most_recent[
+                    hash_val
+                ] * (1 - self.alpha)
             return pred
