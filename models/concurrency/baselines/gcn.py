@@ -49,17 +49,21 @@ class GraphConvolution(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, nfeat, nhid, nclass, dropout):
+    def __init__(self, nfeat, nhid, nclass, nlayers, dropout):
         super(GCN, self).__init__()
+        self.nlayers = nlayers
         self.gc1 = GraphConvolution(nfeat, nhid)
-        self.gc2 = GraphConvolution(nhid, nclass)
+        self.gc2 = GraphConvolution(nhid, nhid)
+        self.gc3 = GraphConvolution(nhid, nclass)
         self.fc = nn.Linear(nclass, 1)
         self.dropout = dropout
 
     def forward(self, x, adj, dh=None, embed=False):
-        x = F.relu(self.gc1(x, adj))
+        x = self.gc1(x, adj)
         x = F.dropout(x, self.dropout, training=self.training)
-        x = F.relu(self.gc2(x, adj))
+        x = self.gc2(x, adj)
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.gc3(x, adj)
         if embed:
             return x
         if dh is not None:
@@ -68,8 +72,8 @@ class GCN(nn.Module):
         return x
 
 
-def get_model(feature_num, hidden, nclass, dropout):
-    model = GCN(nfeat=feature_num, nhid=hidden, nclass=nclass, dropout=dropout)
+def get_model(feature_num, hidden, nclass, nlayers, dropout):
+    model = GCN(nfeat=feature_num, nhid=hidden, nclass=nclass, nlayers=nlayers, dropout=dropout)
     return model
 
 

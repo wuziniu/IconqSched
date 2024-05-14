@@ -12,7 +12,8 @@ class Arguments:
         self.lr = 1e-2
         self.weight_decay = 5e-4
         self.hidden = 128
-        self.node_dim = 64
+        self.n_layers = 3
+        self.node_dim = 32
         self.dropout = 0.1
         self.save_best = True
 

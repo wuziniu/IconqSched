@@ -8,36 +8,12 @@ from utils.load_brad_trace import (
 )
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
-
+from models.concurrency.baselines.gcn_graph_gen import generate_graph_from_trace
+from models.concurrency.baselines.gcn_train import train_gcn_baseline
 np.set_printoptions(suppress=True)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    # query featurization parameters
-    parser.add_argument("--use_size", action="store_true")
-    parser.add_argument("--use_log", action="store_true")
-    parser.add_argument("--true_card", action="store_true")
-    parser.add_argument("--rnn_type", default="lstm", type=str)
-    parser.add_argument("--use_separation", action="store_true")
-
-    parser.add_argument("--use_table_features", action="store_true")
-    parser.add_argument("--use_table_selectivity", action="store_true")
-
-    # load dataset
-    parser.add_argument("--num_clients", default=8, type=int)
-    parser.add_argument("--parsed_queries_path", type=str)
-    parser.add_argument("--directory", type=str)
-
-    # LSTM hyperparameters
-    parser.add_argument("--embedding_dim", default=128, type=int)
-    parser.add_argument("--hidden_size", default=128, type=int)
-    parser.add_argument("--num_layers", default=2, type=int)
-    parser.add_argument("--lr", default=0.01, type=float)
-    parser.add_argument("--loss_function", default="l1_loss", type=str)
-    parser.add_argument("--val_on_test", action="store_true")
-
-    args = parser.parse_args()
+def train_concurrent_rnn():
     all_raw_trace, all_trace = load_trace_all_version(
         args.directory, args.num_clients, concat=True
     )
@@ -87,3 +63,57 @@ if __name__ == "__main__":
         loss_function=args.loss_function,
         val_on_test=args.val_on_test,
     )
+    if args.target_path is not None:
+        rnn.save_model(args.target_path)
+
+
+def train_gcn_baseline():
+    generate_graph_from_trace(args.directory, args.parsed_queries_path, args.gcn_graph_path)
+    train_gcn_baseline(args.gcn_graph_path,
+                       args.gcn_dataset,
+                       args.n_run_id,
+                       num_epoch=args.num_epoch,
+                       eval_every=5,
+                       save_best=True,
+                       save_path=args.target_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    # meta-commands
+    parser.add_argument("--train_concurrent_rnn", action="store_true")
+    parser.add_argument("--train_gcn_baseline", action="store_true")
+    parser.add_argument("--gcn_graph_path", type=str)
+    parser.add_argument("--target_path", type=str)
+
+    # query featurization parameters
+    parser.add_argument("--use_size", action="store_true")
+    parser.add_argument("--use_log", action="store_true")
+    parser.add_argument("--true_card", action="store_true")
+    parser.add_argument("--rnn_type", default="lstm", type=str)
+    parser.add_argument("--use_separation", action="store_true")
+    parser.add_argument("--use_table_features", action="store_true")
+    parser.add_argument("--use_table_selectivity", action="store_true")
+
+    # load dataset
+    parser.add_argument("--num_clients", default=8, type=int)
+    parser.add_argument("--parsed_queries_path", type=str)
+    parser.add_argument("--directory", type=str)
+
+    # LSTM hyperparameters
+    parser.add_argument("--embedding_dim", default=128, type=int)
+    parser.add_argument("--hidden_size", default=128, type=int)
+    parser.add_argument("--num_layers", default=2, type=int)
+    parser.add_argument("--lr", default=0.01, type=float)
+    parser.add_argument("--loss_function", default="l1_loss", type=str)
+    parser.add_argument("--val_on_test", action="store_true")
+
+    # GCN baseline parameters
+    parser.add_argument("--gcn_dataset", default="sample-plan", type=str)
+    parser.add_argument("--n_run_id", default=4, type=int)
+    parser.add_argument("--num_epoch", default=100, type=int)
+
+
+    args = parser.parse_args()
+    if args.train_concurrent_rnn:
+        train_concurrent_rnn()

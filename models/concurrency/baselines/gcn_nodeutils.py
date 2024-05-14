@@ -90,10 +90,12 @@ def extract_plan(
     while len(stack) != 0:
         parent = stack.pop(0)
         run_cost = compute_cost(parent)
-        if oid == root_id:
+        if parent["oid"] == root_id:
             run_time = query_runtime
         else:
             run_time = compute_time(parent)
+        #if parent["oid"] == root_id:
+         #   print(run_time, root_id)
         node_param = parent["plan_parameters"]
         tables = get_used_tables(node_param, column_table_mapping)
         if "act_startup_cost" in node_param:
@@ -132,7 +134,7 @@ def extract_plan(
             ]
         )
 
-        node_matrix = [node_feature] + node_matrix
+        node_matrix.append(node_feature)
 
         node_merge_feature = (
             [
@@ -147,12 +149,12 @@ def extract_plan(
                 run_time,
             ]
         )
-        node_merge_matrix = [node_merge_feature] + node_merge_matrix
+        node_merge_matrix.append(node_merge_feature)
 
         if "children" in parent:
             for node in parent["children"]:
                 stack.append(node)
-                edge_matrix = [[node["oid"], parent["oid"], 1]] + edge_matrix
+                edge_matrix.append([node["oid"], parent["oid"], 1])
 
     return (
         start_time,
