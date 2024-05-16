@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from typing import Optional, Tuple, List, Union, MutableMapping
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
@@ -17,15 +18,22 @@ class GreedyScheduler(BaseScheduler):
             stage_model, predictor, max_concurrency_level, min_concurrency_level
         )
 
-    def ingest_query_simulation(
+    def ingest_query(
         self,
         start_t: float,
         query_str: Optional[Union[str, int]] = None,
         query_idx: Optional[int] = None,
-    ) -> Tuple[bool, bool, Optional[float]]:
+        simulation: bool = True
+    ) -> Tuple[bool, bool, Optional[Union[str, int]]]:
         """We work on planning the currently queued queries if query_str is None (i.e., no query submitted)"""
         self.current_time = start_t
-        self.finish_query()
+        if simulation:
+            self.finish_query_simulation()
+        else:
+            # adjusting the finishing time of running queries (due to error in estimation)
+            for i in range(len(self.existing_finish_time)):
+                randomness = np.abs(np.random.normal(2, 1))
+                self.existing_finish_time[i] = max(self.existing_finish_time[i], self.current_time + randomness)
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
@@ -62,14 +70,13 @@ class GreedyScheduler(BaseScheduler):
         )
 
         predictions = predictions.reshape(-1).detach().numpy()
-        # Todo: add algorithms to decide whether to put in queue or directly for execution
         if len(self.running_queries) == 0:
             # submit the shortest running query in queue when there is no query running
             # Todo: this is not optimal
             assert len(predictions) == 2 * len(self.queued_queries)
-
             predictions_query = predictions[0:-1:2]
             selected_idx = np.argmin(predictions_query)
+            scheduled_submit = copy.deepcopy(self.queued_queries[selected_idx])
             self.submit_query(
                 selected_idx,
                 self.queued_queries[selected_idx],
@@ -93,7 +100,7 @@ class GreedyScheduler(BaseScheduler):
             return (
                 should_immediate_re_ingest,
                 should_pause_and_re_ingest,
-                scheduled_submit,
+                None,
             )
         else:
             all_score = []
@@ -108,7 +115,7 @@ class GreedyScheduler(BaseScheduler):
                 )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
-                    (pred_idx + 2) : (
+                    (pred_idx + 2): (
                         pred_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
@@ -122,14 +129,13 @@ class GreedyScheduler(BaseScheduler):
                     # more optimal to submit now than later
                     all_score.append(delta_sum + curr_delta)
                     all_query_idx.append(i)
-                    # todo: add more clever conditions
+                    # TODO: is there more clever condition?
             if len(all_score) == 0:
                 should_immediate_re_ingest = False
                 should_pause_and_re_ingest = False
-                # Todo implement scheduled submit in the future
-                # now we just pause and wait for re_ingest
                 scheduled_submit = None
             else:
+                # TODO: use linear programming rather than argmax
                 best_query_idx = np.argmin(all_score)
                 selected_idx = all_query_idx[best_query_idx]
                 converted_idx = selected_idx * (
@@ -139,7 +145,7 @@ class GreedyScheduler(BaseScheduler):
                 finish_t = start_t + curr_pred_runtime
                 existing_query_concur_features = global_x[converted_idx]
                 new_existing_pred = predictions[
-                    (converted_idx + 2) : (
+                    (converted_idx + 2): (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
@@ -149,10 +155,11 @@ class GreedyScheduler(BaseScheduler):
                         new_existing_pred[i] + self.existing_start_time[i]
                     )
                 new_existing_query_concur_feature = global_x[
-                    (converted_idx + 2) : (
+                    (converted_idx + 2): (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
+                scheduled_submit = copy.deepcopy(self.queued_queries[selected_idx])
                 self.submit_query(
                     selected_idx,
                     self.queued_queries[selected_idx],
@@ -169,7 +176,6 @@ class GreedyScheduler(BaseScheduler):
                 )
                 should_immediate_re_ingest = True
                 should_pause_and_re_ingest = False
-                scheduled_submit = None
             return (
                 should_immediate_re_ingest,
                 should_pause_and_re_ingest,

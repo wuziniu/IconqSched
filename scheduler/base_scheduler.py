@@ -60,7 +60,11 @@ class BaseScheduler:
         all_pred, _ = self.predictor.predict(trace, return_per_query=False)
         return all_pred
 
-    def ingest_query(self, start_t: float, query_idx: int):
+    def ingest_query(self,
+                     start_t: float,
+                     query_str: Optional[Union[str, int]] = None,
+                     query_idx: Optional[int] = None,
+                     simulation: bool = False):
         return None
 
     def print_state(self):
@@ -107,7 +111,30 @@ class BaseScheduler:
         self.queued_query_features.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
 
-    def finish_query(self, current_time: float = None) -> None:
+    def finish_query(self,
+                     current_time: float,
+                     query_str: Union[str, int]) -> None:
+        self.current_time = current_time
+        if query_str not in self.running_queries:
+            print(f"Warning: {query_str} is already finished")
+            return
+        finish_idx = self.running_queries.index(query_str)
+        self.running_queries.pop(finish_idx)
+        self.existing_enter_time.pop(finish_idx)
+        self.existing_query_features.pop(finish_idx)
+        self.existing_runtime_prediction.pop(finish_idx)
+        self.existing_start_time.pop(finish_idx)
+        self.existing_finish_time.pop(finish_idx)
+        # Todo: the last two needs change when we remove a query from its pre info,
+        #  or we train with sufficient squence length
+        self.existing_query_concur_features.pop(finish_idx)
+        self.existing_pre_info_length.pop(finish_idx)
+        # adjusting the finishing time of running queries (due to error in estimation)
+        for i in range(len(self.existing_finish_time)):
+            randomness = np.abs(np.random.normal(2, 1))
+            self.existing_finish_time[i] = max(self.existing_finish_time[i], current_time + randomness)
+
+    def finish_query_simulation(self, current_time: float = None) -> None:
         if current_time is not None:
             self.current_time = current_time
         pop_index = []
@@ -176,7 +203,7 @@ class BaseScheduler:
     ) -> Tuple[bool, bool, Optional[float]]:
         """We work on planning the currently queued queries if quert_str is None (i.e., no query submitted)"""
         self.current_time = start_t
-        self.finish_query()
+        self.finish_query_simulation()
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None

@@ -1,13 +1,9 @@
-import pandas as pd
 import numpy as np
 from typing import Optional, Tuple
 from utils.load_brad_trace import (
     load_trace,
     create_concurrency_dataset,
-    load_trace_all_version,
 )
-from models.single.stage import SingleStage
-from models.concurrency.complex_models import ConcurrentRNN
 from scheduler.base_scheduler import BaseScheduler
 
 
@@ -55,24 +51,34 @@ class Simulator:
         query_str: Optional[int] = None,
         query_idx: Optional[int] = None,
     ):
-        # Todo: this logical should go to the scheduler
         (
             should_immediate_re_ingest,
             should_pause_and_re_ingest,
             scheduled_submit,
-        ) = self.scheduler.ingest_query_simulation(
-            start_time, query_str=query_str, query_idx=query_idx
+        ) = self.scheduler.ingest_query(
+            start_time, query_str=query_str, query_idx=query_idx, simulation=True
         )
         if should_immediate_re_ingest:
-            # the scheduler schedules one query at a time even if there are multiple queries in the queue, so need to call again
+            # the scheduler schedules one query at a time even if there are multiple queries in the queue,
+            # so need to call again
             self.replay_one_query(start_time + 0.001, next_query_start_time)
         if should_pause_and_re_ingest:
+            # this indicates it is not optimal to submit any query in the queue, will try in a future time
             if (
                 next_query_start_time is not None
                 and next_query_start_time <= start_time + self.pause_wait_s
             ):
                 return
             self.replay_one_query(start_time + self.pause_wait_s, next_query_start_time)
+
+    def finish_all_queries(self, last_timestamp: float):
+        start_t = last_timestamp
+        while len(self.scheduler.queued_queries) != 0:
+            # make sure all queries are submitted
+            self.replay_one_query(start_t + self.pause_wait_s, None)
+            start_t += self.pause_wait_s
+        # finish executing all submitted queries
+        self.scheduler.finish_query_simulation(np.infty)
 
     def replay_workload(self, directory: str) -> Tuple[np.ndarray, np.ndarray]:
         all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
@@ -88,7 +94,7 @@ class Simulator:
         for i in range(len(concurrency_df)):
             original_runtime.append(original_predictions[i])
             # replaying the query one-by-one
-            if i < len(concurrency_df):
+            if i < len(concurrency_df) - 1:
                 next_query_start_time = all_start_time[i + 1]
             else:
                 next_query_start_time = None
@@ -96,7 +102,7 @@ class Simulator:
                 all_start_time[i], next_query_start_time, i, all_query_idx[i]
             )
         # finish all queries
-        self.scheduler.finish_query(np.infty)
+        self.finish_all_queries(all_start_time[-1])
         new_runtime = []
         for i in range(len(concurrency_df)):
             new_runtime.append(self.scheduler.all_query_runtime[i])
