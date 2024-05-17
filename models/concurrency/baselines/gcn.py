@@ -73,7 +73,9 @@ class GCN(nn.Module):
 
 
 def get_model(feature_num, hidden, nclass, nlayers, dropout):
-    model = GCN(nfeat=feature_num, nhid=hidden, nclass=nclass, nlayers=nlayers, dropout=dropout)
+    model = GCN(
+        nfeat=feature_num, nhid=hidden, nclass=nclass, nlayers=nlayers, dropout=dropout
+    )
     return model
 
 

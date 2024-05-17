@@ -11,9 +11,7 @@ class GCN(nn.Module):
         self.nlayers = nlayers
         self.gc1 = SAGEConv(nfeat, nhid)
         self.gc2 = SAGEConv(nhid, nhid)
-        self.fc = nn.Sequential(
-            nn.Linear(nhid, nclass),
-            nn.Linear(nclass, 1))
+        self.fc = nn.Sequential(nn.Linear(nhid, nclass), nn.Linear(nclass, 1))
         self.dropout = dropout
 
     def forward(self, x, edge_idx, edge_weight, dh=None, embed=False):
@@ -30,7 +28,9 @@ class GCN(nn.Module):
 
 
 def get_model(feature_num, hidden, nclass, nlayers, dropout):
-    model = GCN(nfeat=feature_num, nhid=hidden, nclass=nclass, nlayers=nlayers, dropout=dropout)
+    model = GCN(
+        nfeat=feature_num, nhid=hidden, nclass=nclass, nlayers=nlayers, dropout=dropout
+    )
     return model
 
 

@@ -9,7 +9,9 @@ from models.concurrency.baselines.gcn_constant import args
 from models.concurrency.baselines.gcn_graph_embedding import load_all_data
 
 
-def train_one_batch(model, labels, features, edge_idx, edge_weight, optimizer, loss_func="qloss"):
+def train_one_batch(
+    model, labels, features, edge_idx, edge_weight, optimizer, loss_func="qloss"
+):
     optimizer.zero_grad()
     output = model(features, edge_idx, edge_weight)
     if loss_func == "qloss":
@@ -31,7 +33,11 @@ def eval_one_batch(model, labels, features, edge_idx, edge_weight, root_idx_bit_
 
 def test_one_batch(labels, features, edge_idx, edge_weight, model, idx_test=None):
     model.eval()
-    output = model(features, edge_idx, edge_weight,)
+    output = model(
+        features,
+        edge_idx,
+        edge_weight,
+    )
     # transfer output to ms
     # output = output * 1000
     if idx_test is not None:
@@ -54,9 +60,13 @@ def train_gcn_baseline(
     save_path=None,
 ):
     print("Loading all data graphs")
-    all_features, all_edge_idx, all_edge_weight, all_labels, all_root_idx_bit_map = load_all_data(
-        data_dir, dataset, n_run_id
-    )
+    (
+        all_features,
+        all_edge_idx,
+        all_edge_weight,
+        all_labels,
+        all_root_idx_bit_map,
+    ) = load_all_data(data_dir, dataset, n_run_id)
     n_graphs = len(all_features)
     print(f"In total, {n_graphs} number of graphs")
 
@@ -70,8 +80,8 @@ def train_gcn_baseline(
     optimizer = get_optimizer(model=model, lr=args.lr, weight_decay=args.weight_decay)
 
     all_idx = np.random.permutation(n_graphs)
-    train_idx = all_idx[0: int(0.85 * n_graphs)]
-    val_idx = all_idx[int(0.85 * n_graphs):]
+    train_idx = all_idx[0 : int(0.85 * n_graphs)]
+    val_idx = all_idx[int(0.85 * n_graphs) :]
     best_val_loss = np.infty
     for epoch in range(num_epoch):
         model.train()
@@ -80,7 +90,13 @@ def train_gcn_baseline(
         for i in tqdm(curr_epoch_train_idx):
             # per-batch training
             bl = train_one_batch(
-                model, all_labels[i], all_features[i], all_edge_idx[i], all_edge_weight[i], optimizer, loss_func="mse"
+                model,
+                all_labels[i],
+                all_features[i],
+                all_edge_idx[i],
+                all_edge_weight[i],
+                optimizer,
+                loss_func="mse",
             )
             batch_loss += bl
         if epoch % eval_every == 0:

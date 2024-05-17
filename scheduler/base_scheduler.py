@@ -60,11 +60,13 @@ class BaseScheduler:
         all_pred, _ = self.predictor.predict(trace, return_per_query=False)
         return all_pred
 
-    def ingest_query(self,
-                     start_t: float,
-                     query_str: Optional[Union[str, int]] = None,
-                     query_idx: Optional[int] = None,
-                     simulation: bool = False):
+    def ingest_query(
+        self,
+        start_t: float,
+        query_str: Optional[Union[str, int]] = None,
+        query_idx: Optional[int] = None,
+        simulation: bool = False,
+    ):
         return None
 
     def print_state(self):
@@ -111,9 +113,7 @@ class BaseScheduler:
         self.queued_query_features.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
 
-    def finish_query(self,
-                     current_time: float,
-                     query_str: Union[str, int]) -> None:
+    def finish_query(self, current_time: float, query_str: Union[str, int]) -> None:
         self.current_time = current_time
         if query_str not in self.running_queries:
             print(f"Warning: {query_str} is already finished")
@@ -132,7 +132,9 @@ class BaseScheduler:
         # adjusting the finishing time of running queries (due to error in estimation)
         for i in range(len(self.existing_finish_time)):
             randomness = np.abs(np.random.normal(2, 1))
-            self.existing_finish_time[i] = max(self.existing_finish_time[i], current_time + randomness)
+            self.existing_finish_time[i] = max(
+                self.existing_finish_time[i], current_time + randomness
+            )
 
     def finish_query_simulation(self, current_time: float = None) -> None:
         if current_time is not None:

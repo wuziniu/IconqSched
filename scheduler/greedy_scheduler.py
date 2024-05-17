@@ -23,7 +23,7 @@ class GreedyScheduler(BaseScheduler):
         start_t: float,
         query_str: Optional[Union[str, int]] = None,
         query_idx: Optional[int] = None,
-        simulation: bool = True
+        simulation: bool = True,
     ) -> Tuple[bool, bool, Optional[Union[str, int]]]:
         """We work on planning the currently queued queries if query_str is None (i.e., no query submitted)"""
         self.current_time = start_t
@@ -33,7 +33,9 @@ class GreedyScheduler(BaseScheduler):
             # adjusting the finishing time of running queries (due to error in estimation)
             for i in range(len(self.existing_finish_time)):
                 randomness = np.abs(np.random.normal(2, 1))
-                self.existing_finish_time[i] = max(self.existing_finish_time[i], self.current_time + randomness)
+                self.existing_finish_time[i] = max(
+                    self.existing_finish_time[i], self.current_time + randomness
+                )
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
@@ -115,7 +117,7 @@ class GreedyScheduler(BaseScheduler):
                 )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
-                    (pred_idx + 2): (
+                    (pred_idx + 2) : (
                         pred_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
@@ -145,7 +147,7 @@ class GreedyScheduler(BaseScheduler):
                 finish_t = start_t + curr_pred_runtime
                 existing_query_concur_features = global_x[converted_idx]
                 new_existing_pred = predictions[
-                    (converted_idx + 2): (
+                    (converted_idx + 2) : (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
@@ -155,7 +157,7 @@ class GreedyScheduler(BaseScheduler):
                         new_existing_pred[i] + self.existing_start_time[i]
                     )
                 new_existing_query_concur_feature = global_x[
-                    (converted_idx + 2): (
+                    (converted_idx + 2) : (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]

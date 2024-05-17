@@ -32,9 +32,7 @@ def load_data(dataset, path, verbose=False):
     vmatrix = np.load(os.path.join(path, dataset + "-nodes.npy"))
     ematrix = np.load(os.path.join(path, dataset + "-edges.npy"))
     root_idx_bit_map = np.load(os.path.join(path, dataset + "-root-idx.npy"))
-    features, edge_idx, edge_weight, labels = load_data_from_matrix(
-        vmatrix, ematrix
-    )
+    features, edge_idx, edge_weight, labels = load_data_from_matrix(vmatrix, ematrix)
     labels = labels.reshape(-1, 1)
     return features, edge_idx, edge_weight, labels, root_idx_bit_map
 
@@ -47,4 +45,3 @@ def load_data_from_matrix(vmatrix, ematrix):
     edge_idx = torch.from_numpy(ematrix[:, :-1].T).type(torch.int64)
     edge_weight = torch.from_numpy(ematrix[:, -1]).type(torch.FloatTensor)
     return features, edge_idx, edge_weight, labels
-

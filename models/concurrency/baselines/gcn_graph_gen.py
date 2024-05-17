@@ -1,7 +1,10 @@
 import os
 import numpy as np
 from models.concurrency.baselines.gcn_dbconnection import Database
-from models.concurrency.baselines.gcn_nodeutils import extract_plan, add_across_plan_relations
+from models.concurrency.baselines.gcn_nodeutils import (
+    extract_plan,
+    add_across_plan_relations,
+)
 from parser.utils import load_json
 from utils.load_brad_trace import load_trace_all_version
 from models.feature.single_xgboost_feature import find_top_k_operators

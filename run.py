@@ -10,6 +10,7 @@ from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
 from models.concurrency.baselines.gcn_graph_gen import generate_graph_from_trace
 from models.concurrency.baselines.gcn_train import train_gcn_baseline
+
 np.set_printoptions(suppress=True)
 
 
@@ -68,14 +69,18 @@ def train_concurrent_rnn():
 
 
 def train_gcn_baseline():
-    generate_graph_from_trace(args.directory, args.parsed_queries_path, args.gcn_graph_path)
-    train_gcn_baseline(args.gcn_graph_path,
-                       args.gcn_dataset,
-                       args.n_run_id,
-                       num_epoch=args.num_epoch,
-                       eval_every=5,
-                       save_best=True,
-                       save_path=args.target_path)
+    generate_graph_from_trace(
+        args.directory, args.parsed_queries_path, args.gcn_graph_path
+    )
+    train_gcn_baseline(
+        args.gcn_graph_path,
+        args.gcn_dataset,
+        args.n_run_id,
+        num_epoch=args.num_epoch,
+        eval_every=5,
+        save_best=True,
+        save_path=args.target_path,
+    )
 
 
 if __name__ == "__main__":
@@ -112,7 +117,6 @@ if __name__ == "__main__":
     parser.add_argument("--gcn_dataset", default="sample-plan", type=str)
     parser.add_argument("--n_run_id", default=4, type=int)
     parser.add_argument("--num_epoch", default=100, type=int)
-
 
     args = parser.parse_args()
     if args.train_concurrent_rnn:

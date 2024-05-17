@@ -94,8 +94,8 @@ def extract_plan(
             run_time = query_runtime
         else:
             run_time = compute_time(parent)
-        #if parent["oid"] == root_id:
-         #   print(run_time, root_id)
+        # if parent["oid"] == root_id:
+        #   print(run_time, root_id)
         node_param = parent["plan_parameters"]
         tables = get_used_tables(node_param, column_table_mapping)
         if "act_startup_cost" in node_param:
