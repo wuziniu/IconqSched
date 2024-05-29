@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from typing import Optional
+import collections
+from typing import Optional, Union, Tuple
 from models.single.cache import CachePredictor
 from models.single.local_xgboost import SingleXGBoost
 from models.feature.single_xgboost_feature import (
@@ -9,6 +10,7 @@ from models.feature.single_xgboost_feature import (
     get_top_k_table_by_size,
 )
 from parser.utils import load_json
+from parser.parse_plan import parse_plan_online
 
 
 class SingleStage:
@@ -31,6 +33,7 @@ class SingleStage:
         use_table_features=False,
         use_table_selectivity=False,
         use_median=False,
+        db_conn=None
     ):
         self.cache = CachePredictor(
             capacity, alpha, hash_bits, store_all, use_index, use_median
@@ -45,8 +48,12 @@ class SingleStage:
         self.operators = None
         self.use_table_features = use_table_features
         self.use_table_selectivity = use_table_selectivity
-        self.all_feature = []
+        self.all_feature = dict()
         self.all_table_size = None
+        self.db_conn = db_conn
+        self.column_id_mapping = dict()
+        self.partial_column_name_mapping = collections.defaultdict(set)
+        self.table_id_mapping = dict()
 
     def featurize_data(
         self,
@@ -55,10 +62,21 @@ class SingleStage:
         save_feature_file: Optional[str] = None,
     ):
         plans = load_json(parsed_queries_path, namespace=False)
+        database_stats = plans['database_stats']
+        for i, column_stat in enumerate(database_stats['column_stats']):
+            table = column_stat['tablename']
+            column = column_stat['attname']
+            self.column_id_mapping[(table, column)] = i
+            self.partial_column_name_mapping[column].add(table)
+
+        for i, table_stat in enumerate(database_stats['table_stats']):
+            table = table_stat['relname']
+            self.table_id_mapping[table] = i
+
         self.operators = find_top_k_operators(plans=plans, k=self.num_operators)
         if self.use_table_features:
             self.all_table_size = get_top_k_table_by_size(plans=plans, k=15)
-        self.all_feature = []
+        self.all_feature = dict()
         for i in range(len(plans["parsed_plans"])):
             plan = plans["parsed_plans"][i]
             feature = featurize_one_plan(
@@ -69,7 +87,7 @@ class SingleStage:
                 use_log=self.use_log,
                 true_card=self.true_card,
             )
-            self.all_feature.append(feature)
+            self.all_feature[i] = feature
         # Todo: should include data featurization for adhoc_queries, should be straight forward to add in
         features_df = []
         all_query_idx = df["query_idx"].values
@@ -86,9 +104,25 @@ class SingleStage:
             df.to_csv(save_feature_file, header=True, index=False)
         return df
 
-    def featurize_online(self, query_idx: int) -> np.ndarray:
-        # Todo: should include data featurization for adhoc_queries, should be straight forward to add in
-        feature = self.all_feature[query_idx]
+    def featurize_online(self,
+                         query_idx: int,
+                         query_sql: Optional[str] = None) -> np.ndarray:
+        if query_idx not in self.all_feature:
+            plan = parse_plan_online(query_sql,
+                                     self.column_id_mapping,
+                                     self.partial_column_name_mapping,
+                                     self.table_id_mapping,
+                                     self.db_conn)
+            feature = featurize_one_plan(
+                plan,
+                self.operators,
+                self.all_table_size,
+                use_size=self.use_size,
+                use_log=self.use_log,
+                true_card=self.true_card,
+            )
+        else:
+            feature = self.all_feature[query_idx]
         pred = self.cache.online_inference(query_idx, feature)
         if pred is None:
             pred = self.local_model.online_inference(feature)

@@ -6,27 +6,24 @@ from models.concurrency.complex_models import ConcurrentRNN
 from scheduler.base_scheduler import BaseScheduler
 
 
-class GreedyScheduler(BaseScheduler):
+class LPScheduler(BaseScheduler):
     def __init__(
         self,
         stage_model: SingleStage,
         predictor: ConcurrentRNN,
         max_concurrency_level: int = 10,
         min_concurrency_level: int = 2,
-        starve_penalty: float = 0.5
     ):
         """
         :param stage_model: prediction and featurization for a single query
         :param predictor: predict the runtime of concurrent queries
         :param max_concurrency_level: [hyperparameter] the maximal amount of concurrent queries the system can ingest,
                                       can set to a very big value if don't know how to set
-        :param min_concurrency_level: [hyperparameter] not useful for greedy scheduler
-        :param starve_penalty: Give a penalty for starving a query for too long
+        :param min_concurrency_level: [hyperparameter] not useful for LP scheduler
         """
-        super(GreedyScheduler, self).__init__(
+        super(LPScheduler, self).__init__(
             stage_model, predictor, max_concurrency_level, min_concurrency_level
         )
-        self.starve_penalty = starve_penalty
 
     def ingest_query(
         self,
@@ -123,7 +120,7 @@ class GreedyScheduler(BaseScheduler):
                 submit_after_pred = predictions[pred_idx + 1]
                 # how does the predicted runtime of submitting now compare to submitting later
                 curr_delta = (
-                    curr_pred - submit_after_pred - (next_finish_time - start_t)
+                    curr_pred - submit_after_pred + (next_finish_time - start_t)
                 )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
@@ -135,14 +132,13 @@ class GreedyScheduler(BaseScheduler):
                 delta = new_existing_pred - old_existing_pred
                 delta_sum = np.sum(delta)
                 # for every query first judge whether it is good to wait
-                # TODO: is there more clever score?
-                score = curr_delta + delta_sum - (start_t - self.queued_queries_enter_time[i]) * self.starve_penalty
-                if score < 0:
+                if curr_delta + delta_sum < 0:
                     # when the current system state benefit the current query more than
                     # this query's (probably negative) impact on the running queries
                     # more optimal to submit now than later
-                    all_score.append(score)
+                    all_score.append(delta_sum + curr_delta)
                     all_query_idx.append(i)
+                    # TODO: is there more clever condition?
             if len(all_score) == 0:
                 should_immediate_re_ingest = False
                 should_pause_and_re_ingest = False
@@ -158,7 +154,7 @@ class GreedyScheduler(BaseScheduler):
                 finish_t = start_t + curr_pred_runtime
                 existing_query_concur_features = global_x[converted_idx]
                 new_existing_pred = predictions[
-                    (converted_idx + 2) : (
+                    (converted_idx + 2): (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]

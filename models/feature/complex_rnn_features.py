@@ -6,6 +6,7 @@ import numpy as np
 from typing import Optional, Mapping, Tuple, List
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
+from models.single.stage import SingleStage
 
 
 def collate_fn_padding(batch):
@@ -85,6 +86,7 @@ def featurize_queries_complex_online(
     next_finish_idx: Optional[int] = None,
     next_finish_time: Optional[float] = None,
     get_next_finish: bool = False,
+    use_pre_exec_info: bool = False
 ) -> Tuple[List[torch.Tensor], torch.Tensor]:
     global_x = []
     global_pre_info_length = []
@@ -131,7 +133,6 @@ def featurize_queries_complex_online(
             global_x.append(torch.stack(next_finish_x))
 
         # concurrent features for all existing (running queries) when this queued query is submitted
-        # Todo: add info for next finish query
         for i in range(len(existing_query_concur_features)):
             global_pre_info_length.append(existing_pre_info_length[i])
             concur_query_feature = torch.zeros(l_feature * 2 + 5, dtype=torch.float)
@@ -161,8 +162,11 @@ def featurize_queries_complex(
     single_query_features: Mapping[int, np.ndarray],
     include_exit: bool = False,
     preserve_order: bool = False,
+    use_pre_exec_info: bool = False,
+    stagemodel: Optional[SingleStage] = None
 ) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
+    use_pre_exec_info = use_pre_exec_info & ('pre_exec_info' in concurrent_df.columns)
     global_y = []
     global_x = []
     global_pre_info_length = []
@@ -173,7 +177,11 @@ def featurize_queries_complex(
     for i, rows in concurrent_df.groupby("query_idx"):
         i = int(i)
         if i not in predictions or i not in single_query_features:
-            continue
+            if stagemodel is None or 'sql' not in concurrent_df.columns:
+                continue
+            else:
+                query_sql = rows['sql'].values[0]
+
         index_in_df = rows["index"].values
         query_order.append(index_in_df)
         concurrent_rt = rows["runtime"].values
@@ -184,18 +192,23 @@ def featurize_queries_complex(
             (np.asarray([predictions[i]]), single_query_features[i])
         )
         l_feature = len(query_feature)
+        if use_pre_exec_info:
+            pre_exec_info = rows["pre_exec_info"].values
+        else:
+            pre_exec_info = [] * n_rows
         concur_info_train = rows["concur_info_train"].values
         concur_info_full = rows["concur_info"].values
         for j in range(n_rows):
             x = []
-            global_pre_info_length.append(len(concur_info_train[j]))
+            global_pre_info_length.append(len(concur_info_train[j]) + len(pre_exec_info[j]))
             global_query_idx.append(i)
-            if len(concur_info_full[j]) == 0:
+
+            if len(concur_info_full[j]) == 0 and len(pre_exec_info[j]) == 0:
                 concur_query_feature = np.zeros(l_feature * 2 + 5)
                 concur_query_feature[:l_feature] = query_feature
                 x.append(torch.FloatTensor(concur_query_feature))
             else:
-                for c in concur_info_full[j]:
+                for c in pre_exec_info[j] + concur_info_full[j]:
                     concur_query_feature = np.zeros(l_feature * 2 + 5)
                     concur_query_feature[:l_feature] = query_feature
                     concur_query_feature[
@@ -203,7 +216,10 @@ def featurize_queries_complex(
                     ] = np.concatenate(
                         (np.asarray([predictions[c[0]]]), single_query_features[c[0]])
                     )
-                    if c in concur_info_train[j]:
+                    if c in pre_exec_info[j]:
+                        concur_query_feature[2 * l_feature + 3] = 1
+                        concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
+                    elif c in concur_info_train[j]:
                         assert (
                             c[1] <= start_time[j]
                         ), f"parsing error in row {i}, info number {j}"
@@ -219,7 +235,7 @@ def featurize_queries_complex(
                         # this is a negative value
                         concur_query_feature[2 * l_feature + 2] = start_time[j] - c[1]
                     if include_exit:
-                        # Todo: provide feature to indicate a query has left the instance
+                        # Todo: provide feature to indicate a query has left the instance? not helpful
                         end_time = rows["end_time"].values
                     x.append(torch.FloatTensor(concur_query_feature))
             global_x.append(torch.stack(x))

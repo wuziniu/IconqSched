@@ -1,3 +1,4 @@
+import os
 import psycopg
 import asyncio
 import time
@@ -156,15 +157,39 @@ class Executor:
                     self.scheduler.finish_query(current_time, query_rep)
         return has_finished_queries
 
+    def save_result(self,
+                    save_result_dir: str,
+                    original_predictions: List[float],
+                    new_runtime: Mapping[int, float],
+                    all_timeout: List[int],
+                    all_error: List[int],
+                    is_baseline: bool) -> None:
+        our_runtime = np.zeros(len(original_predictions)) - 1
+        for i in new_runtime:
+            our_runtime[i] = new_runtime[i]
+        original_predictions = np.asarray(original_predictions)
+        all_timeout = np.asarray(all_timeout)
+        all_error = np.asarray(all_error)
+        np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_original_predictions"), original_predictions)
+        if is_baseline:
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_runtime_baseline"), our_runtime)
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_baseline"), all_timeout)
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_error_baseline"), all_error)
+        else:
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_runtime_ours"), our_runtime)
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_ours"), all_timeout)
+            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_error_ours"), all_error)
+
     async def replay_workload(
-        self, directory: str, baseline_run: bool = False
-    ) -> (Tuple)[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        self, directory: str, baseline_run: bool = False, save_result_dir: Optional[str] = None
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         This function replays the workload trace at the provided timestamp.
         The replayed execution will use the improved scheduling methods.
         The current implementation contains unnecessary overhead, can be improved
         :param directory: the directory containing the workload trace
         :param baseline_run: if set to True, the replay will not use client-side scheduler
+        :param save_result_dir: periodically save the result to save_result_dir
         """
         function_start_time = time.time()
         all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
@@ -173,9 +198,10 @@ class Executor:
         )
         concurrency_df = concurrency_df.sort_values(by=["start_time"], ascending=True)
         # the original prediction is for reference only
-        original_predictions = self.scheduler.make_original_prediction(concurrency_df)
-        assert len(concurrency_df) == len(original_predictions)
+        all_original_predictions = self.scheduler.make_original_prediction(concurrency_df)
+        assert len(concurrency_df) == len(all_original_predictions)
         new_runtime = dict()
+        original_predictions = []
         all_timeout = []
         all_error = []
         all_start_time = concurrency_df["start_time"].values
@@ -183,6 +209,7 @@ class Executor:
         all_query_sql = concurrency_df["sql"].values
         for i in range(len(concurrency_df)):
             # replaying the query one-by-one
+            original_predictions.append(all_original_predictions[i])
             current_time = time.time() - function_start_time
             current_query_start_time = all_start_time[i]
             while current_time < current_query_start_time - 0.5:
@@ -202,6 +229,13 @@ class Executor:
                 all_query_idx[i],
                 baseline_run=baseline_run,
             )
+            if save_result_dir is not None and (i + 1) % 100 == 0:
+                self.save_result(save_result_dir,
+                                 original_predictions,
+                                 new_runtime,
+                                 all_timeout,
+                                 all_error,
+                                 baseline_run)
         # finish all queries
         await self.finish_all_queries(
             function_start_time,
@@ -210,11 +244,18 @@ class Executor:
             all_error,
             baseline_run=baseline_run,
         )
+        if save_result_dir is not None:
+            self.save_result(save_result_dir,
+                             original_predictions,
+                             new_runtime,
+                             all_timeout,
+                             all_error,
+                             baseline_run)
         our_runtime = np.zeros(len(concurrency_df))
         for i in new_runtime:
             our_runtime[i] = new_runtime[i]
         return (
-            original_predictions,
+            all_original_predictions,
             our_runtime,
             np.asarray(all_timeout),
             np.asarray(all_error),

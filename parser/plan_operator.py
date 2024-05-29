@@ -1,14 +1,8 @@
 # We adapted the legacy from from https://github.com/DataManagementLab/zero-shot-cost-estimation
 import math
 import re
-import copy
-
-from workloads.cross_db_benchmark.benchmark_tools.generate_workload import (
-    Aggregator,
-    ExtendedAggregator,
-    LogicalOperator,
-)
-from workloads.cross_db_benchmark.benchmark_tools.postgres.utils import child_prod
+from typing import List, Optional, Mapping, Any, MutableMapping, Tuple, Set
+from parser.utils import child_prod
 
 estimated_regex = re.compile(
     "\(cost=(?P<est_startup_cost>\d+.\d+)..(?P<est_cost>\d+.\d+) rows=(?P<est_card>\d+) width=(?P<est_width>\d+)\)"
@@ -18,14 +12,16 @@ actual_regex = re.compile(
 )
 op_name_regex = re.compile('->  ([^"(]+)')
 workers_planned_regex = re.compile("Workers Planned: (\d+)")
-# filter_columns_regex = re.compile('("\S+"."\S+")')
 filter_columns_regex = re.compile("([^\(\)\*\+\-'\= ]+)")
 literal_regex = re.compile("('[^']+'::[^'\)]+)")
 
 
 class PlanOperator(dict):
     def __init__(
-        self, plain_content, children=None, plan_parameters=None, plan_runtime=0
+        self, plain_content: List[str],
+            children: Optional[List] = None,
+            plan_parameters: Optional[Mapping[str, Any]] = None,
+            plan_runtime: float = 0
     ):
         super().__init__()
         self.__dict__ = self
@@ -38,8 +34,8 @@ class PlanOperator(dict):
         self.plan_runtime = plan_runtime
 
     def parse_lines(
-        self, alias_dict=None, parse_baseline=False, parse_join_conds=False
-    ):
+        self, alias_dict: Optional[MutableMapping[str, Optional[str]]] = None
+    ) -> None:
         op_line = self.plain_content[0]
 
         # parse plan operator name
@@ -104,159 +100,15 @@ class PlanOperator(dict):
                     workers_planned = workers_planned[0]
                 workers_planned = int(workers_planned)
                 self.plan_parameters.update(dict(workers_planned=workers_planned))
-
-            # Output columns
-            # probably in the future it would be easier to define a grammar and use a parser for this
-            elif l.startswith("Output: "):
-                l = l.replace("Output: ", "")
-                output_columns = self.parse_output_columns(l)
-
-                self.plan_parameters.update(dict(output_columns=output_columns))
-
-            # Filter columns
-            elif l.startswith("Filter: "):
-                l = l.replace("Filter: ", "")
-                # print(l)
-                copy_l = copy.deepcopy(l)
-                parse_tree = parse_filter(l, parse_baseline=parse_baseline)
-                self.add_filter(parse_tree, copy_l)
-
-            # Join Filter
-            elif parse_join_conds and l.startswith("Join Filter: "):
-                l = l.replace("Join Filter: ", "")
-                parse_tree = parse_filter(l, parse_baseline=False)
-                self.add_filter(parse_tree)
-
-            # Hash Condition
-            elif parse_join_conds and l.startswith("Hash Cond: "):
-                l = l.replace("Hash Cond: ", "")
-                parse_tree = parse_filter(l, parse_baseline=False)
-                self.add_filter(parse_tree)
-
-            # Filter columns
-            elif l.startswith("Index Cond: "):
-                l = l.replace("Index Cond: ", "")
-                parse_tree = parse_filter(l, parse_baseline=parse_baseline)
-                self.add_filter(parse_tree)
-
-            elif l == "Inner Unique: true":
-                self.plan_parameters.update(dict(inner_unique=True))
         self.plain_content = []
-
-    def parse_output_columns(self, l):
-        output_columns = []
-        for col in l.split(", "):
-            # argument in a function call not an actual column
-            if col.strip(")").isnumeric() or col in {
-                "NULL::numeric",
-                "NULL::bigint",
-                "NULL::integer",
-                "NULL::double precision",
-                "NULL::text",
-                "NULL::bpchar",
-            }:
-                continue
-
-            columns = []
-            if "count(*)" in col:
-                agg = Aggregator.COUNT
-            # for operators to change dates
-            elif "date_part(" in col:
-                continue
-            else:
-                # remove literals
-                col = re.sub(literal_regex, "", col)
-
-                # timestamp types can be disregarded
-                ts_text = "::timestamp without time zone"
-                if ts_text in col:
-                    col = col.replace(ts_text, "")
-
-                assert (
-                    filter_columns_regex.search(col) is not None
-                ), f"Could not parse {col}"
-
-                for filter_m in filter_columns_regex.finditer(col):
-                    curr_col = filter_m.group()
-                    endpos = filter_m.span()[-1]
-
-                    # check whether it is just an aggregation
-                    if curr_col.lower() in ["avg", "sum", "count", "min", "max"]:
-                        # next character should be opening bracket
-                        if len(col) > endpos and col[endpos] == "(":
-                            continue
-
-                    # additional PG keywords or operators
-                    if curr_col.lower() in {
-                        "partial",
-                        "precision",
-                        "case",
-                        "when",
-                        "then",
-                        "if",
-                        "else",
-                        "end",
-                        "or",
-                        "<>",
-                        "/",
-                        "~~",
-                        "and",
-                        '"substring"',
-                        "distinct",
-                    }:
-                        continue
-                    # just a type
-                    if curr_col.startswith("::"):
-                        continue
-                    # just a literal
-                    if (
-                        curr_col.startswith("'")
-                        and curr_col.split("'")[-1].startswith("::")
-                        or curr_col.replace(".", "").isnumeric()
-                    ):
-                        continue
-
-                    columns.append(tuple(curr_col.split(".")))
-
-                assert len(columns) > 0, f"Could not parse {col}"
-
-                # if there is an aggregation, find it
-                agg = None
-                if "PARTIAL" in col:
-                    col = col.replace("PARTIAL ", "").strip("( ")
-                col = col.strip("(")
-                for curr_agg in list(Aggregator) + list(ExtendedAggregator):
-                    if col.startswith(str(curr_agg).lower()):
-                        agg = str(curr_agg)
-
-                # assert agg is not None, f"Could not parse {col}"
-            output_columns.append(dict(aggregation=str(agg), columns=columns))
-        return output_columns
-
-    def add_filter(self, parse_tree, text=None):
-        if parse_tree is not None:
-            existing_filter = self.plan_parameters.get("filter_columns")
-            if existing_filter is not None:
-                # print(existing_filter)
-                parse_tree = PredicateNode(
-                    None, [existing_filter, parse_tree], existing_filter
-                )
-                parse_tree.operator = LogicalOperator.AND
-
-            if text is not None:
-                self.plan_parameters.update(
-                    dict(filter_columns=parse_tree, filter_text=text)
-                )
-            else:
-                self.plan_parameters.update(dict(filter_columns=parse_tree))
 
     def parse_columns_bottom_up(
         self,
-        column_id_mapping,
-        partial_column_name_mapping,
-        table_id_mapping,
-        alias_dict,
-    ):
+        column_id_mapping: Mapping[Tuple[str, str], int],
+        partial_column_name_mapping: Mapping[str, Set[str]],
+        table_id_mapping: Mapping[str, int],
+        alias_dict: Optional[MutableMapping[str, str]],
+    ) -> Set[str]:
         if alias_dict is None:
             alias_dict = dict()
 
@@ -277,40 +129,6 @@ class PlanOperator(dict):
 
         self.plan_parameters["act_children_card"] = child_prod(self, "act_card")
         self.plan_parameters["est_children_card"] = child_prod(self, "est_card")
-
-        output_columns = self.plan_parameters.get("output_columns")
-        if output_columns is not None:
-            for output_column in output_columns:
-                col_ids = []
-                for c in output_column["columns"]:
-                    try:
-                        c_id = self.lookup_column_id(
-                            c,
-                            column_id_mapping,
-                            node_tables,
-                            partial_column_name_mapping,
-                            alias_dict,
-                        )
-                        col_ids.append(c_id)
-                    except:
-                        # not c[1].startswith('agg_')
-                        if c[0] != "subgb":
-                            raise ValueError(
-                                f"Did not find unique table for column {c}"
-                            )
-
-                output_column["columns"] = col_ids
-
-        filter_columns = self.plan_parameters.get("filter_columns")
-        if filter_columns is not None:
-            filter_columns.lookup_columns(
-                self,
-                column_id_mapping=column_id_mapping,
-                node_tables=node_tables,
-                partial_column_name_mapping=partial_column_name_mapping,
-                alias_dict=alias_dict,
-            )
-            self.plan_parameters["filter_columns"] = filter_columns.to_dict()
 
         # replace table by id
         table = self.plan_parameters.get("table")
@@ -373,18 +191,14 @@ class PlanOperator(dict):
             self_c.merge_recursively(c)
 
     def parse_lines_recursively(
-        self, alias_dict=None, parse_baseline=False, parse_join_conds=False
+        self, alias_dict: Optional[Mapping[str, str]] = None,
     ):
         self.parse_lines(
             alias_dict=alias_dict,
-            parse_baseline=parse_baseline,
-            parse_join_conds=parse_join_conds,
         )
         for c in self.children:
             c.parse_lines_recursively(
-                alias_dict=alias_dict,
-                parse_baseline=parse_baseline,
-                parse_join_conds=parse_join_conds,
+                alias_dict=alias_dict
             )
 
     def min_card(self):

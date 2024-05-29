@@ -8,6 +8,7 @@ import torch.optim as optim
 from torch.nn.functional import l1_loss, mse_loss
 from tqdm import tqdm
 from typing import Union, Mapping, Tuple, List, Optional
+from models.single.stage import SingleStage
 from models.concurrency.seq_to_seq import RNN, LSTM, TransformerModel
 from models.feature.complex_rnn_features import (
     collate_fn_padding,
@@ -20,13 +21,14 @@ from models.feature.complex_rnn_features import (
 
 
 def q_loss_func(
-    input, target, min_val=0.001, small_val=5.0, penalty_negative=1e5, lambda_small=0.1
+        input: torch.Tensor,
+        target: torch.Tensor,
+        min_val: float = 0.001,
+        small_val: float = 5.0,
+        penalty_negative: float = 1e5,
+        lambda_small: float = 0.1
 ):
-    """
-    :param min_val: the minimal runtime you want the model to predict
-    :param small_val: q_loss naturally favors small pred/label, put less weight on those values
-    :return:
-    """
+    # loss function that minimizes q-error
     qerror = []
     for i in range(len(target)):
         # penalty for negative/too small estimates
@@ -50,7 +52,10 @@ def q_loss_func(
 
 
 class MLP(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, layers=3):
+    def __init__(self,
+                 input_dim: int,
+                 hidden_dim: int = 64,
+                 layers: int = 3):
         super(MLP, self).__init__()
         model = []
         model.append(nn.Linear(input_dim, hidden_dim))
@@ -63,7 +68,10 @@ class MLP(nn.Module):
         self.model = nn.Sequential(*model)
         self.is_train = True
 
-    def forward(self, x1, x2, x3):
+    def forward(self,
+                x1: torch.Tensor,
+                x2: torch.Tensor,
+                x3: torch.Tensor):
         y1 = self.model(x1, x2)
         if self.is_train:
             pred = self.model(y1, x3)
@@ -75,21 +83,43 @@ class MLP(nn.Module):
 class ConcurrentRNN:
     def __init__(
         self,
-        stage_model,
-        input_size,
-        embedding_dim,
-        hidden_size,
-        output_size=1,
-        num_head=4,
-        num_layers=4,
-        batch_size=128,
-        dropout=0.2,
-        include_exit=False,
-        last_output=True,
-        loss_function="q_loss",
-        rnn_type="lstm",
-        use_seperation=False,
+        stage_model: SingleStage,
+        model_prefix: str,
+        input_size: int,
+        embedding_dim: int,
+        hidden_size: int,
+        output_size: int = 1,
+        num_head: int = 4,
+        num_layers: int = 4,
+        batch_size: int = 128,
+        dropout: float = 0.2,
+        include_exit: bool = False,
+        last_output: bool = True,
+        loss_function: str = "q_loss",
+        rnn_type: str = "lstm",
+        use_separation: bool = False,
+        use_pre_exec_info: bool = True
     ):
+        """
+        :param stage_model: stage model for predicting and featurize one query
+        :param model_prefix: the name for the trained model
+        :param input_size: input feature dimension
+        :param embedding_dim: feature embedding dimension for DNN
+        :param hidden_size: hidden layer size for DNN
+        :param output_size: output size, should always be 1
+        :param num_head: number of heads for transformer
+        :param num_layers: number of layers for DNN
+        :param batch_size: batch size for training
+        :param dropout: dropout percentage for DNN
+        :param include_exit: If set to true (not recommended), it will provide a feature when a query finish
+        :param last_output: use the last hidden state and output of LSTM to make final prediction.
+                            If set to false, it will use the average instead of the last (not recommended)
+        :param loss_function: choose among "q_loss" and "l1_loss" and "mse_loss"
+        :param rnn_type: choose among "vanilla", "lstm", "transformer" (only recommend lstm)
+        :param use_separation: explicitly separate the influence of queries submitted before and after target query
+        :param use_pre_exec_info: adding queries that recently finished in the system
+        """
+        self.model_prefix = model_prefix
         self.stage_model = stage_model
         self.embedding_dim = embedding_dim
         self.hidden_size = hidden_size
@@ -101,7 +131,8 @@ class ConcurrentRNN:
         self.rnn_type = rnn_type
         self.loss_func = loss_function
         self.last_output = last_output
-        self.use_seperation = use_seperation
+        self.use_seperation = use_separation
+        self.use_pre_exec_info = use_pre_exec_info
         if rnn_type == "vanilla":
             self.model = RNN(input_size, hidden_size, output_size, num_layers)
         elif rnn_type == "lstm":
@@ -113,7 +144,7 @@ class ConcurrentRNN:
                 num_layers,
                 dropout,
                 last_output,
-                use_seperation=use_seperation,
+                use_seperation=use_separation,
             )
         elif rnn_type == "transformer":
             self.model = TransformerModel(
@@ -162,7 +193,7 @@ class ConcurrentRNN:
             train_df = df.iloc[train_idx]
 
         val_x, val_y, val_pre_info_length, val_query_idx = featurize_queries_complex(
-            val_df, predictions, single_query_features, include_exit=self.include_exit
+            val_df, predictions, single_query_features, include_exit=self.include_exit, use_pre_exec_info=self.use_pre_exec_info
         )
         (
             train_x,
@@ -170,7 +201,7 @@ class ConcurrentRNN:
             train_pre_info_length,
             train_query_idx,
         ) = featurize_queries_complex(
-            train_df, predictions, single_query_features, include_exit=self.include_exit
+            train_df, predictions, single_query_features, include_exit=self.include_exit, use_pre_exec_info=self.use_pre_exec_info
         )
 
         train_dataset = QueryFeatureSeparatedDataset(
@@ -235,15 +266,14 @@ class ConcurrentRNN:
         Tuple[Mapping[int, list], Mapping[int, list]], Tuple[np.ndarray, np.ndarray]
     ]:
         predictions = self.stage_model.cache.running_average
-        single_query_features = dict()
-        for i, f in enumerate(self.stage_model.all_feature):
-            single_query_features[i] = f
+        single_query_features = self.stage_model.all_feature
         val_x, val_y, val_pre_info_length, val_query_idx = featurize_queries_complex(
             df,
             predictions,
             single_query_features,
             include_exit=self.include_exit,
             preserve_order=True,
+            use_pre_exec_info=self.use_pre_exec_info
         )
         val_dataset = QueryFeatureSeparatedDataset(
             val_x, val_y, val_pre_info_length, val_query_idx
@@ -327,6 +357,7 @@ class ConcurrentRNN:
             next_finish_idx,
             next_finish_time,
             get_next_finish,
+            use_pre_exec_info=self.use_pre_exec_info
         )
         predictions = self.model(global_x, None, global_pre_info_length, False)
         return predictions, global_x, global_pre_info_length
@@ -335,7 +366,7 @@ class ConcurrentRNN:
         sep = "w_sep" if self.use_seperation else "wo_sep"
         model_path = os.path.join(
             directory,
-            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
+            f"{self.model_prefix}_{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
         )
         torch.save(self.model.state_dict(), model_path)
 
@@ -343,6 +374,7 @@ class ConcurrentRNN:
         sep = "w_sep" if self.use_seperation else "wo_sep"
         model_path = os.path.join(
             directory,
-            f"{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
+            f""
+            f"{self.model_prefix}_{self.rnn_type}_{self.hidden_size}_{self.num_layers}_{self.loss_func}_{sep}",
         )
         self.model.load_state_dict(torch.load(model_path))
