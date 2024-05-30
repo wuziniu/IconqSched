@@ -61,7 +61,7 @@ def train_concurrent_rnn():
     )
     df = ss.featurize_data(train_trace_df, args.parsed_queries_path)
     ss.train(df)
-    with open(f"checkpoints/{args.model_name}_stage_model.pkl", "wb") as f:
+    with open(os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "wb") as f:
         pkl.dump(ss, f)
 
     rnn = ConcurrentRNN(
@@ -86,7 +86,7 @@ def train_concurrent_rnn():
 
 
 def load_concurrent_rnn_stage_model():
-    with open(f"checkpoints/{args.model_name}_stage_model.pkl", "rb") as f:
+    with open(os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "rb") as f:
         ss = pkl.load(f)
 
     rnn = ConcurrentRNN(
@@ -99,7 +99,7 @@ def load_concurrent_rnn_stage_model():
         rnn_type=args.rnn_type,
         use_separation=args.use_separation,
     )
-    rnn.load_model("checkpoints")
+    rnn.load_model(args.target_path)
     return ss, rnn
 
 
@@ -118,15 +118,15 @@ def gen_trace_train_gcn_baseline():
     )
 
 
-def replay_workload(workload_directory, simulation, save_result_dir):
+def replay_workload(workload_directory, save_result_dir, query_bank_path):
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.scheduler_type == "greedy":
-        scheduler = GreedyScheduler(ss, rnn)
+        scheduler = GreedyScheduler(ss, rnn, debug=args.debug)
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
     else:
         assert False, f"{args.scheduler_type} scheduler not implemented"
-    if simulation:
+    if args.simulation:
         simulator = Simulator(scheduler)
         original_runtime, new_runtime = simulator.replay_workload(workload_directory)
         np.save(os.path.join(save_result_dir, "original_runtime_simulation"), original_runtime)
@@ -143,8 +143,9 @@ def replay_workload(workload_directory, simulation, save_result_dir):
                             timeout=args.timeout_s,
                             database=args.database,
                             scheduler=scheduler,
+                            debug=args.debug
                             )
-        asyncio.run(executor.replay_workload(workload_directory, args.baseline, save_result_dir))
+        asyncio.run(executor.replay_workload(workload_directory, args.baseline, save_result_dir, query_bank_path))
 
 
 if __name__ == "__main__":
@@ -175,7 +176,7 @@ if __name__ == "__main__":
     # LSTM hyperparameters
     parser.add_argument("--model_name", default="postgres", type=str)
     parser.add_argument("--embedding_dim", default=128, type=int)
-    parser.add_argument("--hidden_size", default=128, type=int)
+    parser.add_argument("--hidden_size", default=256, type=int)
     parser.add_argument("--num_layers", default=2, type=int)
     parser.add_argument("--lr", default=0.01, type=float)
     parser.add_argument("--loss_function", default="l1_loss", type=str)
@@ -187,11 +188,13 @@ if __name__ == "__main__":
     parser.add_argument("--num_epoch", default=100, type=int)
 
     # Replay workload parameters
+    parser.add_argument("--debug", action="store_true")
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--scheduler_type", default="greedy", type=str)
     parser.add_argument("--database", default="postgres", type=str)
-
+    parser.add_argument("--save_result_dir", type=str)
+    parser.add_argument("--query_bank_path", type=str)
     parser.add_argument("--timeout_s", default=200, type=int)
     parser.add_argument("--host", type=str)
     parser.add_argument("--db_name", type=str)
@@ -199,10 +202,12 @@ if __name__ == "__main__":
     parser.add_argument("--user", type=str)
     parser.add_argument("--password", type=str)
 
-
     args = parser.parse_args()
     if args.train_concurrent_rnn:
         train_concurrent_rnn()
 
     if args.train_gcn_baseline:
         gen_trace_train_gcn_baseline()
+
+    if args.replay_workload:
+        replay_workload(args.directory, args.save_result_dir, args.query_bank_path)

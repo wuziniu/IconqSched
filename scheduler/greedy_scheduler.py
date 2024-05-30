@@ -13,7 +13,8 @@ class GreedyScheduler(BaseScheduler):
         predictor: ConcurrentRNN,
         max_concurrency_level: int = 10,
         min_concurrency_level: int = 2,
-        starve_penalty: float = 0.5
+        starve_penalty: float = 0.5,
+        debug: bool = False
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -24,7 +25,7 @@ class GreedyScheduler(BaseScheduler):
         :param starve_penalty: Give a penalty for starving a query for too long
         """
         super(GreedyScheduler, self).__init__(
-            stage_model, predictor, max_concurrency_level, min_concurrency_level
+            stage_model, predictor, max_concurrency_level, min_concurrency_level, debug=debug
         )
         self.starve_penalty = starve_penalty
 
@@ -32,9 +33,10 @@ class GreedyScheduler(BaseScheduler):
         self,
         start_t: float,
         query_str: Optional[Union[str, int]] = None,
+        query_sql: Optional[str] = None,
         query_idx: Optional[int] = None,
         simulation: bool = True,
-    ) -> Tuple[bool, bool, Optional[Union[str, int]]]:
+    ) -> Tuple[bool, bool, Optional[Tuple[Union[str, int], str, int]]]:
         """We work on planning the currently queued queries if query_str is None (i.e., no query submitted)"""
         self.current_time = start_t
         if simulation:
@@ -51,6 +53,8 @@ class GreedyScheduler(BaseScheduler):
         scheduled_submit = None
         if query_str is not None:
             self.queued_queries.append(query_str)
+            self.queued_queries_sql.append(query_sql)
+            self.queued_queries_index.append(query_idx)
             self.queued_queries_enter_time.append(start_t)
             query_feature = self.stage_model.featurize_online(query_idx)
             self.queued_query_features.append(query_feature)
@@ -88,7 +92,9 @@ class GreedyScheduler(BaseScheduler):
             assert len(predictions) == 2 * len(self.queued_queries)
             predictions_query = predictions[0:-1:2]
             selected_idx = np.argmin(predictions_query)
-            scheduled_submit = copy.deepcopy(self.queued_queries[selected_idx])
+            scheduled_submit = (copy.deepcopy(self.queued_queries[selected_idx]),
+                                copy.deepcopy(self.queued_queries_sql[selected_idx]),
+                                copy.deepcopy(self.queued_queries_index[selected_idx]))
             self.submit_query(
                 selected_idx,
                 self.queued_queries[selected_idx],
@@ -172,7 +178,9 @@ class GreedyScheduler(BaseScheduler):
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
-                scheduled_submit = copy.deepcopy(self.queued_queries[selected_idx])
+                scheduled_submit = (copy.deepcopy(self.queued_queries[selected_idx]),
+                                    copy.deepcopy(self.queued_queries_sql[selected_idx]),
+                                    copy.deepcopy(self.queued_queries_index[selected_idx]))
                 self.submit_query(
                     selected_idx,
                     self.queued_queries[selected_idx],

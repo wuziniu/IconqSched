@@ -21,6 +21,7 @@ class BaseScheduler:
         min_concurrency_level: int = 2,
         future_time_interval: float = 5.0,
         num_time_interval: int = 1,
+        debug: bool = False
     ):
         """
         The class for basic scheduler with a naive scheduling algorithm
@@ -48,13 +49,17 @@ class BaseScheduler:
             Union[str, int], float
         ] = dict()
         self.existing_runtime_prediction: List[float] = []
-        self.queued_query_features: List[np.ndarray] = []
+        self.existing_enter_time: List[float] = []
+
         self.current_time = 0
         self.running_queries: Union[List[str], List[int]] = []
         self.queued_queries: Union[List[str], List[int]] = []
-        self.existing_enter_time: List[float] = []
+        self.queued_queries_sql: List[str] = []
+        self.queued_queries_index: List[int] = []
+        self.queued_query_features: List[np.ndarray] = []
         self.queued_queries_enter_time: List[float] = []
         self.all_query_runtime: MutableMapping[Union[str, int], float] = dict()
+        self.debug = debug
 
     def make_original_prediction(self, trace: pd.DataFrame) -> np.ndarray:
         all_pred, _ = self.predictor.predict(trace, return_per_query=False)
@@ -64,6 +69,7 @@ class BaseScheduler:
         self,
         start_t: float,
         query_str: Optional[Union[str, int]] = None,
+        query_sql: Optional[str] = None,
         query_idx: Optional[int] = None,
         simulation: bool = False,
     ):
@@ -110,6 +116,8 @@ class BaseScheduler:
         self.existing_enter_time.append(enter_time)
         self.existing_runtime_prediction.append(pred_runtime)
         self.queued_queries.pop(pos_in_queue)
+        self.queued_queries_sql.pop(pos_in_queue)
+        self.queued_queries_index.pop(pos_in_queue)
         self.queued_query_features.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
 
