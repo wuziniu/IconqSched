@@ -1,5 +1,6 @@
 import os
 import psycopg
+import logging
 import asyncio
 import time
 import numpy as np
@@ -54,7 +55,8 @@ class Executor:
         scheduler: BaseScheduler,
         query_bank: Optional[QueryBank] = None,
         pause_wait_s: float = 5.0,
-        debug: bool = False
+        debug: bool = False,
+        logger: Optional[logging.Logger] = None
     ):
         try:
             loop = asyncio.get_event_loop()
@@ -71,6 +73,7 @@ class Executor:
         self.pause_wait_s = pause_wait_s
         self.pending_jobs = []
         self.debug = debug
+        self.logger = logger
 
     async def get_connection(self):
         self.db_conn = await psycopg.AsyncConnection.connect(**self.database_kwargs)
@@ -170,6 +173,7 @@ class Executor:
                     sys_runtime[query_rep] = runtime
                     assert query_rep in query_start_time_log, f"no start time recorded for query {query_rep}"
                     e2e_runtime[query_rep] = current_time - query_start_time_log[query_rep]
+                    queueing_time = e2e_runtime[query_rep] - sys_runtime[query_rep]
                     if timeout:
                         all_timeout.append(query_rep)
                     if error:
@@ -178,11 +182,21 @@ class Executor:
                     if not is_baseline:
                         self.scheduler.finish_query(current_time, query_rep)
                         if self.debug:
-                            print("============================================")
-                            print(self.scheduler.print_state())
+                            if self.logger is None:
+                                print("===================[Scheduler State]=========================")
+                                self.scheduler.print_state()
+                            else:
+                                self.logger.info("======================[Scheduler State]======================")
+                                self.scheduler.print_state()
                     if self.debug:
-                        print(f"query {query_rep} with index {query_idx} finished with runtime {runtime}, "
-                              f"timeout: {timeout}, error: {error}")
+                        if self.logger is None:
+                            print(f"[[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
+                                  f"runtime: {runtime}, queueing_time: {queueing_time},"
+                                  f"timeout: {timeout}, error: {error}]]]]]]]]]]]]")
+                        else:
+                            self.logger.info(f"[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
+                                              f"runtime: {runtime}, queueing_time: {queueing_time},"
+                                              f"timeout: {timeout}, error: {error}]]]]]]]]]]")
         return has_finished_queries
 
     def save_result(self,

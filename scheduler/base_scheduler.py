@@ -1,5 +1,5 @@
 import copy
-
+import logging
 import pandas as pd
 import numpy as np
 import torch
@@ -21,7 +21,9 @@ class BaseScheduler:
         min_concurrency_level: int = 2,
         future_time_interval: float = 5.0,
         num_time_interval: int = 1,
-        debug: bool = False
+        debug: bool = False,
+        logger: Optional[logging.Logger] = None,
+        ignore_short_running: bool = False,
     ):
         """
         The class for basic scheduler with a naive scheduling algorithm
@@ -60,6 +62,8 @@ class BaseScheduler:
         self.queued_queries_enter_time: List[float] = []
         self.all_query_runtime: MutableMapping[Union[str, int], float] = dict()
         self.debug = debug
+        self.logger = logger
+        self.ignore_short_running = ignore_short_running
 
     def make_original_prediction(self, trace: pd.DataFrame) -> np.ndarray:
         all_pred, _ = self.predictor.predict(trace, return_per_query=False)
@@ -76,12 +80,19 @@ class BaseScheduler:
         return None
 
     def print_state(self):
-        print("current time: ", self.current_time)
-        print(
-            "running_queries: ",
-            list(zip(self.running_queries, self.existing_runtime_prediction)),
-        )
-        print("queued_queries: ", self.queued_queries)
+        if self.logger is None:
+            print("current time: ", self.current_time)
+            print(
+                "running_queries: ",
+                list(zip(self.running_queries, self.existing_runtime_prediction)),
+            )
+            print("queued_queries: ", self.queued_queries)
+        else:
+            self.logger.info(f"current time: {self.current_time}")
+            self.logger.info(
+                f"running_queries: {list(zip(self.running_queries, self.existing_runtime_prediction))}"
+            )
+            self.logger.info(f"queued_queries: {self.queued_queries}")
 
     def submit_query(
         self,
@@ -120,17 +131,22 @@ class BaseScheduler:
         self.queued_queries_index.pop(pos_in_queue)
         self.queued_query_features.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
+        if self.debug and self.logger:
+            self.logger.info(f"*****submit query {query_rep} with prediction {pred_runtime}******")
 
     def finish_query(self, current_time: float, query_str: Union[str, int]) -> None:
         self.current_time = current_time
         if query_str not in self.running_queries:
-            print(f"Warning: {query_str} is already finished")
+            if not self.ignore_short_running:
+                print(f"!!!!!!!!!!!!!Warning: {query_str} is already finished")
+                if self.logger is not None:
+                    self.logger.warning(f"!!!!!!!!!!!!!Warning: {query_str} is already finished")
             return
         finish_idx = self.running_queries.index(query_str)
         self.running_queries.pop(finish_idx)
         self.existing_enter_time.pop(finish_idx)
         self.existing_query_features.pop(finish_idx)
-        self.existing_runtime_prediction.pop(finish_idx)
+        popped_pred_runtime = self.existing_runtime_prediction.pop(finish_idx)
         self.existing_start_time.pop(finish_idx)
         self.existing_finish_time.pop(finish_idx)
         # Todo: the last two needs change when we remove a query from its pre info,
@@ -143,6 +159,8 @@ class BaseScheduler:
             self.existing_finish_time[i] = max(
                 self.existing_finish_time[i], current_time + randomness
             )
+        if self.debug and self.logger:
+            self.logger.info(f"*****query {query_str} finished with prediction {popped_pred_runtime}******")
 
     def finish_query_simulation(self, current_time: float = None) -> None:
         if current_time is not None:

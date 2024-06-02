@@ -17,6 +17,7 @@ from scheduler.greedy_scheduler import GreedyScheduler
 from scheduler.linear_programming_scheduler import LPScheduler
 from simulator.simulator import Simulator
 from executor.executor import Executor
+from utils.logging import create_custom_logger
 
 np.set_printoptions(suppress=True)
 
@@ -120,8 +121,22 @@ def gen_trace_train_gcn_baseline():
 
 def replay_workload(workload_directory, save_result_dir, query_bank_path):
     ss, rnn = load_concurrent_rnn_stage_model()
+    if args.debug:
+        verbose_log_dir = "debug/checkpoints/verbose_logs"
+        if not os.path.exists(verbose_log_dir):
+            os.mkdir(verbose_log_dir)
+        if args.baseline:
+            log_name = "baseline"
+        else:
+            log_name = "ours"
+        run_id = np.random.randint(100000)
+        verbose_logger = create_custom_logger(log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log"))
+    else:
+        verbose_logger = None
     if args.scheduler_type == "greedy":
-        scheduler = GreedyScheduler(ss, rnn, debug=args.debug)
+        scheduler = GreedyScheduler(ss, rnn, debug=args.debug,
+                                    logger=verbose_logger,
+                                    ignore_short_running=args.ignore_short_running)
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
     else:
@@ -143,7 +158,8 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
                             timeout=args.timeout_s,
                             database=args.database,
                             scheduler=scheduler,
-                            debug=args.debug
+                            debug=args.debug,
+                            logger=verbose_logger
                             )
         asyncio.run(executor.replay_workload(workload_directory, args.baseline, save_result_dir, query_bank_path))
 
@@ -189,6 +205,7 @@ if __name__ == "__main__":
 
     # Replay workload parameters
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--scheduler_type", default="greedy", type=str)
