@@ -62,7 +62,9 @@ def train_concurrent_rnn():
     )
     df = ss.featurize_data(train_trace_df, args.parsed_queries_path)
     ss.train(df)
-    with open(os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "wb") as f:
+    with open(
+        os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "wb"
+    ) as f:
         pkl.dump(ss, f)
 
     rnn = ConcurrentRNN(
@@ -87,7 +89,9 @@ def train_concurrent_rnn():
 
 
 def load_concurrent_rnn_stage_model():
-    with open(os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "rb") as f:
+    with open(
+        os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "rb"
+    ) as f:
         ss = pkl.load(f)
 
     rnn = ConcurrentRNN(
@@ -130,13 +134,19 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
         else:
             log_name = "ours"
         run_id = np.random.randint(100000)
-        verbose_logger = create_custom_logger(log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log"))
+        verbose_logger = create_custom_logger(
+            log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
+        )
     else:
         verbose_logger = None
     if args.scheduler_type == "greedy":
-        scheduler = GreedyScheduler(ss, rnn, debug=args.debug,
-                                    logger=verbose_logger,
-                                    ignore_short_running=args.ignore_short_running)
+        scheduler = GreedyScheduler(
+            ss,
+            rnn,
+            debug=args.debug,
+            logger=verbose_logger,
+            ignore_short_running=args.ignore_short_running,
+        )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
     else:
@@ -144,7 +154,10 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
     if args.simulation:
         simulator = Simulator(scheduler)
         original_runtime, new_runtime = simulator.replay_workload(workload_directory)
-        np.save(os.path.join(save_result_dir, "original_runtime_simulation"), original_runtime)
+        np.save(
+            os.path.join(save_result_dir, "original_runtime_simulation"),
+            original_runtime,
+        )
         np.save(os.path.join(save_result_dir, "new_runtime_simulation"), new_runtime)
     else:
         database_kwargs = {
@@ -154,14 +167,70 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
             "user": args.user,
             "password": args.password,
         }
-        executor = Executor(database_kwargs,
-                            timeout=args.timeout_s,
-                            database=args.database,
-                            scheduler=scheduler,
-                            debug=args.debug,
-                            logger=verbose_logger
-                            )
-        asyncio.run(executor.replay_workload(workload_directory, args.baseline, save_result_dir, query_bank_path))
+        executor = Executor(
+            database_kwargs,
+            timeout=args.timeout_s,
+            database=args.database,
+            scheduler=scheduler,
+            debug=args.debug,
+            logger=verbose_logger,
+        )
+        asyncio.run(
+            executor.replay_workload(
+                workload_directory, args.baseline, save_result_dir, query_bank_path
+            )
+        )
+
+
+def run_k_client_in_parallel(query_bank_path, save_result_dir, selected_query_idx_path=None):
+    ss, rnn = load_concurrent_rnn_stage_model()
+    if args.debug:
+        verbose_log_dir = "debug/checkpoints/verbose_logs"
+        if not os.path.exists(verbose_log_dir):
+            os.mkdir(verbose_log_dir)
+        if args.baseline:
+            log_name = "baseline"
+        else:
+            log_name = "ours"
+        run_id = np.random.randint(100000)
+        verbose_logger = create_custom_logger(
+            log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
+        )
+    else:
+        verbose_logger = None
+    if args.scheduler_type == "greedy":
+        scheduler = GreedyScheduler(
+            ss,
+            rnn,
+            debug=args.debug,
+            logger=verbose_logger,
+            ignore_short_running=args.ignore_short_running,
+        )
+    elif args.scheduler_type == "lp":
+        scheduler = LPScheduler(ss, rnn)
+    else:
+        assert False, f"{args.scheduler_type} scheduler not implemented"
+
+    database_kwargs = {
+        "host": args.host,
+        "dbname": args.db_name,
+        "port": args.port,
+        "user": args.user,
+        "password": args.password,
+    }
+    executor = Executor(
+        database_kwargs,
+        timeout=args.timeout_s,
+        database=args.database,
+        scheduler=scheduler,
+        debug=args.debug,
+        logger=verbose_logger,
+    )
+    asyncio.run(
+        executor.run_k_client_in_parallel(
+            query_bank_path, args.num_clients, args.baseline, save_result_dir, exec_for_s=args.exec_for_s
+        )
+    )
 
 
 if __name__ == "__main__":
@@ -170,6 +239,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_concurrent_rnn", action="store_true")
     parser.add_argument("--train_gcn_baseline", action="store_true")
     parser.add_argument("--replay_workload", action="store_true")
+    parser.add_argument("--run_k_client_in_parallel", action="store_true")
 
     # path information
     parser.add_argument("--gcn_graph_path", type=str)
@@ -208,6 +278,8 @@ if __name__ == "__main__":
     parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--exec_for_s", type=int, default=3600)
+    parser.add_argument("--selected_query_idx_path", type=str)
     parser.add_argument("--scheduler_type", default="greedy", type=str)
     parser.add_argument("--database", default="postgres", type=str)
     parser.add_argument("--save_result_dir", type=str)
@@ -228,3 +300,7 @@ if __name__ == "__main__":
 
     if args.replay_workload:
         replay_workload(args.directory, args.save_result_dir, args.query_bank_path)
+
+    if args.run_k_client_in_parallel:
+        run_k_client_in_parallel(args.query_bank_path, args.save_result_dir, args.selected_query_idx_path)
+

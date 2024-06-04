@@ -132,7 +132,9 @@ class BaseScheduler:
         self.queued_query_features.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
         if self.debug and self.logger:
-            self.logger.info(f"*****submit query {query_rep} with prediction {pred_runtime}******")
+            self.logger.info(
+                f"*****submit query {query_rep} with prediction {pred_runtime}******"
+            )
 
     def finish_query(self, current_time: float, query_str: Union[str, int]) -> None:
         self.current_time = current_time
@@ -140,7 +142,9 @@ class BaseScheduler:
             if not self.ignore_short_running:
                 print(f"!!!!!!!!!!!!!Warning: {query_str} is already finished")
                 if self.logger is not None:
-                    self.logger.warning(f"!!!!!!!!!!!!!Warning: {query_str} is already finished")
+                    self.logger.warning(
+                        f"!!!!!!!!!!!!!Warning: {query_str} is already finished"
+                    )
             return
         finish_idx = self.running_queries.index(query_str)
         self.running_queries.pop(finish_idx)
@@ -160,7 +164,9 @@ class BaseScheduler:
                 self.existing_finish_time[i], current_time + randomness
             )
         if self.debug and self.logger:
-            self.logger.info(f"*****query {query_str} finished with prediction {popped_pred_runtime}******")
+            self.logger.info(
+                f"*****query {query_str} finished with prediction {popped_pred_runtime}******"
+            )
 
     def finish_query_simulation(self, current_time: float = None) -> None:
         if current_time is not None:

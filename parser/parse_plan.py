@@ -17,8 +17,9 @@ init_plan_regex = re.compile("InitPlan \d+ \(returns \$\d\)")
 join_columns_regex = re.compile("\w+\.\w+ ?= ?\w+\.\w+")
 
 
-def create_node(lines_plan_operator: List[str],
-                operators_current_level: List[PlanOperator]) -> List[str]:
+def create_node(
+    lines_plan_operator: List[str], operators_current_level: List[PlanOperator]
+) -> List[str]:
     if len(lines_plan_operator) > 0:
         last_operator = PlanOperator(lines_plan_operator)
         operators_current_level.append(last_operator)
@@ -30,10 +31,9 @@ def count_left_whitespaces(a: str) -> int:
     return len(a) - len(a.lstrip(" "))
 
 
-def parse_recursively(parent: Optional[PlanOperator],
-                      plan: List[str],
-                      offset: int,
-                      depth: int) -> Union[int, PlanOperator]:
+def parse_recursively(
+    parent: Optional[PlanOperator], plan: List[str], offset: int, depth: int
+) -> Union[int, PlanOperator]:
     lines_plan_operator = []
     i = offset
     operators_current_level = []
@@ -78,9 +78,9 @@ def parse_recursively(parent: Optional[PlanOperator],
         return operators_current_level[0]
 
 
-def parse_one_plan(analyze_plan_tuples: List,
-                   analyze: bool = True,
-                   parse: bool = True) -> Tuple[PlanOperator, float, float]:
+def parse_one_plan(
+    analyze_plan_tuples: List, analyze: bool = True, parse: bool = True
+) -> Tuple[PlanOperator, float, float]:
     plan_steps = analyze_plan_tuples
     if isinstance(analyze_plan_tuples[0], tuple) or isinstance(
         analyze_plan_tuples[0], list
@@ -270,12 +270,13 @@ def parse_plans(
     return parsed_runs, stats
 
 
-def parse_plan_online(sql: str,
-                      column_id_mapping: Mapping[Tuple[str, str], int],
-                      partial_column_name_mapping: Mapping[str, Set[str]],
-                      table_id_mapping: Mapping[str, int],
-                      db_conn: psycopg.connection,
-                      ) -> PlanOperator:
+def parse_plan_online(
+    sql: str,
+    column_id_mapping: Mapping[Tuple[str, str], int],
+    partial_column_name_mapping: Mapping[str, Set[str]],
+    table_id_mapping: Mapping[str, int],
+    db_conn: psycopg.connection,
+) -> PlanOperator:
     with db_conn.cursor() as cur:
         cur.execute("EXPLAIN VERBOSE " + sql)
         verbose_plan = cur.fetchall()

@@ -18,10 +18,11 @@ literal_regex = re.compile("('[^']+'::[^'\)]+)")
 
 class PlanOperator(dict):
     def __init__(
-        self, plain_content: List[str],
-            children: Optional[List] = None,
-            plan_parameters: Optional[Mapping[str, Any]] = None,
-            plan_runtime: float = 0
+        self,
+        plain_content: List[str],
+        children: Optional[List] = None,
+        plan_parameters: Optional[Mapping[str, Any]] = None,
+        plan_runtime: float = 0,
     ):
         super().__init__()
         self.__dict__ = self
@@ -191,15 +192,14 @@ class PlanOperator(dict):
             self_c.merge_recursively(c)
 
     def parse_lines_recursively(
-        self, alias_dict: Optional[Mapping[str, str]] = None,
+        self,
+        alias_dict: Optional[Mapping[str, str]] = None,
     ):
         self.parse_lines(
             alias_dict=alias_dict,
         )
         for c in self.children:
-            c.parse_lines_recursively(
-                alias_dict=alias_dict
-            )
+            c.parse_lines_recursively(alias_dict=alias_dict)
 
     def min_card(self):
         act_card = self.plan_parameters.get("act_card")

@@ -33,7 +33,7 @@ class SingleStage:
         use_table_features=False,
         use_table_selectivity=False,
         use_median=False,
-        db_conn=None
+        db_conn=None,
     ):
         self.cache = CachePredictor(
             capacity, alpha, hash_bits, store_all, use_index, use_median
@@ -62,15 +62,15 @@ class SingleStage:
         save_feature_file: Optional[str] = None,
     ):
         plans = load_json(parsed_queries_path, namespace=False)
-        database_stats = plans['database_stats']
-        for i, column_stat in enumerate(database_stats['column_stats']):
-            table = column_stat['tablename']
-            column = column_stat['attname']
+        database_stats = plans["database_stats"]
+        for i, column_stat in enumerate(database_stats["column_stats"]):
+            table = column_stat["tablename"]
+            column = column_stat["attname"]
             self.column_id_mapping[(table, column)] = i
             self.partial_column_name_mapping[column].add(table)
 
-        for i, table_stat in enumerate(database_stats['table_stats']):
-            table = table_stat['relname']
+        for i, table_stat in enumerate(database_stats["table_stats"]):
+            table = table_stat["relname"]
             self.table_id_mapping[table] = i
 
         self.operators = find_top_k_operators(plans=plans, k=self.num_operators)
@@ -104,15 +104,17 @@ class SingleStage:
             df.to_csv(save_feature_file, header=True, index=False)
         return df
 
-    def featurize_online(self,
-                         query_idx: int,
-                         query_sql: Optional[str] = None) -> np.ndarray:
+    def featurize_online(
+        self, query_idx: int, query_sql: Optional[str] = None
+    ) -> np.ndarray:
         if query_idx not in self.all_feature:
-            plan = parse_plan_online(query_sql,
-                                     self.column_id_mapping,
-                                     self.partial_column_name_mapping,
-                                     self.table_id_mapping,
-                                     self.db_conn)
+            plan = parse_plan_online(
+                query_sql,
+                self.column_id_mapping,
+                self.partial_column_name_mapping,
+                self.table_id_mapping,
+                self.db_conn,
+            )
             feature = featurize_one_plan(
                 plan,
                 self.operators,

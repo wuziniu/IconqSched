@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 import psycopg
 import logging
 import asyncio
@@ -19,7 +21,7 @@ async def submit_query_and_wait_for_result(
     sql: str,
     query_idx: int,
     timeout_s: Optional[int] = None,
-    database: Optional[str] = None
+    database: Optional[str] = None,
 ) -> Tuple[Union[int, str], int, float, bool, bool]:
     error = False
     timeout = False
@@ -56,7 +58,7 @@ class Executor:
         query_bank: Optional[QueryBank] = None,
         pause_wait_s: float = 5.0,
         debug: bool = False,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         try:
             loop = asyncio.get_event_loop()
@@ -74,6 +76,7 @@ class Executor:
         self.pending_jobs = []
         self.debug = debug
         self.logger = logger
+        self.num_clients = 0
 
     async def get_connection(self):
         self.db_conn = await psycopg.AsyncConnection.connect(**self.database_kwargs)
@@ -95,8 +98,14 @@ class Executor:
     ):
         if baseline_run:
             future = asyncio.ensure_future(
-                submit_query_and_wait_for_result(self.database_kwargs, query_rep, query_sql, query_idx,
-                                                 self.timeout, self.database)
+                submit_query_and_wait_for_result(
+                    self.database_kwargs,
+                    query_rep,
+                    query_sql,
+                    query_idx,
+                    self.timeout,
+                    self.database,
+                )
             )
             self.pending_jobs.append(future)
         else:
@@ -105,13 +114,23 @@ class Executor:
                 should_pause_and_re_ingest,
                 scheduled_submit,
             ) = self.scheduler.ingest_query(
-                start_time, query_str=query_rep, query_sql=query_sql, query_idx=query_idx, simulation=False
+                start_time,
+                query_str=query_rep,
+                query_sql=query_sql,
+                query_idx=query_idx,
+                simulation=False,
             )
             if scheduled_submit is not None:
                 query_rep, query_sql, query_idx = scheduled_submit
                 future = asyncio.ensure_future(
-                    submit_query_and_wait_for_result(self.database_kwargs, query_rep, query_sql, query_idx,
-                                                     self.timeout, self.database)
+                    submit_query_and_wait_for_result(
+                        self.database_kwargs,
+                        query_rep,
+                        query_sql,
+                        query_idx,
+                        self.timeout,
+                        self.database,
+                    )
                 )
                 self.pending_jobs.append(future)
             if should_immediate_re_ingest:
@@ -147,7 +166,13 @@ class Executor:
             ):
                 # make sure all queries are submitted and finished
                 self.check_query_finished(
-                    current_time, e2e_runtime, sys_runtime, all_timeout, all_error, query_start_time_log, baseline_run
+                    current_time,
+                    e2e_runtime,
+                    sys_runtime,
+                    all_timeout,
+                    all_error,
+                    query_start_time_log,
+                    baseline_run,
                 )
                 self.replay_one_query(current_time)
                 await asyncio.sleep(self.pause_wait_s)
@@ -161,7 +186,7 @@ class Executor:
         all_timeout: List[Union[int, str]],
         all_error: List[Union[int, str]],
         query_start_time_log: MutableMapping[Union[int, str], float],
-        is_baseline: bool = False
+        is_baseline: bool = False,
     ) -> bool:
         has_finished_queries = False
         if len(self.pending_jobs) != 0:
@@ -171,8 +196,12 @@ class Executor:
                     has_finished_queries = True
                     query_rep, query_idx, runtime, timeout, error = task.result()
                     sys_runtime[query_rep] = runtime
-                    assert query_rep in query_start_time_log, f"no start time recorded for query {query_rep}"
-                    e2e_runtime[query_rep] = current_time - query_start_time_log[query_rep]
+                    assert (
+                        query_rep in query_start_time_log
+                    ), f"no start time recorded for query {query_rep}"
+                    e2e_runtime[query_rep] = (
+                        current_time - query_start_time_log[query_rep]
+                    )
                     queueing_time = e2e_runtime[query_rep] - sys_runtime[query_rep]
                     if timeout:
                         all_timeout.append(query_rep)
@@ -183,30 +212,40 @@ class Executor:
                         self.scheduler.finish_query(current_time, query_rep)
                         if self.debug:
                             if self.logger is None:
-                                print("===================[Scheduler State]=========================")
+                                print(
+                                    "===================[Scheduler State]========================="
+                                )
                                 self.scheduler.print_state()
                             else:
-                                self.logger.info("======================[Scheduler State]======================")
+                                self.logger.info(
+                                    "======================[Scheduler State]======================"
+                                )
                                 self.scheduler.print_state()
                     if self.debug:
                         if self.logger is None:
-                            print(f"[[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
-                                  f"runtime: {runtime}, queueing_time: {queueing_time},"
-                                  f"timeout: {timeout}, error: {error}]]]]]]]]]]]]")
+                            print(
+                                f"[[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
+                                f"runtime: {runtime}, queueing_time: {queueing_time},"
+                                f"timeout: {timeout}, error: {error}]]]]]]]]]]]]"
+                            )
                         else:
-                            self.logger.info(f"[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
-                                              f"runtime: {runtime}, queueing_time: {queueing_time},"
-                                              f"timeout: {timeout}, error: {error}]]]]]]]]]]")
+                            self.logger.info(
+                                f"[[[[[[[[[[query {query_rep} with index {query_idx} finished with "
+                                f"runtime: {runtime}, queueing_time: {queueing_time},"
+                                f"timeout: {timeout}, error: {error}]]]]]]]]]]"
+                            )
         return has_finished_queries
 
-    def save_result(self,
-                    save_result_dir: str,
-                    original_predictions: List[float],
-                    e2e_runtime: Mapping[int, float],
-                    sys_runtime: Mapping[int, float],
-                    all_timeout: List[int],
-                    all_error: List[int],
-                    is_baseline: bool) -> None:
+    def save_result(
+        self,
+        save_result_dir: str,
+        original_predictions: List[float],
+        e2e_runtime: Mapping[int, float],
+        sys_runtime: Mapping[int, float],
+        all_timeout: List[int],
+        all_error: List[int],
+        is_baseline: bool,
+    ) -> None:
         sys_exec_time = np.zeros(len(original_predictions)) - 1
         scheduler_runtime = np.zeros(len(original_predictions)) - 1
         for i in sys_runtime:
@@ -215,21 +254,228 @@ class Executor:
         original_predictions = np.asarray(original_predictions)
         all_timeout = np.asarray(all_timeout)
         all_error = np.asarray(all_error)
-        np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_original_predictions"), original_predictions)
+        np.save(
+            os.path.join(
+                save_result_dir, f"timeout_{self.timeout}_original_predictions"
+            ),
+            original_predictions,
+        )
         if is_baseline:
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_e2e_runtime_baseline"), scheduler_runtime)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_sys_exec_time_baseline"), sys_exec_time)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_baseline"), all_timeout)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_error_baseline"), all_error)
+            np.save(
+                os.path.join(
+                    save_result_dir, f"timeout_{self.timeout}_e2e_runtime_baseline"
+                ),
+                scheduler_runtime,
+            )
+            np.save(
+                os.path.join(
+                    save_result_dir, f"timeout_{self.timeout}_sys_exec_time_baseline"
+                ),
+                sys_exec_time,
+            )
+            np.save(
+                os.path.join(
+                    save_result_dir, f"timeout_{self.timeout}_timeout_baseline"
+                ),
+                all_timeout,
+            )
+            np.save(
+                os.path.join(save_result_dir, f"timeout_{self.timeout}_error_baseline"),
+                all_error,
+            )
         else:
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_e2e_runtime_ours"), scheduler_runtime)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_sys_exec_time_ours"), sys_exec_time)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_ours"), all_timeout)
-            np.save(os.path.join(save_result_dir, f"timeout_{self.timeout}_error_ours"), all_error)
+            np.save(
+                os.path.join(
+                    save_result_dir, f"timeout_{self.timeout}_e2e_runtime_ours"
+                ),
+                scheduler_runtime,
+            )
+            np.save(
+                os.path.join(
+                    save_result_dir, f"timeout_{self.timeout}_sys_exec_time_ours"
+                ),
+                sys_exec_time,
+            )
+            np.save(
+                os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_ours"),
+                all_timeout,
+            )
+            np.save(
+                os.path.join(save_result_dir, f"timeout_{self.timeout}_error_ours"),
+                all_error,
+            )
+
+    def save_result_as_df(
+        self,
+        save_result_dir: str,
+        all_query_idx: List[int],
+        all_query_no: List[int],
+        e2e_runtime: Mapping[int, float],
+        sys_runtime: Mapping[int, float],
+        query_start_time_log: Mapping[int, float],
+        all_timeout: List[int],
+        all_error: List[int],
+        is_baseline: bool,
+        return_df: bool = True,
+    ) -> Optional[pd.DataFrame]:
+        query_start_time = np.zeros(len(all_query_idx)) - 1
+        sys_exec_time = np.zeros(len(all_query_idx)) - 1
+        scheduler_runtime = np.zeros(len(all_query_idx)) - 1
+        timeout_per_query = []
+        error_per_query = []
+        for i in all_query_no:
+            if i in sys_runtime:
+                sys_exec_time[i] = sys_runtime[i]
+            if i in e2e_runtime:
+                scheduler_runtime[i] = e2e_runtime[i]
+            query_start_time[i] = query_start_time_log[i]
+            if i in all_timeout:
+                timeout_per_query.append(True)
+            else:
+                timeout_per_query.append(False)
+            if i in all_error:
+                error_per_query.append(True)
+            else:
+                error_per_query.append(False)
+        df = pd.DataFrame(
+            {
+                "index": all_query_no,
+                "query_idx": all_query_idx,
+                "run_time_s": list(scheduler_runtime),
+                "exec_time": list(sys_exec_time),
+                "time_since_execution_s": list(query_start_time),
+                "g_offset_since_start_s": list(query_start_time),
+                "timeout": timeout_per_query,
+                "error": error_per_query,
+            }
+        )
+        if is_baseline:
+            df.to_csv(
+                os.path.join(
+                    save_result_dir,
+                    f"timeout_{self.timeout}_num_clients{self.num_clients}_baseline.csv",
+                ),
+                index=False,
+            )
+        else:
+            df.to_csv(
+                os.path.join(
+                    save_result_dir,
+                    f"timeout_{self.timeout}_num_clients{self.num_clients}_ours.csv",
+                ),
+                index=False,
+            )
+        if return_df:
+            return df
+
+    async def run_k_client_in_parallel(
+        self,
+        query_file: str,
+        num_clients: int = 5,
+        baseline_run: bool = True,
+        save_result_dir: Optional[str] = None,
+        gap_s: float = 1.0,
+        exec_for_s: Optional[float] = 3600.0,
+        selected_query_idx_path: Optional[str] = None
+    ) -> pd.DataFrame:
+        """
+        This function conduct a close-loop run of k clients.
+        Specifically, we create k clients, each issuing queries continuously to the system.
+        Whenever the client receives the result of previous query, it issues the next one
+        :param query_file: file that stores all queries
+        :param num_clients: number of clients to execute in parallel
+        :param baseline_run: if set to True, the replay will not use client-side scheduler
+        :param save_result_dir: periodically save the result to save_result_dir
+        :param gap_s: the gap in second before next query
+        :param exec_for_s: for long do we execute for
+        :param selected_query_idx_path: provide a numpy array of selected queries and only issue queries from them
+        """
+        self.num_clients = num_clients
+        with open(query_file, "r") as f:
+            queries = f.readlines()
+        if selected_query_idx_path is not None:
+            all_possible_query_idx = np.load(selected_query_idx_path)
+        else:
+            all_possible_query_idx = np.arange(len(queries))
+        function_start_time = time.time()
+        sys_runtime = dict()
+        all_query_idx = []
+        all_query_no = []
+        e2e_runtime = dict()
+        query_start_time_log = dict()
+        all_timeout = []
+        all_error = []
+        if exec_for_s is None:
+            exec_for_s = np.infty
+        current_time = time.time() - function_start_time
+        curr_query_no = 0
+        recently_save = False
+        while current_time < exec_for_s:
+            await asyncio.sleep(gap_s)
+            current_time = time.time() - function_start_time
+            has_finished_queries = self.check_query_finished(
+                current_time,
+                e2e_runtime,
+                sys_runtime,
+                all_timeout,
+                all_error,
+                query_start_time_log,
+                baseline_run,
+            )
+            if not baseline_run and has_finished_queries:
+                # reschedule the existing query when there are finished queries
+                self.replay_one_query(current_time)
+            if len(self.pending_jobs) < num_clients:
+                selected_query_idx = all_possible_query_idx[np.random.randint(len(all_possible_query_idx))]
+                selected_query_sql = queries[selected_query_idx]
+                all_query_idx.append(selected_query_idx)
+                all_query_no.append(curr_query_no)
+                current_time = time.time() - function_start_time
+                query_start_time_log[curr_query_no] = current_time
+                self.replay_one_query(
+                    current_time,
+                    curr_query_no,
+                    selected_query_sql,
+                    selected_query_idx,
+                    baseline_run=baseline_run,
+                )
+                curr_query_no += 1
+            if save_result_dir is not None and not recently_save and (curr_query_no + 1) % 100 == 0:
+                self.save_result_as_df(
+                    save_result_dir,
+                    all_query_idx,
+                    all_query_no,
+                    e2e_runtime,
+                    sys_runtime,
+                    query_start_time_log,
+                    all_timeout,
+                    all_error,
+                    baseline_run,
+                    return_df=False,
+                )
+                recently_save = True
+            if (curr_query_no + 1) % 100 == 1:
+                recently_save = False
+        df = self.save_result_as_df(
+            save_result_dir,
+            all_query_idx,
+            all_query_no,
+            e2e_runtime,
+            sys_runtime,
+            query_start_time_log,
+            all_timeout,
+            all_error,
+            baseline_run,
+            return_df=True,
+        )
+        return df
 
     async def replay_workload(
-        self, directory: str, baseline_run: bool = False,
-            save_result_dir: Optional[str] = None, query_file: Optional[str] = None
+        self,
+        directory: str,
+        baseline_run: bool = False,
+        save_result_dir: Optional[str] = None,
+        query_file: Optional[str] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         This function replays the workload trace at the provided timestamp.
@@ -241,13 +487,20 @@ class Executor:
         :param query_file: file that stores all queries
         """
         function_start_time = time.time()
-        all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
+        if directory.endswith(".csv"):
+            # just one single csv file
+            all_trace = pd.read_csv(directory)
+        else:
+            all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
+
         concurrency_df = create_concurrency_dataset(
             all_trace, engine=None, pre_exec_interval=200
         )
         concurrency_df = concurrency_df.sort_values(by=["start_time"], ascending=True)
         # the original prediction is for reference only
-        all_original_predictions = self.scheduler.make_original_prediction(concurrency_df)
+        all_original_predictions = self.scheduler.make_original_prediction(
+            concurrency_df
+        )
         assert len(concurrency_df) == len(all_original_predictions)
         sys_runtime = dict()
         original_predictions = []
@@ -271,7 +524,13 @@ class Executor:
             while current_time < current_query_start_time - 0.5:
                 # when it is not yet time to start ingest the current query according to the trace,
                 has_finished_queries = self.check_query_finished(
-                    current_time, e2e_runtime, sys_runtime, all_timeout, all_error, query_start_time_log, baseline_run
+                    current_time,
+                    e2e_runtime,
+                    sys_runtime,
+                    all_timeout,
+                    all_error,
+                    query_start_time_log,
+                    baseline_run,
                 )
                 if not baseline_run and has_finished_queries:
                     # reschedule the existing query when there are finished queries
@@ -287,13 +546,15 @@ class Executor:
                 baseline_run=baseline_run,
             )
             if save_result_dir is not None and (i + 1) % 100 == 0:
-                self.save_result(save_result_dir,
-                                 original_predictions,
-                                 e2e_runtime,
-                                 sys_runtime,
-                                 all_timeout,
-                                 all_error,
-                                 baseline_run)
+                self.save_result(
+                    save_result_dir,
+                    original_predictions,
+                    e2e_runtime,
+                    sys_runtime,
+                    all_timeout,
+                    all_error,
+                    baseline_run,
+                )
         # finish all queries
         await self.finish_all_queries(
             function_start_time,
@@ -305,13 +566,15 @@ class Executor:
             baseline_run=baseline_run,
         )
         if save_result_dir is not None:
-            self.save_result(save_result_dir,
-                             original_predictions,
-                             e2e_runtime,
-                             sys_runtime,
-                             all_timeout,
-                             all_error,
-                             baseline_run)
+            self.save_result(
+                save_result_dir,
+                original_predictions,
+                e2e_runtime,
+                sys_runtime,
+                all_timeout,
+                all_error,
+                baseline_run,
+            )
         sys_exec_time = np.zeros(len(concurrency_df)) - 1
         scheduler_runtime = np.zeros(len(concurrency_df)) - 1
         for i in sys_runtime:

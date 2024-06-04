@@ -18,7 +18,7 @@ class GreedyScheduler(BaseScheduler):
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
-        shorting_running_threshold: float = 5.0
+        shorting_running_threshold: float = 5.0,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -32,7 +32,11 @@ class GreedyScheduler(BaseScheduler):
         :param shorting_running_threshold: consider query with predicted threshold to be shorting running query
         """
         super(GreedyScheduler, self).__init__(
-            stage_model, predictor, max_concurrency_level, min_concurrency_level, debug=debug
+            stage_model,
+            predictor,
+            max_concurrency_level,
+            min_concurrency_level,
+            debug=debug,
         )
         self.starve_penalty = starve_penalty
         self.ignore_short_running = ignore_short_running
@@ -63,18 +67,20 @@ class GreedyScheduler(BaseScheduler):
         scheduled_submit = None
         if query_str is not None:
             if self.debug and self.logger:
-                self.logger.info(f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ")
+                self.logger.info(
+                    f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& "
+                )
                 self.logger.info(f"     Ingesting query {query_str}")
             query_feature = self.stage_model.featurize_online(query_idx)
             if self.ignore_short_running:
                 pred = query_feature[0]
                 if pred < self.shorting_running_threshold:
                     should_immediate_re_ingest = True
-                    scheduled_submit = (query_str,
-                                        query_sql,
-                                        query_idx)
+                    scheduled_submit = (query_str, query_sql, query_idx)
                     if self.debug and self.logger:
-                        self.logger.info(f"    ||||directly submit {query_str} with predicted average runtime of {pred}")
+                        self.logger.info(
+                            f"    ||||directly submit {query_str} with predicted average runtime of {pred}"
+                        )
                     return (
                         should_immediate_re_ingest,
                         should_pause_and_re_ingest,
@@ -119,9 +125,11 @@ class GreedyScheduler(BaseScheduler):
             assert len(predictions) == 2 * len(self.queued_queries)
             predictions_query = predictions[0:-1:2]
             selected_idx = np.argmin(predictions_query)
-            scheduled_submit = (copy.deepcopy(self.queued_queries[selected_idx]),
-                                copy.deepcopy(self.queued_queries_sql[selected_idx]),
-                                copy.deepcopy(self.queued_queries_index[selected_idx]))
+            scheduled_submit = (
+                copy.deepcopy(self.queued_queries[selected_idx]),
+                copy.deepcopy(self.queued_queries_sql[selected_idx]),
+                copy.deepcopy(self.queued_queries_index[selected_idx]),
+            )
             self.submit_query(
                 selected_idx,
                 self.queued_queries[selected_idx],
@@ -169,7 +177,12 @@ class GreedyScheduler(BaseScheduler):
                 delta_sum = np.sum(delta)
                 # for every query first judge whether it is good to wait
                 # TODO: is there more clever score?
-                score = curr_delta + delta_sum - (start_t - self.queued_queries_enter_time[i]) * self.starve_penalty
+                score = (
+                    curr_delta
+                    + delta_sum
+                    - (start_t - self.queued_queries_enter_time[i])
+                    * self.starve_penalty
+                )
                 if score < 0 or curr_pred < self.shorting_running_threshold:
                     # when the current system state benefit the current query more than
                     # this query's (probably negative) impact on the running queries
@@ -177,8 +190,10 @@ class GreedyScheduler(BaseScheduler):
                     all_score.append(score)
                     all_query_idx.append(i)
                 if self.debug and self.logger:
-                    self.logger.info(f"    ||||queued query {self.queued_queries[i]} "
-                                     f"with curr_delta {curr_delta} and delta_sum {delta_sum}, score {score}")
+                    self.logger.info(
+                        f"    ||||queued query {self.queued_queries[i]} "
+                        f"with curr_delta {curr_delta} and delta_sum {delta_sum}, score {score}"
+                    )
             if len(all_score) == 0:
                 should_immediate_re_ingest = False
                 should_pause_and_re_ingest = False
@@ -208,9 +223,11 @@ class GreedyScheduler(BaseScheduler):
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
-                scheduled_submit = (copy.deepcopy(self.queued_queries[selected_idx]),
-                                    copy.deepcopy(self.queued_queries_sql[selected_idx]),
-                                    copy.deepcopy(self.queued_queries_index[selected_idx]))
+                scheduled_submit = (
+                    copy.deepcopy(self.queued_queries[selected_idx]),
+                    copy.deepcopy(self.queued_queries_sql[selected_idx]),
+                    copy.deepcopy(self.queued_queries_index[selected_idx]),
+                )
                 self.submit_query(
                     selected_idx,
                     self.queued_queries[selected_idx],

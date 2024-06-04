@@ -86,7 +86,7 @@ def featurize_queries_complex_online(
     next_finish_idx: Optional[int] = None,
     next_finish_time: Optional[float] = None,
     get_next_finish: bool = False,
-    use_pre_exec_info: bool = False
+    use_pre_exec_info: bool = False,
 ) -> Tuple[List[torch.Tensor], torch.Tensor]:
     global_x = []
     global_pre_info_length = []
@@ -163,10 +163,10 @@ def featurize_queries_complex(
     include_exit: bool = False,
     preserve_order: bool = False,
     use_pre_exec_info: bool = False,
-    stagemodel: Optional[SingleStage] = None
+    stagemodel: Optional[SingleStage] = None,
 ) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
-    use_pre_exec_info = use_pre_exec_info & ('pre_exec_info' in concurrent_df.columns)
+    use_pre_exec_info = use_pre_exec_info & ("pre_exec_info" in concurrent_df.columns)
     global_y = []
     global_x = []
     global_pre_info_length = []
@@ -177,10 +177,13 @@ def featurize_queries_complex(
     for i, rows in concurrent_df.groupby("query_idx"):
         i = int(i)
         if i not in predictions or i not in single_query_features:
-            if stagemodel is None or 'sql' not in concurrent_df.columns:
-                continue
-            else:
-                query_sql = rows['sql'].values[0]
+            print(f"{i} not in predictions or {i} not in single_query_features")
+            print(single_query_features.keys())
+            assert False
+            # if stagemodel is None or 'sql' not in concurrent_df.columns:
+            #   continue
+            # else:
+            #   query_sql = rows['sql'].values[0]
 
         index_in_df = rows["index"].values
         query_order.append(index_in_df)
@@ -200,7 +203,9 @@ def featurize_queries_complex(
         concur_info_full = rows["concur_info"].values
         for j in range(n_rows):
             x = []
-            global_pre_info_length.append(len(concur_info_train[j]) + len(pre_exec_info[j]))
+            global_pre_info_length.append(
+                len(concur_info_train[j]) + len(pre_exec_info[j])
+            )
             global_query_idx.append(i)
 
             if len(concur_info_full[j]) == 0 and len(pre_exec_info[j]) == 0:

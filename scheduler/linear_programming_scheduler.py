@@ -13,7 +13,7 @@ class LPScheduler(BaseScheduler):
         predictor: ConcurrentRNN,
         max_concurrency_level: int = 10,
         min_concurrency_level: int = 2,
-        debug: bool = False
+        debug: bool = False,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -23,7 +23,11 @@ class LPScheduler(BaseScheduler):
         :param min_concurrency_level: [hyperparameter] not useful for LP scheduler
         """
         super(LPScheduler, self).__init__(
-            stage_model, predictor, max_concurrency_level, min_concurrency_level, debug=debug
+            stage_model,
+            predictor,
+            max_concurrency_level,
+            min_concurrency_level,
+            debug=debug,
         )
 
     def ingest_query(
@@ -155,7 +159,7 @@ class LPScheduler(BaseScheduler):
                 finish_t = start_t + curr_pred_runtime
                 existing_query_concur_features = global_x[converted_idx]
                 new_existing_pred = predictions[
-                    (converted_idx + 2): (
+                    (converted_idx + 2) : (
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]

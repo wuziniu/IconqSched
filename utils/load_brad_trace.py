@@ -97,7 +97,7 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
     pre_executed_queries = dict()
     for i in range(len(trace)):
         row = trace.iloc[i]
-        if engine is not None and row["engine"] != engine:
+        if engine is not None and "engine" in trace.columns and row["engine"] != engine:
             continue
         query_idx.append(row["query_idx"])
         runtime.append(row["run_time_s"])

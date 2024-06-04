@@ -21,12 +21,12 @@ from models.feature.complex_rnn_features import (
 
 
 def q_loss_func(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        min_val: float = 0.001,
-        small_val: float = 5.0,
-        penalty_negative: float = 1e5,
-        lambda_small: float = 0.1
+    input: torch.Tensor,
+    target: torch.Tensor,
+    min_val: float = 0.001,
+    small_val: float = 5.0,
+    penalty_negative: float = 1e5,
+    lambda_small: float = 0.1,
 ):
     # loss function that minimizes q-error
     qerror = []
@@ -52,10 +52,7 @@ def q_loss_func(
 
 
 class MLP(nn.Module):
-    def __init__(self,
-                 input_dim: int,
-                 hidden_dim: int = 64,
-                 layers: int = 3):
+    def __init__(self, input_dim: int, hidden_dim: int = 64, layers: int = 3):
         super(MLP, self).__init__()
         model = []
         model.append(nn.Linear(input_dim, hidden_dim))
@@ -68,10 +65,7 @@ class MLP(nn.Module):
         self.model = nn.Sequential(*model)
         self.is_train = True
 
-    def forward(self,
-                x1: torch.Tensor,
-                x2: torch.Tensor,
-                x3: torch.Tensor):
+    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor):
         y1 = self.model(x1, x2)
         if self.is_train:
             pred = self.model(y1, x3)
@@ -98,7 +92,7 @@ class ConcurrentRNN:
         loss_function: str = "q_loss",
         rnn_type: str = "lstm",
         use_separation: bool = False,
-        use_pre_exec_info: bool = True
+        use_pre_exec_info: bool = True,
     ):
         """
         :param stage_model: stage model for predicting and featurize one query
@@ -173,9 +167,10 @@ class ConcurrentRNN:
         if loss_function is not None:
             self.loss_func = loss_function
         predictions = self.stage_model.cache.running_average
-        single_query_features = dict()
-        for i, f in enumerate(self.stage_model.all_feature):
-            single_query_features[i] = f
+        single_query_features = self.stage_model.all_feature
+        # single_query_features = dict()
+        # for i, f in enumerate(self.stage_model.all_feature):
+        #   single_query_features[i] = f
 
         if val_on_test:
             assert (
@@ -193,7 +188,11 @@ class ConcurrentRNN:
             train_df = df.iloc[train_idx]
 
         val_x, val_y, val_pre_info_length, val_query_idx = featurize_queries_complex(
-            val_df, predictions, single_query_features, include_exit=self.include_exit, use_pre_exec_info=self.use_pre_exec_info
+            val_df,
+            predictions,
+            single_query_features,
+            include_exit=self.include_exit,
+            use_pre_exec_info=self.use_pre_exec_info,
         )
         (
             train_x,
@@ -201,7 +200,11 @@ class ConcurrentRNN:
             train_pre_info_length,
             train_query_idx,
         ) = featurize_queries_complex(
-            train_df, predictions, single_query_features, include_exit=self.include_exit, use_pre_exec_info=self.use_pre_exec_info
+            train_df,
+            predictions,
+            single_query_features,
+            include_exit=self.include_exit,
+            use_pre_exec_info=self.use_pre_exec_info,
         )
 
         train_dataset = QueryFeatureSeparatedDataset(
@@ -273,7 +276,7 @@ class ConcurrentRNN:
             single_query_features,
             include_exit=self.include_exit,
             preserve_order=True,
-            use_pre_exec_info=self.use_pre_exec_info
+            use_pre_exec_info=self.use_pre_exec_info,
         )
         val_dataset = QueryFeatureSeparatedDataset(
             val_x, val_y, val_pre_info_length, val_query_idx
@@ -357,7 +360,7 @@ class ConcurrentRNN:
             next_finish_idx,
             next_finish_time,
             get_next_finish,
-            use_pre_exec_info=self.use_pre_exec_info
+            use_pre_exec_info=self.use_pre_exec_info,
         )
         predictions = self.model(global_x, None, global_pre_info_length, False)
         return predictions, global_x, global_pre_info_length

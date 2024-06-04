@@ -56,7 +56,11 @@ class Simulator:
             should_pause_and_re_ingest,
             scheduled_submit,
         ) = self.scheduler.ingest_query(
-            start_time, query_str=query_str, query_sql=None, query_idx=query_idx, simulation=True
+            start_time,
+            query_str=query_str,
+            query_sql=None,
+            query_idx=query_idx,
+            simulation=True,
         )
         if should_immediate_re_ingest:
             # the scheduler schedules one query at a time even if there are multiple queries in the queue,

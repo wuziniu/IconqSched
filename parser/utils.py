@@ -5,8 +5,9 @@ from types import SimpleNamespace
 from typing import Tuple, List, Set, Mapping, Any, Union
 
 
-def canonicalize_join_cond(join_cond: Tuple[str, str, str, str],
-                           is_brad: bool = False) -> Tuple[str, str, str, str]:
+def canonicalize_join_cond(
+    join_cond: Tuple[str, str, str, str], is_brad: bool = False
+) -> Tuple[str, str, str, str]:
     """join_cond: 4-tuple"""
     t1, c1, t2, c2 = join_cond
     if is_brad and not t1.endswith("_brad_source"):
@@ -18,15 +19,15 @@ def canonicalize_join_cond(join_cond: Tuple[str, str, str, str],
     return t2, c2, t1, c1
 
 
-def dedup_join_conds(join_conds: List[Tuple[str, str, str, str]],
-                     is_brad: bool = False) -> List[Tuple[str, str, str, str]]:
+def dedup_join_conds(
+    join_conds: List[Tuple[str, str, str, str]], is_brad: bool = False
+) -> List[Tuple[str, str, str, str]]:
     """join_conds: list of 4-tuple (t1, c1, t2, c2)."""
     canonical_join_conds = [canonicalize_join_cond(jc, is_brad) for jc in join_conds]
     return sorted(set(canonical_join_conds))
 
 
-def get_join_conds(sql: str,
-                   is_brad: bool = False) -> List[Tuple[str, str, str, str]]:
+def get_join_conds(sql: str, is_brad: bool = False) -> List[Tuple[str, str, str, str]]:
     """Returns a list of join conditions in the form of (t1, c1, t2, c2)."""
     join_cond_pat = re.compile(
         r"""
@@ -85,10 +86,12 @@ def get_touched_tables(sql: str) -> Set[str]:
     return all_tables
 
 
-def dfs_cardinality(plan_node: Mapping[str, Any],
-                    result: List[int],
-                    with_width: bool = False,
-                    use_true_card: bool = False) -> None:
+def dfs_cardinality(
+    plan_node: Mapping[str, Any],
+    result: List[int],
+    with_width: bool = False,
+    use_true_card: bool = False,
+) -> None:
     if "plan_parameters" in plan_node:
         if (
             "est_card" in plan_node["plan_parameters"]
@@ -108,10 +111,10 @@ def dfs_cardinality(plan_node: Mapping[str, Any],
 
 
 def estimate_scan_in_mb(
-        db_stats: Mapping[str, Any],
-        parsed_query: Mapping[str, Any],
-        use_true_card: bool = False,
-        is_column_store: bool = False
+    db_stats: Mapping[str, Any],
+    parsed_query: Mapping[str, Any],
+    use_true_card: bool = False,
+    is_column_store: bool = False,
 ) -> Tuple[float, Mapping[str, float]]:
     # TODO: taking the index info and filter info into consideration
     column_stats = db_stats["column_stats"]
