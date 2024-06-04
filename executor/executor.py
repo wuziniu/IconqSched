@@ -246,6 +246,8 @@ class Executor:
         all_error: List[int],
         is_baseline: bool,
     ) -> None:
+        if not os.path.exists(save_result_dir):
+            os.mkdir(save_result_dir)
         sys_exec_time = np.zeros(len(original_predictions)) - 1
         scheduler_runtime = np.zeros(len(original_predictions)) - 1
         for i in sys_runtime:
@@ -256,52 +258,52 @@ class Executor:
         all_error = np.asarray(all_error)
         np.save(
             os.path.join(
-                save_result_dir, f"timeout_{self.timeout}_original_predictions"
+                save_result_dir, f"{self.database}_timeout_{self.timeout}_original_predictions"
             ),
             original_predictions,
         )
         if is_baseline:
             np.save(
                 os.path.join(
-                    save_result_dir, f"timeout_{self.timeout}_e2e_runtime_baseline"
+                    save_result_dir, f"{self.database}_timeout_{self.timeout}_e2e_runtime_baseline"
                 ),
                 scheduler_runtime,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"timeout_{self.timeout}_sys_exec_time_baseline"
+                    save_result_dir, f"{self.database}_timeout_{self.timeout}_sys_exec_time_baseline"
                 ),
                 sys_exec_time,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"timeout_{self.timeout}_timeout_baseline"
+                    save_result_dir, f"{self.database}_timeout_{self.timeout}_timeout_baseline"
                 ),
                 all_timeout,
             )
             np.save(
-                os.path.join(save_result_dir, f"timeout_{self.timeout}_error_baseline"),
+                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_error_baseline"),
                 all_error,
             )
         else:
             np.save(
                 os.path.join(
-                    save_result_dir, f"timeout_{self.timeout}_e2e_runtime_ours"
+                    save_result_dir, f"{self.database}_timeout_{self.timeout}_e2e_runtime_ours"
                 ),
                 scheduler_runtime,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"timeout_{self.timeout}_sys_exec_time_ours"
+                    save_result_dir, f"{self.database}_timeout_{self.timeout}_sys_exec_time_ours"
                 ),
                 sys_exec_time,
             )
             np.save(
-                os.path.join(save_result_dir, f"timeout_{self.timeout}_timeout_ours"),
+                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_timeout_ours"),
                 all_timeout,
             )
             np.save(
-                os.path.join(save_result_dir, f"timeout_{self.timeout}_error_ours"),
+                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_error_ours"),
                 all_error,
             )
 
@@ -492,7 +494,7 @@ class Executor:
             all_trace = pd.read_csv(directory)
         else:
             all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
-
+        all_trace = all_trace[all_trace['run_time_s'] > 0]
         concurrency_df = create_concurrency_dataset(
             all_trace, engine=None, pre_exec_interval=200
         )

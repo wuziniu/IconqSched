@@ -146,6 +146,8 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
             debug=args.debug,
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
+            starve_penalty=args.starve_penalty,
+            shorting_running_threshold=args.shorting_running_threshold
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -205,6 +207,8 @@ def run_k_client_in_parallel(query_bank_path, save_result_dir, selected_query_id
             debug=args.debug,
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
+            starve_penalty=args.starve_penalty,
+            shorting_running_threshold=args.shorting_running_threshold
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -276,6 +280,8 @@ if __name__ == "__main__":
     # Replay workload parameters
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
+    parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
+    parser.add_argument("--starve_penalty", type=float, default=0.5)
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--exec_for_s", type=int, default=3600)
