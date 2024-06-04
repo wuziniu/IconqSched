@@ -184,7 +184,7 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
         )
 
 
-def run_k_client_in_parallel(query_bank_path, save_result_dir, selected_query_idx_path=None):
+def run_k_client_in_parallel(query_bank_path, num_clients, save_result_dir, selected_query_idx_path=None):
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
         verbose_log_dir = "debug/checkpoints/verbose_logs"
@@ -232,7 +232,9 @@ def run_k_client_in_parallel(query_bank_path, save_result_dir, selected_query_id
     )
     asyncio.run(
         executor.run_k_client_in_parallel(
-            query_bank_path, args.num_clients, args.baseline, save_result_dir, exec_for_s=args.exec_for_s
+            query_bank_path, num_clients, args.baseline, save_result_dir,
+            selected_query_idx_path=selected_query_idx_path,
+            exec_for_s=args.exec_for_s
         )
     )
 
@@ -285,6 +287,7 @@ if __name__ == "__main__":
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--exec_for_s", type=int, default=3600)
+    parser.add_argument("--num_clients_list", type=str, default=None)
     parser.add_argument("--selected_query_idx_path", type=str)
     parser.add_argument("--scheduler_type", default="greedy", type=str)
     parser.add_argument("--database", default="postgres", type=str)
@@ -308,5 +311,13 @@ if __name__ == "__main__":
         replay_workload(args.directory, args.save_result_dir, args.query_bank_path)
 
     if args.run_k_client_in_parallel:
-        run_k_client_in_parallel(args.query_bank_path, args.save_result_dir, args.selected_query_idx_path)
+        if args.num_clients_list is not None:
+            num_clients_list = list(map(int, args.num_clients_list.split(',')))
+            for num_clients in num_clients_list:
+                print(num_clients)
+                run_k_client_in_parallel(args.query_bank_path, num_clients,
+                                         args.save_result_dir, args.selected_query_idx_path)
+        else:
+            run_k_client_in_parallel(args.query_bank_path, args.num_clients,
+                                     args.save_result_dir, args.selected_query_idx_path)
 
