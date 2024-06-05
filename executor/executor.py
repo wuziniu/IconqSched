@@ -90,14 +90,14 @@ class Executor:
             await self.db_conn.commit()
 
     def get_connection_sync(self) -> psycopg.cursor:
-        self.db_conn = psycopg.AsyncConnection.connect(**self.database_kwargs)
-        cur = self.db_conn.cursor()
+        db_conn = psycopg.connect(**self.database_kwargs)
+        cur = db_conn.cursor()
         timeout_ms = int(self.timeout * 1000)
         cur.execute(f"set statement_timeout = {timeout_ms};")
-        self.db_conn.commit()
+        db_conn.commit()
         if self.database == "Redshift":
             cur.execute("SET enable_result_cache_for_session = OFF;")
-            self.db_conn.commit()
+            db_conn.commit()
         return cur
 
     def replay_one_query(
