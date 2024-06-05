@@ -126,7 +126,7 @@ def gen_trace_train_gcn_baseline():
 def replay_workload(workload_directory, save_result_dir, query_bank_path):
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = "debug/checkpoints/verbose_logs"
+        verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if args.baseline:
