@@ -401,10 +401,9 @@ class Executor:
             queries = f.readlines()
         if selected_query_idx_path is not None:
             all_possible_query_idx = np.load(selected_query_idx_path)
+            queries = queries[all_possible_query_idx]
         else:
             all_possible_query_idx = np.arange(len(queries))
-        queries = queries[all_possible_query_idx]
-
         sys_runtime = dict()
         all_query_idx = []
         all_query_no = []
