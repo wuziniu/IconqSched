@@ -283,7 +283,7 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
-    parser.add_argument("--starve_penalty", type=float, default=0.5)
+    parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--exec_for_s", type=int, default=3600)

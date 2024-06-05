@@ -69,6 +69,8 @@ class Executor:
         self.scheduler = scheduler
         self.database_kwargs = database_kwargs
         self.database = database
+        if database == "Redshift":
+            os.environ["PGCLIENTENCODING"] = "utf-8"
         self.db_conn = None
         self.timeout = timeout
         self.query_bank = query_bank
