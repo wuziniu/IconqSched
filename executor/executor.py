@@ -1,5 +1,4 @@
 import os
-
 import pandas as pd
 import psycopg
 import logging
@@ -54,7 +53,7 @@ class Executor:
         database_kwargs: Mapping[str, Union[str, int]],
         timeout: int,
         database: str,
-        scheduler: BaseScheduler,
+        scheduler: Optional[BaseScheduler],
         query_bank: Optional[QueryBank] = None,
         pause_wait_s: float = 5.0,
         debug: bool = False,
@@ -80,7 +79,7 @@ class Executor:
         self.logger = logger
         self.num_clients = 0
 
-    async def get_connection(self):
+    async def get_connection_async(self):
         self.db_conn = await psycopg.AsyncConnection.connect(**self.database_kwargs)
         acur = self.db_conn.cursor()
         timeout_ms = int(self.timeout * 1000)
@@ -89,6 +88,17 @@ class Executor:
         if self.database == "Redshift":
             await acur.execute("SET enable_result_cache_for_session = OFF;")
             await self.db_conn.commit()
+
+    def get_connection_sync(self) -> psycopg.cursor:
+        self.db_conn = psycopg.AsyncConnection.connect(**self.database_kwargs)
+        cur = self.db_conn.cursor()
+        timeout_ms = int(self.timeout * 1000)
+        cur.execute(f"set statement_timeout = {timeout_ms};")
+        self.db_conn.commit()
+        if self.database == "Redshift":
+            cur.execute("SET enable_result_cache_for_session = OFF;")
+            self.db_conn.commit()
+        return cur
 
     def replay_one_query(
         self,
@@ -320,6 +330,7 @@ class Executor:
         all_timeout: List[int],
         all_error: List[int],
         is_baseline: bool,
+        warmup_run: bool = False,
         return_df: bool = True,
     ) -> Optional[pd.DataFrame]:
         query_start_time = np.zeros(len(all_query_idx)) - 1
@@ -353,7 +364,15 @@ class Executor:
                 "error": error_per_query,
             }
         )
-        if is_baseline:
+        if warmup_run:
+            df.to_csv(
+                os.path.join(
+                    save_result_dir,
+                    f"timeout_{self.timeout}_warmup_run.csv",
+                ),
+                index=False,
+            )
+        elif is_baseline:
             df.to_csv(
                 os.path.join(
                     save_result_dir,
@@ -371,6 +390,79 @@ class Executor:
             )
         if return_df:
             return df
+
+    def warmup_run(self,
+                   query_file: str,
+                   save_result_dir: str,
+                   selected_query_idx_path: Optional[str] = None) -> pd.DataFrame:
+        function_start_time = time.time()
+        cur = self.get_connection_sync()
+        with open(query_file, "r") as f:
+            queries = f.readlines()
+        if selected_query_idx_path is not None:
+            all_possible_query_idx = np.load(selected_query_idx_path)
+        else:
+            all_possible_query_idx = np.arange(len(queries))
+        queries = queries[all_possible_query_idx]
+
+        sys_runtime = dict()
+        all_query_idx = []
+        all_query_no = []
+        e2e_runtime = dict()
+        query_start_time_log = dict()
+        all_timeout = []
+        all_error = []
+        for i, sql in enumerate(queries):
+            timeout = False
+            error = False
+            t = time.time()
+            start_time = t - function_start_time
+            try:
+                cur.execute(sql)
+                cur.fetchall()
+            except psycopg.errors.QueryCanceled as e:
+                # this occurs in timeout
+                timeout = True
+                cur = self.get_connection_sync()
+            except:
+                error = True
+                cur = self.get_connection_sync()
+            runtime = time.time() - t
+            sys_runtime[i] = runtime
+            e2e_runtime[i] = runtime
+            all_query_no.append(i)
+            all_query_idx.append(all_possible_query_idx[i])
+            all_timeout.append(timeout)
+            all_error.append(error)
+            query_start_time_log[i] = start_time
+            if i % 40 == 0:
+                self.save_result_as_df(
+                    save_result_dir,
+                    all_query_idx,
+                    all_query_no,
+                    e2e_runtime,
+                    sys_runtime,
+                    query_start_time_log,
+                    all_timeout,
+                    all_error,
+                    warmup_run=True,
+                    is_baseline=True,
+                    return_df=False,
+                )
+        df = self.save_result_as_df(
+            save_result_dir,
+            all_query_idx,
+            all_query_no,
+            e2e_runtime,
+            sys_runtime,
+            query_start_time_log,
+            all_timeout,
+            all_error,
+            warmup_run=True,
+            is_baseline=True,
+            return_df=True,
+        )
+        return df
 
     async def run_k_client_in_parallel(
         self,
@@ -454,7 +546,7 @@ class Executor:
                     query_start_time_log,
                     all_timeout,
                     all_error,
-                    baseline_run,
+                    is_baseline=baseline_run,
                     return_df=False,
                 )
                 recently_save = True
@@ -469,7 +561,7 @@ class Executor:
             query_start_time_log,
             all_timeout,
             all_error,
-            baseline_run,
+            is_baseline=baseline_run,
             return_df=True,
         )
         return df

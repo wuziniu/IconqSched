@@ -1,6 +1,8 @@
 import argparse
 import os.path
 import asyncio
+import psycopg
+from typing import Union, Tuple, Optional
 import pandas as pd
 import numpy as np
 import copy
@@ -22,7 +24,7 @@ from utils.logging import create_custom_logger
 np.set_printoptions(suppress=True)
 
 
-def load_workload(train_test_split=True):
+def load_workload(train_test_split: bool=True) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     all_raw_trace, all_trace = load_trace_all_version(
         args.directory, args.num_clients, concat=True
     )
@@ -51,7 +53,7 @@ def load_workload(train_test_split=True):
         return concurrency_df
 
 
-def train_concurrent_rnn():
+def train_concurrent_rnn() -> None:
     train_trace_df, eval_trace_df = load_workload(train_test_split=True)
     ss = SingleStage(
         use_size=args.true_card,
@@ -88,7 +90,7 @@ def train_concurrent_rnn():
         rnn.save_model(args.target_path)
 
 
-def load_concurrent_rnn_stage_model():
+def load_concurrent_rnn_stage_model() -> Tuple[SingleStage, ConcurrentRNN]:
     with open(
         os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "rb"
     ) as f:
@@ -108,7 +110,7 @@ def load_concurrent_rnn_stage_model():
     return ss, rnn
 
 
-def gen_trace_train_gcn_baseline():
+def gen_trace_train_gcn_baseline() -> None:
     generate_graph_from_trace(
         args.directory, args.parsed_queries_path, args.gcn_graph_path
     )
@@ -123,7 +125,24 @@ def gen_trace_train_gcn_baseline():
     )
 
 
-def replay_workload(workload_directory, save_result_dir, query_bank_path):
+def warmup_run(query_bank_path: str) -> None:
+    database_kwargs = {
+        "host": args.host,
+        "dbname": args.db_name,
+        "port": args.port,
+        "user": args.user,
+        "password": args.password,
+    }
+    executor = Executor(
+        database_kwargs,
+        timeout=args.timeout_s,
+        database=args.database,
+        scheduler=None
+    )
+    executor.warmup_run(query_bank_path, args.save_result_dir, args.selected_query_idx_path)
+
+
+def replay_workload(workload_directory: str, save_result_dir: str, query_bank_path: str) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
         verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
@@ -184,10 +203,11 @@ def replay_workload(workload_directory, save_result_dir, query_bank_path):
         )
 
 
-def run_k_client_in_parallel(query_bank_path, num_clients, save_result_dir, selected_query_idx_path=None):
+def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
+                             save_result_dir: str, selected_query_idx_path: Optional[str] = None) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = "debug/checkpoints/verbose_logs"
+        verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if args.baseline:
@@ -245,6 +265,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_concurrent_rnn", action="store_true")
     parser.add_argument("--train_gcn_baseline", action="store_true")
     parser.add_argument("--replay_workload", action="store_true")
+    parser.add_argument("--warmup_run", action="store_true")
     parser.add_argument("--run_k_client_in_parallel", action="store_true")
 
     # path information
@@ -306,6 +327,9 @@ if __name__ == "__main__":
 
     if args.train_gcn_baseline:
         gen_trace_train_gcn_baseline()
+
+    if args.warmup_run:
+        warmup_run(args.query_bank_path)
 
     if args.replay_workload:
         replay_workload(args.directory, args.save_result_dir, args.query_bank_path)
