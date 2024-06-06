@@ -142,13 +142,13 @@ def warmup_run(query_bank_path: str) -> None:
     executor.warmup_run(query_bank_path, args.save_result_dir, args.selected_query_idx_path)
 
 
-def replay_workload(workload_directory: str, save_result_dir: str, query_bank_path: str) -> None:
+def replay_workload(workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
         verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
-        if args.baseline:
+        if baseline:
             log_name = "baseline"
         else:
             log_name = "ours"
@@ -198,7 +198,7 @@ def replay_workload(workload_directory: str, save_result_dir: str, query_bank_pa
         )
         asyncio.run(
             executor.replay_workload(
-                workload_directory, args.baseline, save_result_dir, query_bank_path
+                workload_directory, baseline, save_result_dir, query_bank_path
             )
         )
 
@@ -254,7 +254,8 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
         executor.run_k_client_in_parallel(
             query_bank_path, num_clients, args.baseline, save_result_dir,
             selected_query_idx_path=selected_query_idx_path,
-            exec_for_s=args.exec_for_s
+            exec_for_s=args.exec_for_s,
+            seed=args.seed
         )
     )
 
@@ -265,6 +266,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_concurrent_rnn", action="store_true")
     parser.add_argument("--train_gcn_baseline", action="store_true")
     parser.add_argument("--replay_workload", action="store_true")
+    parser.add_argument("--replay_workload_ours_and_baseline", action="store_true")
     parser.add_argument("--warmup_run", action="store_true")
     parser.add_argument("--run_k_client_in_parallel", action="store_true")
 
@@ -306,6 +308,7 @@ if __name__ == "__main__":
     parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
     parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")
+    parser.add_argument("--seed", type=int, default=24)
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--exec_for_s", type=int, default=3600)
     parser.add_argument("--num_clients_list", type=str, default=None)
@@ -331,9 +334,6 @@ if __name__ == "__main__":
     if args.warmup_run:
         warmup_run(args.query_bank_path)
 
-    if args.replay_workload:
-        replay_workload(args.directory, args.save_result_dir, args.query_bank_path)
-
     if args.run_k_client_in_parallel:
         if args.num_clients_list is not None:
             num_clients_list = list(map(int, args.num_clients_list.split(',')))
@@ -344,4 +344,12 @@ if __name__ == "__main__":
         else:
             run_k_client_in_parallel(args.query_bank_path, args.num_clients,
                                      args.save_result_dir, args.selected_query_idx_path)
+
+    if args.replay_workload:
+        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, args.baseline)
+
+    elif args.replay_workload_ours_and_baseline:
+        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, False)
+        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, True)
+
 

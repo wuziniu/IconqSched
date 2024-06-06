@@ -471,7 +471,8 @@ class Executor:
         save_result_dir: Optional[str] = None,
         gap_s: float = 1.0,
         exec_for_s: Optional[float] = 3600.0,
-        selected_query_idx_path: Optional[str] = None
+        selected_query_idx_path: Optional[str] = None,
+        seed: int = 0
     ) -> pd.DataFrame:
         """
         This function conduct a close-loop run of k clients.
@@ -484,7 +485,9 @@ class Executor:
         :param gap_s: the gap in second before next query
         :param exec_for_s: for long do we execute for
         :param selected_query_idx_path: provide a numpy array of selected queries and only issue queries from them
+        :param seed: random seed
         """
+        np.random.seed(seed)
         self.num_clients = num_clients
         with open(query_file, "r") as f:
             queries = f.readlines()
