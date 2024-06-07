@@ -33,14 +33,19 @@ Replay workload real execution with our scheduler
 python3 run.py --ignore_short_running --replay_workload --debug --directory /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres --target_path debug/checkpoints --save_result_dir debug/checkpoints --host 'postgres-imdb.c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password postgres --db_name imdb --database postgres --query_bank_path /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres/postgres_mixed.sql --timeout 200
 ```
 
-Run K clients in parallel with baseline (the DBMS itself)
+Run K clients in parallel with baseline and our scheduler (the DBMS itself)
 ```angular2html
-python3 run.py --run_k_client_in_parallel --debug --target_path debug/checkpoints --save_result_dir debug/checkpoints --host 'imdb-100g.cluster-c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password 'geoffxy_Cirrus22' --db_name imdb_60g --database aurora --query_bank_path /home/ziniuw/data/imdb/workloads/aurora_mixed.sql --timeout 600 --baseline --num_clients 10 --exec_for_s 10000
+python3 run.py --run_k_client_in_parallel --replay_workload_ours_and_baseline --baseline --debug --directory debug/save_results/postgres/timeout_600_num_clients4_baseline.csv --target_path debug/checkpoints --save_result_dir debug/save_results/postgres --num_clients 4 --host 'postgres-imdb.c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password postgres --db_name imdb --database postgres --query_bank_path debug/save_results/postgres_mixed.sql --model_name postgres --timeout 600
 ```
 
 Replay K clients in parallel with our scheduler
 ```angular2html
 
+```
+
+For redshift
+```angular2html
+python3 run.py --replay_workload_ours_and_baseline --baseline --debug --directory debug/save_results/redshift/timeout_600_num_clients10_baseline.csv --target_path debug/save_results --save_result_dir debug/save_results/redshift --host 'brad-redshift-cluster.cmdzoy6ck5ua.us-east-1.redshift.amazonaws.com' --port 5439 --user awsuser --password 'Giftedcoconut!#4' --db_name imdb_100g --database redshift --query_bank_path debug/save_results/mixed_redshift.sql --model_name redshift --timeout 200
 ```
 
 

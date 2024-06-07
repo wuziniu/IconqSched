@@ -30,7 +30,7 @@ async def submit_query_and_wait_for_result(
             timeout_ms = int(timeout_s * 1000)
             await cur.execute(f"set statement_timeout = {timeout_ms};")
             await connection.commit()
-        if database is not None and database == "Redshift":
+        if database is not None and database == "redshift":
             await cur.execute("SET enable_result_cache_for_session = OFF;")
             await connection.commit()
         t = time.time()
@@ -68,7 +68,7 @@ class Executor:
         self.scheduler = scheduler
         self.database_kwargs = database_kwargs
         self.database = database
-        if database == "Redshift":
+        if database == "redshift":
             os.environ["PGCLIENTENCODING"] = "utf-8"
         self.db_conn = None
         self.timeout = timeout
@@ -85,7 +85,7 @@ class Executor:
         timeout_ms = int(self.timeout * 1000)
         await acur.execute(f"set statement_timeout = {timeout_ms};")
         await self.db_conn.commit()
-        if self.database == "Redshift":
+        if self.database == "redshift":
             await acur.execute("SET enable_result_cache_for_session = OFF;")
             await self.db_conn.commit()
 
@@ -95,7 +95,7 @@ class Executor:
         timeout_ms = int(self.timeout * 1000)
         cur.execute(f"set statement_timeout = {timeout_ms};")
         db_conn.commit()
-        if self.database == "Redshift":
+        if self.database == "redshift":
             cur.execute("SET enable_result_cache_for_session = OFF;")
             db_conn.commit()
         return cur

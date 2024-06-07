@@ -192,7 +192,7 @@ class GreedyScheduler(BaseScheduler):
                 if self.debug and self.logger:
                     self.logger.info(
                         f"    ||||queued query {self.queued_queries[i]} "
-                        f"with curr_delta {curr_delta} and delta_sum {delta_sum}, score {score}"
+                        f"with curr_pred {curr_pred}, curr_delta {curr_delta}, delta_sum {delta_sum}, score {score}"
                     )
             if len(all_score) == 0:
                 should_immediate_re_ingest = False

@@ -145,7 +145,7 @@ def warmup_run(query_bank_path: str) -> None:
 def replay_workload(workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
+        verbose_log_dir = os.path.join(save_result_dir, 'verbose_logs')
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if baseline:
@@ -153,9 +153,11 @@ def replay_workload(workload_directory: str, save_result_dir: str, query_bank_pa
         else:
             log_name = "ours"
         run_id = np.random.randint(100000)
+        log_file_path = os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
         verbose_logger = create_custom_logger(
-            log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
+            log_name, log_file_path
         )
+        print(f"Debug log save to: {log_file_path}")
     else:
         verbose_logger = None
     if args.scheduler_type == "greedy":
@@ -207,7 +209,7 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
                              save_result_dir: str, selected_query_idx_path: Optional[str] = None) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = os.path.join(args.target_path, 'verbose_logs')
+        verbose_log_dir = os.path.join(save_result_dir, 'verbose_logs')
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if args.baseline:
@@ -215,9 +217,11 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
         else:
             log_name = "ours"
         run_id = np.random.randint(100000)
+        log_file_path = os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
         verbose_logger = create_custom_logger(
-            log_name, os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
+            log_name, log_file_path
         )
+        print(f"Debug log save to: {log_file_path}")
     else:
         verbose_logger = None
     if args.scheduler_type == "greedy":
