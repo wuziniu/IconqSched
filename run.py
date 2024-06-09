@@ -1,7 +1,6 @@
 import argparse
 import os.path
 import asyncio
-import psycopg
 from typing import Union, Tuple, Optional
 import pandas as pd
 import numpy as np
@@ -15,7 +14,7 @@ from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
 from models.concurrency.baselines.gcn_graph_gen import generate_graph_from_trace
 from models.concurrency.baselines.gcn_train import train_gcn_baseline
-from scheduler.greedy_scheduler import GreedyScheduler
+from scheduler.greedy_scheduler_old import GreedyScheduler
 from scheduler.linear_programming_scheduler import LPScheduler
 from simulator.simulator import Simulator
 from executor.executor import Executor
@@ -353,7 +352,7 @@ if __name__ == "__main__":
         replay_workload(args.directory, args.save_result_dir, args.query_bank_path, args.baseline)
 
     elif args.replay_workload_ours_and_baseline:
-        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, False)
         replay_workload(args.directory, args.save_result_dir, args.query_bank_path, True)
+        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, False)
 
 

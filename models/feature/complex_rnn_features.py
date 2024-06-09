@@ -1,5 +1,4 @@
 import copy
-
 import torch
 import pandas as pd
 import numpy as np
@@ -86,6 +85,7 @@ def featurize_queries_complex_online(
     next_finish_idx: Optional[int] = None,
     next_finish_time: Optional[float] = None,
     get_next_finish: bool = False,
+    get_next_finish_running_performance: bool = False,
     use_pre_exec_info: bool = False,
 ) -> Tuple[List[torch.Tensor], torch.Tensor]:
     global_x = []
@@ -140,7 +140,7 @@ def featurize_queries_complex_online(
                 existing_query_features[i]
             )
             concur_query_feature[
-                (l_feature + 2) : (2 * l_feature + 2)
+                (l_feature + 2): (2 * l_feature + 2)
             ] = torch.FloatTensor(query_feature)
             concur_query_feature[l_feature + 1] = 1.0
             concur_query_feature[2 * l_feature + 2] = (
@@ -152,6 +152,28 @@ def featurize_queries_complex_online(
                 x = torch.clone(existing_query_concur_features[i])
                 x = torch.cat((x, concur_query_feature.reshape(1, -1)), dim=0)
             global_x.append(x)
+            if get_next_finish_running_performance and next_finish_idx is not None:
+                finished_query_feature = existing_query_features[next_finish_idx]
+                if next_finish_idx != i:
+                    concur_query_feature[2 * l_feature + 2] = (
+                            existing_start_time[i] - next_finish_time
+                    )
+                    if existing_query_concur_features[i] is None:
+                        x = concur_query_feature.reshape(1, -1)
+                    else:
+                        x = []
+                        for j in range(len(existing_query_concur_features[i])):
+                            j_query_feature = existing_query_concur_features[i][j][(l_feature + 2): (2 * l_feature + 2)]
+                            if not torch.sum(torch.abs(j_query_feature - finished_query_feature)) <= 1e-4:
+                                # remove the finished query from its concurrent feature
+                                x.append(existing_query_concur_features[i][j])
+                        x.append(torch.FloatTensor(concur_query_feature))
+                        x = torch.stack(x)
+                else:
+                    # this query is already finished
+                    x = torch.zeros((1, len(concur_query_feature)))
+                global_pre_info_length.append(existing_pre_info_length[i])
+                global_x.append(x)
     global_pre_info_length = torch.LongTensor(global_pre_info_length)
     return global_x, global_pre_info_length
 

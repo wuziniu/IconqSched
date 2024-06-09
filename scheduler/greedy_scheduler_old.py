@@ -117,7 +117,6 @@ class GreedyScheduler(BaseScheduler):
             next_finish_idx=next_finish_idx,
             next_finish_time=next_finish_time,
             get_next_finish=True,
-            get_next_finish_running_performance=True
         )
 
         predictions = predictions.reshape(-1).detach().numpy()
@@ -161,7 +160,7 @@ class GreedyScheduler(BaseScheduler):
             all_score = []
             all_query_idx = []
             for i in range(len(self.queued_queries)):
-                pred_idx = i * (2 + 2 * len(self.existing_query_concur_features))
+                pred_idx = i * (2 + len(self.existing_query_concur_features))
                 curr_pred = predictions[pred_idx]
                 submit_after_pred = predictions[pred_idx + 1]
                 # how does the predicted runtime of submitting now compare to submitting later
@@ -170,15 +169,12 @@ class GreedyScheduler(BaseScheduler):
                 )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
-                    (pred_idx + 2): (pred_idx + 2 * len(self.existing_query_concur_features) + 1): 2
-                ]
-                future_existing_pred = predictions[
-                    (pred_idx + 3): (pred_idx + 2 * len(self.existing_query_concur_features) + 2): 2
+                    (pred_idx + 2) : (
+                        pred_idx + len(self.existing_query_concur_features) + 2
+                    )
                 ]
                 # how will this query change the runtime of existing queries in the system ()
-                delta = new_existing_pred - future_existing_pred
-                if next_finish_idx is not None:
-                    delta = delta[[temp_idx for temp_idx in range(len(delta)) if temp_idx != next_finish_idx]]
+                delta = new_existing_pred - old_existing_pred
                 delta_sum = np.sum(delta)
                 # for every query first judge whether it is good to wait
                 # TODO: is there more clever score?
@@ -188,7 +184,7 @@ class GreedyScheduler(BaseScheduler):
                     - (start_t - self.queued_queries_enter_time[i])
                     * self.starve_penalty
                 )
-                if score < 0:  # or curr_pred < self.shorting_running_threshold:
+                if score < 0 or curr_pred < self.shorting_running_threshold:
                     # when the current system state benefit the current query more than
                     # this query's (probably negative) impact on the running queries
                     # more optimal to submit now than later
