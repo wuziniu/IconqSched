@@ -15,6 +15,7 @@ class GreedyScheduler(BaseScheduler):
         max_concurrency_level: int = 20,
         min_concurrency_level: int = 1,
         starve_penalty: float = 0.5,
+        alpha: float = 0.2,
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
@@ -39,6 +40,7 @@ class GreedyScheduler(BaseScheduler):
             debug=debug,
         )
         self.starve_penalty = starve_penalty
+        self.alpha = alpha
         self.ignore_short_running = ignore_short_running
         self.shorting_running_threshold = shorting_running_threshold
         self.logger = logger
@@ -158,6 +160,7 @@ class GreedyScheduler(BaseScheduler):
                 None,
             )
         else:
+            assert len(predictions) % (2 + 2 * len(self.existing_query_concur_features)) == 0
             all_score = []
             all_query_idx = []
             for i in range(len(self.queued_queries)):
@@ -175,7 +178,10 @@ class GreedyScheduler(BaseScheduler):
                 future_existing_pred = predictions[
                     (pred_idx + 3): (pred_idx + 2 * len(self.existing_query_concur_features) + 2): 2
                 ]
-                # how will this query change the runtime of existing queries in the system ()
+                # how will this query change the runtime of existing queries in the system
+                delta_existing = new_existing_pred - old_existing_pred
+                delta_existing_sum = np.sum(delta_existing)
+                # how will this query change the runtime of existing queries compare to submitting later
                 delta = new_existing_pred - future_existing_pred
                 if next_finish_idx is not None:
                     delta = delta[[temp_idx for temp_idx in range(len(delta)) if temp_idx != next_finish_idx]]
@@ -184,7 +190,8 @@ class GreedyScheduler(BaseScheduler):
                 # TODO: is there more clever score?
                 score = (
                     curr_delta
-                    + delta_sum
+                    + delta_existing_sum * self.alpha
+                    + delta_sum * (1 - self.alpha)
                     - (start_t - self.queued_queries_enter_time[i])
                     * self.starve_penalty
                 )
