@@ -160,5 +160,7 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
             "num_concurrent_queries_train": num_concurrent_queries_train,
         }
     )
+    if "ground_truth_runtime" in trace.columns:
+        concurrency_df["ground_truth_runtime"] = trace["ground_truth_runtime"]
     concurrency_df = concurrency_df.reset_index()
     return concurrency_df
