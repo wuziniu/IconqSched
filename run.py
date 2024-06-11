@@ -14,7 +14,7 @@ from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
 from models.concurrency.baselines.gcn_graph_gen import generate_graph_from_trace
 from models.concurrency.baselines.gcn_train import train_gcn_baseline
-from scheduler.greedy_scheduler_old import GreedyScheduler
+from scheduler.greedy_scheduler import GreedyScheduler
 from scheduler.linear_programming_scheduler import LPScheduler
 from simulator.simulator import Simulator
 from executor.executor import Executor
@@ -193,6 +193,7 @@ def replay_workload(
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
+            alpha=args.alpha,
             shorting_running_threshold=args.shorting_running_threshold,
         )
     elif args.scheduler_type == "lp":
@@ -259,6 +260,7 @@ def run_k_client_in_parallel(
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
+            alpha=args.alpha,
             shorting_running_threshold=args.shorting_running_threshold,
         )
     elif args.scheduler_type == "lp":
@@ -340,6 +342,7 @@ if __name__ == "__main__":
     # Replay workload parameters
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
+    parser.add_argument("--alpha", type=float, default=0.2)
     parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
     parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")

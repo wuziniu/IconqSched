@@ -78,6 +78,7 @@ class Executor:
         self.debug = debug
         self.logger = logger
         self.num_clients = 0
+        self.query_exec_start_time = dict()
 
     async def get_connection_async(self):
         self.db_conn = await psycopg.AsyncConnection.connect(**self.database_kwargs)
@@ -145,6 +146,7 @@ class Executor:
                     )
                 )
                 self.pending_jobs.append(future)
+                self.query_exec_start_time[query_rep] = start_time
             if should_immediate_re_ingest:
                 # the scheduler schedules one query at a time even if there are multiple queries in the queue,
                 # so need to call again
@@ -358,7 +360,8 @@ class Executor:
                 sys_exec_time[i] = sys_runtime[i]
             if i in e2e_runtime:
                 scheduler_runtime[i] = e2e_runtime[i]
-            query_start_time[i] = query_start_time_log[i]
+            if i in query_start_time:
+                query_start_time[i] = query_start_time_log[i]
             if i in all_timeout:
                 timeout_per_query.append(True)
             else:
@@ -597,6 +600,7 @@ class Executor:
         baseline_run: bool = False,
         save_result_dir: Optional[str] = None,
         query_file: Optional[str] = None,
+        start_idx: Optional[int] = 0
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         This function replays the workload trace at the provided timestamp.
@@ -606,6 +610,7 @@ class Executor:
         :param baseline_run: if set to True, the replay will not use client-side scheduler
         :param save_result_dir: periodically save the result to save_result_dir
         :param query_file: file that stores all queries
+        :param start_idx: where to start in this trace
         """
         function_start_time = time.time()
         if directory.endswith(".csv"):
@@ -619,6 +624,8 @@ class Executor:
         )
         concurrency_df = concurrency_df.sort_values(by=["start_time"], ascending=True)
         # the original prediction is for reference only
+        print(f"Starting the replay of workload at index {start_idx}")
+        concurrency_df = concurrency_df[start_idx:]
         all_original_predictions = self.scheduler.make_original_prediction(
             concurrency_df
         )
@@ -627,6 +634,7 @@ class Executor:
         original_predictions = []
         e2e_runtime = dict()
         query_start_time_log = dict()
+        all_query_no = []
         all_timeout = []
         all_error = []
         all_start_time = concurrency_df["start_time"].values
@@ -637,6 +645,7 @@ class Executor:
                 all_query_sql = [queries[i] for i in all_query_idx]
         else:
             all_query_sql = concurrency_df["sql"].values
+        curr_query_no = start_idx
         for i in range(len(concurrency_df)):
             # replaying the query one-by-one
             original_predictions.append(all_original_predictions[i])
@@ -658,24 +667,38 @@ class Executor:
                     self.replay_one_query(current_time)
                 await asyncio.sleep(0.5)
                 current_time = time.time() - function_start_time
-            query_start_time_log[i] = current_time
+            query_start_time_log[curr_query_no] = current_time
             self.replay_one_query(
                 current_time,
-                i,
+                curr_query_no,
                 all_query_sql[i],
                 all_query_idx[i],
                 baseline_run=baseline_run,
             )
-            if save_result_dir is not None and (i + 1) % 100 == 0:
-                self.save_result(
+            all_query_no.append(curr_query_no)
+            curr_query_no += 1
+            if save_result_dir is not None and (i + 1) % 50 == 0:
+                self.save_result_as_df(
                     save_result_dir,
-                    original_predictions,
+                    all_query_idx,
+                    all_query_no,
                     e2e_runtime,
                     sys_runtime,
+                    self.query_exec_start_time,
                     all_timeout,
                     all_error,
-                    baseline_run,
+                    is_baseline=baseline_run,
+                    return_df=False,
                 )
+                #self.save_result(
+                 #   save_result_dir,
+                  #  original_predictions,
+                 #   e2e_runtime,
+                  #  sys_runtime,
+                   # all_timeout,
+                   # all_error,
+                   # baseline_run,
+                #)
         # finish all queries
         await self.finish_all_queries(
             function_start_time,
@@ -687,15 +710,27 @@ class Executor:
             baseline_run=baseline_run,
         )
         if save_result_dir is not None:
-            self.save_result(
+            self.save_result_as_df(
                 save_result_dir,
-                original_predictions,
+                all_query_idx,
+                all_query_no,
                 e2e_runtime,
                 sys_runtime,
+                self.query_exec_start_time,
                 all_timeout,
                 all_error,
-                baseline_run,
+                is_baseline=baseline_run,
+                return_df=False,
             )
+            #self.save_result(
+             #   save_result_dir,
+              #  original_predictions,
+               # e2e_runtime,
+               # sys_runtime,
+               # all_timeout,
+               # all_error,
+               # baseline_run,
+            #)
         sys_exec_time = np.zeros(len(concurrency_df)) - 1
         scheduler_runtime = np.zeros(len(concurrency_df)) - 1
         for i in sys_runtime:
