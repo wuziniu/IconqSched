@@ -139,9 +139,9 @@ def featurize_queries_complex_online(
             concur_query_feature[:l_feature] = torch.FloatTensor(
                 existing_query_features[i]
             )
-            concur_query_feature[
-                (l_feature + 2): (2 * l_feature + 2)
-            ] = torch.FloatTensor(query_feature)
+            concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
+                torch.FloatTensor(query_feature)
+            )
             concur_query_feature[l_feature + 1] = 1.0
             concur_query_feature[2 * l_feature + 2] = (
                 existing_start_time[i] - current_time
@@ -156,15 +156,22 @@ def featurize_queries_complex_online(
                 finished_query_feature = existing_query_features[next_finish_idx]
                 if next_finish_idx != i:
                     concur_query_feature[2 * l_feature + 2] = (
-                            existing_start_time[i] - next_finish_time
+                        existing_start_time[i] - next_finish_time
                     )
                     if existing_query_concur_features[i] is None:
                         x = concur_query_feature.reshape(1, -1)
                     else:
                         x = []
                         for j in range(len(existing_query_concur_features[i])):
-                            j_query_feature = existing_query_concur_features[i][j][(l_feature + 2): (2 * l_feature + 2)]
-                            if not torch.sum(torch.abs(j_query_feature - finished_query_feature)) <= 1e-4:
+                            j_query_feature = existing_query_concur_features[i][j][
+                                (l_feature + 2) : (2 * l_feature + 2)
+                            ]
+                            if (
+                                not torch.sum(
+                                    torch.abs(j_query_feature - finished_query_feature)
+                                )
+                                <= 1e-4
+                            ):
                                 # remove the finished query from its concurrent feature
                                 x.append(existing_query_concur_features[i][j])
                         x.append(torch.FloatTensor(concur_query_feature))
@@ -238,10 +245,13 @@ def featurize_queries_complex(
                 for c in pre_exec_info[j] + concur_info_full[j]:
                     concur_query_feature = np.zeros(l_feature * 2 + 5)
                     concur_query_feature[:l_feature] = query_feature
-                    concur_query_feature[
-                        (l_feature + 2) : (2 * l_feature + 2)
-                    ] = np.concatenate(
-                        (np.asarray([predictions[c[0]]]), single_query_features[c[0]])
+                    concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
+                        np.concatenate(
+                            (
+                                np.asarray([predictions[c[0]]]),
+                                single_query_features[c[0]],
+                            )
+                        )
                     )
                     if c in pre_exec_info[j]:
                         concur_query_feature[2 * l_feature + 3] = 1

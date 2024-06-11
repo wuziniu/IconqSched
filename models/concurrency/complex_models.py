@@ -349,7 +349,7 @@ class ConcurrentRNN:
         next_finish_idx: Optional[int] = None,
         next_finish_time: Optional[float] = None,
         get_next_finish: bool = False,
-        get_next_finish_running_performance: bool = False
+        get_next_finish_running_performance: bool = False,
     ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:
         global_x, global_pre_info_length = featurize_queries_complex_online(
             existing_query_features,

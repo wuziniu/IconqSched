@@ -19,11 +19,14 @@ from scheduler.linear_programming_scheduler import LPScheduler
 from simulator.simulator import Simulator
 from executor.executor import Executor
 from utils.logging import create_custom_logger
+from workloads.workload_tools.mimic_trace import pre_process_snowset, TraceManager
 
 np.set_printoptions(suppress=True)
 
 
-def load_workload(train_test_split: bool=True) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
+def load_workload(
+    train_test_split: bool = True,
+) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     all_raw_trace, all_trace = load_trace_all_version(
         args.directory, args.num_clients, concat=True
     )
@@ -50,6 +53,30 @@ def load_workload(train_test_split: bool=True) -> Union[pd.DataFrame, Tuple[pd.D
         return train_trace_df, eval_trace_df
     else:
         return concurrency_df
+
+
+def minic_snowset_workload(
+    trace_path: str, save_result_dir: str, query_bank_path: str
+) -> None:
+    trace = pd.read_csv(trace_path)
+    if (
+        "g_offset_since_start_s" not in trace.columns
+        or "run_time_s" not in trace.columns
+    ):
+        trace = pre_process_snowset(trace)
+        trace.to_csv(trace_path, index=False)
+
+    ss, rnn = load_concurrent_rnn_stage_model()
+    tm = TraceManager(
+        ss,
+        rnn,
+        query_bank_path,
+        database=args.database,
+        debug=args.debug,
+        stride=args.stride,
+    )
+    minic_trace = tm.simulate_trace_iteratively(trace_path, max_iter=args.max_iter)
+    minic_trace.to_csv(save_result_dir, index=False)
 
 
 def train_concurrent_rnn() -> None:
@@ -133,18 +160,19 @@ def warmup_run(query_bank_path: str) -> None:
         "password": args.password,
     }
     executor = Executor(
-        database_kwargs,
-        timeout=args.timeout_s,
-        database=args.database,
-        scheduler=None
+        database_kwargs, timeout=args.timeout_s, database=args.database, scheduler=None
     )
-    executor.warmup_run(query_bank_path, args.save_result_dir, args.selected_query_idx_path)
+    executor.warmup_run(
+        query_bank_path, args.save_result_dir, args.selected_query_idx_path
+    )
 
 
-def replay_workload(workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool) -> None:
+def replay_workload(
+    workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool
+) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = os.path.join(save_result_dir, 'verbose_logs')
+        verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if baseline:
@@ -153,9 +181,7 @@ def replay_workload(workload_directory: str, save_result_dir: str, query_bank_pa
             log_name = "ours"
         run_id = np.random.randint(100000)
         log_file_path = os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
-        verbose_logger = create_custom_logger(
-            log_name, log_file_path
-        )
+        verbose_logger = create_custom_logger(log_name, log_file_path)
         print(f"Debug log save to: {log_file_path}")
     else:
         verbose_logger = None
@@ -167,7 +193,7 @@ def replay_workload(workload_directory: str, save_result_dir: str, query_bank_pa
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
-            shorting_running_threshold=args.shorting_running_threshold
+            shorting_running_threshold=args.shorting_running_threshold,
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -204,11 +230,15 @@ def replay_workload(workload_directory: str, save_result_dir: str, query_bank_pa
         )
 
 
-def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
-                             save_result_dir: str, selected_query_idx_path: Optional[str] = None) -> None:
+def run_k_client_in_parallel(
+    query_bank_path: str,
+    num_clients: int,
+    save_result_dir: str,
+    selected_query_idx_path: Optional[str] = None,
+) -> None:
     ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
-        verbose_log_dir = os.path.join(save_result_dir, 'verbose_logs')
+        verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):
             os.mkdir(verbose_log_dir)
         if args.baseline:
@@ -217,9 +247,7 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
             log_name = "ours"
         run_id = np.random.randint(100000)
         log_file_path = os.path.join(verbose_log_dir, f"{log_name}_{run_id}.log")
-        verbose_logger = create_custom_logger(
-            log_name, log_file_path
-        )
+        verbose_logger = create_custom_logger(log_name, log_file_path)
         print(f"Debug log save to: {log_file_path}")
     else:
         verbose_logger = None
@@ -231,7 +259,7 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
-            shorting_running_threshold=args.shorting_running_threshold
+            shorting_running_threshold=args.shorting_running_threshold,
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -255,10 +283,13 @@ def run_k_client_in_parallel(query_bank_path: str, num_clients: int,
     )
     asyncio.run(
         executor.run_k_client_in_parallel(
-            query_bank_path, num_clients, args.baseline, save_result_dir,
+            query_bank_path,
+            num_clients,
+            args.baseline,
+            save_result_dir,
             selected_query_idx_path=selected_query_idx_path,
             exec_for_s=args.exec_for_s,
-            seed=args.seed
+            seed=args.seed,
         )
     )
 
@@ -272,6 +303,7 @@ if __name__ == "__main__":
     parser.add_argument("--replay_workload_ours_and_baseline", action="store_true")
     parser.add_argument("--warmup_run", action="store_true")
     parser.add_argument("--run_k_client_in_parallel", action="store_true")
+    parser.add_argument("--minic_snowset_workload", action="store_true")
 
     # path information
     parser.add_argument("--gcn_graph_path", type=str)
@@ -326,6 +358,8 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int)
     parser.add_argument("--user", type=str)
     parser.add_argument("--password", type=str)
+    parser.add_argument("--stride", type=int, default=4)
+    parser.add_argument("--max_iter", type=int, default=100)
 
     args = parser.parse_args()
     if args.train_concurrent_rnn:
@@ -334,25 +368,42 @@ if __name__ == "__main__":
     if args.train_gcn_baseline:
         gen_trace_train_gcn_baseline()
 
+    if args.minic_snowset_workload:
+        minic_snowset_workload(
+            args.directory, args.save_result_dir, args.query_bank_path
+        )
+
     if args.warmup_run:
         warmup_run(args.query_bank_path)
 
     if args.run_k_client_in_parallel:
         if args.num_clients_list is not None:
-            num_clients_list = list(map(int, args.num_clients_list.split(',')))
+            num_clients_list = list(map(int, args.num_clients_list.split(",")))
             for num_clients in num_clients_list:
                 print(num_clients)
-                run_k_client_in_parallel(args.query_bank_path, num_clients,
-                                         args.save_result_dir, args.selected_query_idx_path)
+                run_k_client_in_parallel(
+                    args.query_bank_path,
+                    num_clients,
+                    args.save_result_dir,
+                    args.selected_query_idx_path,
+                )
         else:
-            run_k_client_in_parallel(args.query_bank_path, args.num_clients,
-                                     args.save_result_dir, args.selected_query_idx_path)
+            run_k_client_in_parallel(
+                args.query_bank_path,
+                args.num_clients,
+                args.save_result_dir,
+                args.selected_query_idx_path,
+            )
 
     if args.replay_workload:
-        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, args.baseline)
+        replay_workload(
+            args.directory, args.save_result_dir, args.query_bank_path, args.baseline
+        )
 
     elif args.replay_workload_ours_and_baseline:
-        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, True)
-        replay_workload(args.directory, args.save_result_dir, args.query_bank_path, False)
-
-
+        replay_workload(
+            args.directory, args.save_result_dir, args.query_bank_path, True
+        )
+        replay_workload(
+            args.directory, args.save_result_dir, args.query_bank_path, False
+        )

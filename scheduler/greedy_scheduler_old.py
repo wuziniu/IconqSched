@@ -62,7 +62,9 @@ class GreedyScheduler(BaseScheduler):
                 self.existing_finish_time[i] = max(
                     self.existing_finish_time[i], self.current_time + randomness
                 )
-                self.existing_runtime_prediction[i] = self.existing_finish_time[i] - self.existing_enter_time[i]
+                self.existing_runtime_prediction[i] = (
+                    self.existing_finish_time[i] - self.existing_enter_time[i]
+                )
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None

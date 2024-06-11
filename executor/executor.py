@@ -270,52 +270,67 @@ class Executor:
         all_error = np.asarray(all_error)
         np.save(
             os.path.join(
-                save_result_dir, f"{self.database}_timeout_{self.timeout}_original_predictions"
+                save_result_dir,
+                f"{self.database}_timeout_{self.timeout}_original_predictions",
             ),
             original_predictions,
         )
         if is_baseline:
             np.save(
                 os.path.join(
-                    save_result_dir, f"{self.database}_timeout_{self.timeout}_e2e_runtime_baseline"
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_e2e_runtime_baseline",
                 ),
                 scheduler_runtime,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"{self.database}_timeout_{self.timeout}_sys_exec_time_baseline"
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_sys_exec_time_baseline",
                 ),
                 sys_exec_time,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"{self.database}_timeout_{self.timeout}_timeout_baseline"
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_timeout_baseline",
                 ),
                 all_timeout,
             )
             np.save(
-                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_error_baseline"),
+                os.path.join(
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_error_baseline",
+                ),
                 all_error,
             )
         else:
             np.save(
                 os.path.join(
-                    save_result_dir, f"{self.database}_timeout_{self.timeout}_e2e_runtime_ours"
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_e2e_runtime_ours",
                 ),
                 scheduler_runtime,
             )
             np.save(
                 os.path.join(
-                    save_result_dir, f"{self.database}_timeout_{self.timeout}_sys_exec_time_ours"
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_sys_exec_time_ours",
                 ),
                 sys_exec_time,
             )
             np.save(
-                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_timeout_ours"),
+                os.path.join(
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_timeout_ours",
+                ),
                 all_timeout,
             )
             np.save(
-                os.path.join(save_result_dir, f"{self.database}_timeout_{self.timeout}_error_ours"),
+                os.path.join(
+                    save_result_dir,
+                    f"{self.database}_timeout_{self.timeout}_error_ours",
+                ),
                 all_error,
             )
 
@@ -391,10 +406,12 @@ class Executor:
         if return_df:
             return df
 
-    def warmup_run(self,
-                   query_file: str,
-                   save_result_dir: str,
-                   selected_query_idx_path: Optional[str] = None) -> pd.DataFrame:
+    def warmup_run(
+        self,
+        query_file: str,
+        save_result_dir: str,
+        selected_query_idx_path: Optional[str] = None,
+    ) -> pd.DataFrame:
         function_start_time = time.time()
         cur = self.get_connection_sync()
         with open(query_file, "r") as f:
@@ -472,7 +489,7 @@ class Executor:
         gap_s: float = 1.0,
         exec_for_s: Optional[float] = 3600.0,
         selected_query_idx_path: Optional[str] = None,
-        seed: int = 0
+        seed: int = 0,
     ) -> pd.DataFrame:
         """
         This function conduct a close-loop run of k clients.
@@ -524,7 +541,9 @@ class Executor:
                 # reschedule the existing query when there are finished queries
                 self.replay_one_query(current_time)
             if len(self.pending_jobs) < num_clients:
-                selected_query_idx = all_possible_query_idx[np.random.randint(len(all_possible_query_idx))]
+                selected_query_idx = all_possible_query_idx[
+                    np.random.randint(len(all_possible_query_idx))
+                ]
                 selected_query_sql = queries[selected_query_idx]
                 all_query_idx.append(selected_query_idx)
                 all_query_no.append(curr_query_no)
@@ -538,7 +557,11 @@ class Executor:
                     baseline_run=baseline_run,
                 )
                 curr_query_no += 1
-            if save_result_dir is not None and not recently_save and (curr_query_no + 1) % 100 == 0:
+            if (
+                save_result_dir is not None
+                and not recently_save
+                and (curr_query_no + 1) % 100 == 0
+            ):
                 self.save_result_as_df(
                     save_result_dir,
                     all_query_idx,
@@ -590,7 +613,7 @@ class Executor:
             all_trace = pd.read_csv(directory)
         else:
             all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
-        all_trace = all_trace[all_trace['run_time_s'] > 0]
+        all_trace = all_trace[all_trace["run_time_s"] > 0]
         concurrency_df = create_concurrency_dataset(
             all_trace, engine=None, pre_exec_interval=200
         )

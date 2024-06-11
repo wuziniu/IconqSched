@@ -64,7 +64,9 @@ class GreedyScheduler(BaseScheduler):
                 self.existing_finish_time[i] = max(
                     self.existing_finish_time[i], self.current_time + randomness
                 )
-                self.existing_runtime_prediction[i] = self.existing_finish_time[i] - self.existing_enter_time[i]
+                self.existing_runtime_prediction[i] = (
+                    self.existing_finish_time[i] - self.existing_enter_time[i]
+                )
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
@@ -119,7 +121,7 @@ class GreedyScheduler(BaseScheduler):
             next_finish_idx=next_finish_idx,
             next_finish_time=next_finish_time,
             get_next_finish=True,
-            get_next_finish_running_performance=True
+            get_next_finish_running_performance=True,
         )
 
         predictions = predictions.reshape(-1).detach().numpy()
@@ -160,7 +162,10 @@ class GreedyScheduler(BaseScheduler):
                 None,
             )
         else:
-            assert len(predictions) % (2 + 2 * len(self.existing_query_concur_features)) == 0
+            assert (
+                len(predictions) % (2 + 2 * len(self.existing_query_concur_features))
+                == 0
+            )
             all_score = []
             all_query_idx = []
             for i in range(len(self.queued_queries)):
@@ -173,10 +178,14 @@ class GreedyScheduler(BaseScheduler):
                 )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
-                    (pred_idx + 2): (pred_idx + 2 * len(self.existing_query_concur_features) + 1): 2
+                    (pred_idx + 2) : (
+                        pred_idx + 2 * len(self.existing_query_concur_features) + 1
+                    ) : 2
                 ]
                 future_existing_pred = predictions[
-                    (pred_idx + 3): (pred_idx + 2 * len(self.existing_query_concur_features) + 2): 2
+                    (pred_idx + 3) : (
+                        pred_idx + 2 * len(self.existing_query_concur_features) + 2
+                    ) : 2
                 ]
                 # how will this query change the runtime of existing queries in the system
                 delta_existing = new_existing_pred - old_existing_pred
@@ -184,7 +193,13 @@ class GreedyScheduler(BaseScheduler):
                 # how will this query change the runtime of existing queries compare to submitting later
                 delta = new_existing_pred - future_existing_pred
                 if next_finish_idx is not None:
-                    delta = delta[[temp_idx for temp_idx in range(len(delta)) if temp_idx != next_finish_idx]]
+                    delta = delta[
+                        [
+                            temp_idx
+                            for temp_idx in range(len(delta))
+                            if temp_idx != next_finish_idx
+                        ]
+                    ]
                 delta_sum = np.sum(delta)
                 # for every query first judge whether it is good to wait
                 # TODO: is there more clever score?
