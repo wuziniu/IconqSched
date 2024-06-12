@@ -350,18 +350,19 @@ class Executor:
         warmup_run: bool = False,
         return_df: bool = True,
     ) -> Optional[pd.DataFrame]:
-        query_start_time = np.zeros(len(all_query_idx)) - 1
-        sys_exec_time = np.zeros(len(all_query_idx)) - 1
-        scheduler_runtime = np.zeros(len(all_query_idx)) - 1
+        assert len(all_query_no) == len(all_query_idx)
+        query_start_time = np.zeros(len(all_query_no)) - 1
+        sys_exec_time = np.zeros(len(all_query_no)) - 1
+        scheduler_runtime = np.zeros(len(all_query_no)) - 1
         timeout_per_query = []
         error_per_query = []
-        for i in all_query_no:
-            if i in sys_runtime:
-                sys_exec_time[i] = sys_runtime[i]
-            if i in e2e_runtime:
-                scheduler_runtime[i] = e2e_runtime[i]
-            if i in query_start_time:
-                query_start_time[i] = query_start_time_log[i]
+        for i, q_no in enumerate(all_query_no):
+            if q_no in sys_runtime:
+                sys_exec_time[i] = sys_runtime[q_no]
+            if q_no in e2e_runtime:
+                scheduler_runtime[i] = e2e_runtime[q_no]
+            if q_no in query_start_time_log:
+                query_start_time[i] = query_start_time_log[q_no]
             if i in all_timeout:
                 timeout_per_query.append(True)
             else:
