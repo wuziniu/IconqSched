@@ -226,7 +226,11 @@ def replay_workload(
         )
         asyncio.run(
             executor.replay_workload(
-                workload_directory, baseline, save_result_dir, query_bank_path
+                workload_directory,
+                baseline,
+                save_result_dir,
+                query_bank_path,
+                start_idx=args.start_idx,
             )
         )
 
@@ -343,6 +347,7 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--alpha", type=float, default=0.2)
+    parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
     parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")

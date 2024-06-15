@@ -20,7 +20,7 @@ class GreedyScheduler(BaseScheduler):
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
         shorting_running_threshold: float = 5.0,
-        steps_into_future: int = 2
+        steps_into_future: int = 2,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -134,12 +134,14 @@ class GreedyScheduler(BaseScheduler):
             assert len(predictions) == 2 * len(self.queued_queries)
             predictions_query = predictions[0:-1:2]
             selected_idx = np.argmin(predictions_query)
-            queueing_time = max(start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5)
+            queueing_time = max(
+                start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5
+            )
             scheduled_submit = (
                 copy.deepcopy(self.queued_queries[selected_idx]),
                 copy.deepcopy(self.queued_queries_sql[selected_idx]),
                 copy.deepcopy(self.queued_queries_index[selected_idx]),
-                queueing_time
+                queueing_time,
             )
             self.submit_query(
                 selected_idx,
@@ -210,7 +212,12 @@ class GreedyScheduler(BaseScheduler):
                 # for every query first judge whether it is good to wait
                 if curr_delta + delta_existing_sum < 0:
                     # submitting the current query has a positive effect on itself and running queries
-                    score = curr_delta + delta_existing_sum - (start_t - self.queued_queries_enter_time[i]) * self.starve_penalty
+                    score = (
+                        curr_delta
+                        + delta_existing_sum
+                        - (start_t - self.queued_queries_enter_time[i])
+                        * self.starve_penalty
+                    )
                 else:
                     # Even if the current query may have a negative effect, it may still make sense to submit it because
                     # submitting it later will have a even worse effect
@@ -261,12 +268,14 @@ class GreedyScheduler(BaseScheduler):
                         converted_idx + len(self.existing_query_concur_features) + 2
                     )
                 ]
-                queueing_time = max(start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5)
+                queueing_time = max(
+                    start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5
+                )
                 scheduled_submit = (
                     copy.deepcopy(self.queued_queries[selected_idx]),
                     copy.deepcopy(self.queued_queries_sql[selected_idx]),
                     copy.deepcopy(self.queued_queries_index[selected_idx]),
-                    queueing_time
+                    queueing_time,
                 )
                 self.submit_query(
                     selected_idx,

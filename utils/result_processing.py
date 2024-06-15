@@ -6,19 +6,29 @@ import matplotlib.pyplot as plt
 from typing import Optional, Union, List, Tuple
 
 
-def report_performance(rt: np.ndarray, idx: Optional[Union[np.ndarray, List[int]]] = None) -> None:
+def report_performance(
+    rt: np.ndarray, idx: Optional[Union[np.ndarray, List[int]]] = None
+) -> None:
     if idx is None:
         runtime = rt
     else:
         runtime = rt[idx]
-    print(np.mean(runtime), np.percentile(runtime, 50), np.percentile(runtime, 90), np.percentile(runtime, 95), np.percentile(runtime, 99))
+    print(
+        np.mean(runtime),
+        np.percentile(runtime, 50),
+        np.percentile(runtime, 90),
+        np.percentile(runtime, 95),
+        np.percentile(runtime, 99),
+    )
 
 
-def load_and_report_stats(path: str, baseline: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def load_and_report_stats(
+    path: str, baseline: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     if path.endswith(".csv"):
         results = pd.read_csv(path)
-        rt = results['exec_time'].values
-        e2e = results['run_time_s'].values
+        rt = results["exec_time"].values
+        e2e = results["run_time_s"].values
     else:
         if not path.endswith("_"):
             path += "_"
@@ -36,12 +46,16 @@ def load_and_report_stats(path: str, baseline: bool = False) -> Tuple[np.ndarray
     return rt, e2e
 
 
-def create_concurrent_df_from_results(trace_path: str, exec_time: np.ndarray, e2e_time: np.ndarray,
-                                      save_path: Optional[str] = None) -> pd.DataFrame:
+def create_concurrent_df_from_results(
+    trace_path: str,
+    exec_time: np.ndarray,
+    e2e_time: np.ndarray,
+    save_path: Optional[str] = None,
+) -> pd.DataFrame:
     # This function turns the results in the save format as training data
     trace = pd.read_csv(trace_path)
     queueing_time = np.maximum(e2e_time - exec_time, 0)
-    #assert np.sum(queueing_time < 0) == 0, "some queries with negative queueing time"
+    # assert np.sum(queueing_time < 0) == 0, "some queries with negative queueing time"
     new_start_time = []
     start_s = trace["g_offset_since_start_s"].values
     query_idx = trace["query_idx"].values
@@ -56,14 +70,14 @@ def create_concurrent_df_from_results(trace_path: str, exec_time: np.ndarray, e2
         e2e_time_s.append(e2e_time[i])
         new_query_idx.append(query_idx[i])
     df = pd.DataFrame(
-            {
-                "query_idx": np.asarray(new_query_idx),
-                "run_time_s": np.asarray(run_time_s),
-                "e2e_time_s": np.asarray(e2e_time_s),
-                "g_offset_since_start_s": np.asarray(new_start_time)
-            }
-        )
-    df = df.sort_values(by=['g_offset_since_start_s'], ascending=True)
+        {
+            "query_idx": np.asarray(new_query_idx),
+            "run_time_s": np.asarray(run_time_s),
+            "e2e_time_s": np.asarray(e2e_time_s),
+            "g_offset_since_start_s": np.asarray(new_start_time),
+        }
+    )
+    df = df.sort_values(by=["g_offset_since_start_s"], ascending=True)
     if save_path:
         df.to_csv(save_path, index=False)
     return df
@@ -72,13 +86,15 @@ def create_concurrent_df_from_results(trace_path: str, exec_time: np.ndarray, e2
 def realign_execution_start_time(path: str, inplace: bool = True) -> pd.DataFrame:
     results = pd.read_csv(path)
     g_offset_since_start_s = results["g_offset_since_start_s"].values
-    queueing_time = np.maximum(results["run_time_s"].values - results["exec_time"].values, 0)
-    #assert np.sum(queueing_time < 0) == 0, "some queries with negative queueing time"
+    queueing_time = np.maximum(
+        results["run_time_s"].values - results["exec_time"].values, 0
+    )
+    # assert np.sum(queueing_time < 0) == 0, "some queries with negative queueing time"
     results["g_offset_since_start_s"] = g_offset_since_start_s + queueing_time
     results["e2e_time_s"] = copy.deepcopy(results["run_time_s"].values)
     results["run_time_s"] = results["exec_time"].values
     results = results[results["exec_time"] > 0]
-    results = results.sort_values(by=['g_offset_since_start_s'], ascending=True)
+    results = results.sort_values(by=["g_offset_since_start_s"], ascending=True)
     if inplace:
         results.to_csv(path, index=False)
     return results

@@ -351,7 +351,7 @@ class Executor:
         is_baseline: bool,
         warmup_run: bool = False,
         return_df: bool = True,
-        save_prefix: Optional[str] = ""
+        save_prefix: Optional[str] = "",
     ) -> Optional[pd.DataFrame]:
         assert len(all_query_no) == len(all_query_idx)
         query_start_time = np.zeros(len(all_query_no)) - 1
@@ -580,7 +580,7 @@ class Executor:
                     all_error,
                     is_baseline=baseline_run,
                     return_df=False,
-                    save_prefix=f"clients_{self.num_clients}_"
+                    save_prefix=f"clients_{self.num_clients}_",
                 )
                 recently_save = True
             if (curr_query_no + 1) % 50 == 1:
@@ -596,7 +596,7 @@ class Executor:
             all_error,
             is_baseline=baseline_run,
             return_df=True,
-            save_prefix=f"clients_{self.num_clients}_"
+            save_prefix=f"clients_{self.num_clients}_",
         )
         return df
 
@@ -606,7 +606,7 @@ class Executor:
         baseline_run: bool = False,
         save_result_dir: Optional[str] = None,
         query_file: Optional[str] = None,
-        start_idx: Optional[int] = 0
+        start_idx: Optional[int] = 0,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         This function replays the workload trace at the provided timestamp.
@@ -688,7 +688,7 @@ class Executor:
             if save_result_dir is not None and (i + 1) % 50 == 0:
                 self.save_result_as_df(
                     save_result_dir,
-                    all_query_idx[:i],
+                    all_query_idx[: i + 1],
                     all_query_no,
                     e2e_runtime,
                     sys_runtime,
@@ -697,7 +697,7 @@ class Executor:
                     all_error,
                     is_baseline=baseline_run,
                     return_df=False,
-                    save_prefix=save_prefix
+                    save_prefix=save_prefix,
                 )
         # finish all queries
         await self.finish_all_queries(
@@ -721,7 +721,7 @@ class Executor:
                 all_error,
                 is_baseline=baseline_run,
                 return_df=False,
-                save_prefix=save_prefix
+                save_prefix=save_prefix,
             )
         sys_exec_time = np.zeros(len(concurrency_df)) - 1
         scheduler_runtime = np.zeros(len(concurrency_df)) - 1
