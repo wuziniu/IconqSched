@@ -35,6 +35,7 @@ class TraceManager:
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         stride: int = 4,
+        timeout: int = 400
     ):
         self.stage_model = stage_model
         self.predictor = predictor
@@ -45,6 +46,7 @@ class TraceManager:
         self.logger = logger
 
         self.stride = stride
+        self.timeout = timeout
 
         with open(query_file, "r") as f:
             self.query_sql = f.readlines()
@@ -73,7 +75,7 @@ class TraceManager:
         all_prediction, _ = self.predictor.predict(
             concurrency_df, return_per_query=False
         )
-        ground_truth_runtime = concurrency_df["ground_truth_runtime"].values
+        ground_truth_runtime = np.minimum(concurrency_df["ground_truth_runtime"].values, self.timeout)
         all_new_runtime = []
         all_query_idx = []
         original_query_idx = concurrency_df["query_idx"].values

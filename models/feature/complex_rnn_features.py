@@ -259,7 +259,7 @@ def featurize_queries_complex(
                     elif c in concur_info_train[j]:
                         assert (
                             c[1] <= start_time[j]
-                        ), f"parsing error in row {i}, info number {j}"
+                        ), f"parsing error in query index {i}, query number {j}"
                         concur_query_feature[l_feature] = 1
                         # encode the timestamp with a relative time in second, this is a negative value
                         # Todo: explore more timestamp embedding options
@@ -267,7 +267,7 @@ def featurize_queries_complex(
                     else:
                         assert (
                             c[1] >= start_time[j]
-                        ), f"parsing error in row {i}, info number {j}"
+                        ), f"parsing error in query index {i}, query number {j}"
                         concur_query_feature[l_feature + 1] = 1
                         # this is a negative value
                         concur_query_feature[2 * l_feature + 2] = start_time[j] - c[1]

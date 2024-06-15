@@ -27,6 +27,8 @@ async def submit_query_and_wait_for_result(
     connection = await psycopg.AsyncConnection.connect(**database_kwargs)
     async with connection.cursor() as cur:
         if timeout_s:
+            if timeout_s <= 0:
+                return query_rep, query_idx, 0.0, True, error
             timeout_ms = int(timeout_s * 1000)
             await cur.execute(f"set statement_timeout = {timeout_ms};")
             await connection.commit()
@@ -134,14 +136,14 @@ class Executor:
                 simulation=False,
             )
             if scheduled_submit is not None:
-                query_rep, query_sql, query_idx = scheduled_submit
+                query_rep, query_sql, query_idx, queueing_time = scheduled_submit
                 future = asyncio.ensure_future(
                     submit_query_and_wait_for_result(
                         self.database_kwargs,
                         query_rep,
                         query_sql,
                         query_idx,
-                        self.timeout,
+                        self.timeout - queueing_time,
                         self.database,
                     )
                 )
@@ -349,6 +351,7 @@ class Executor:
         is_baseline: bool,
         warmup_run: bool = False,
         return_df: bool = True,
+        save_prefix: Optional[str] = ""
     ) -> Optional[pd.DataFrame]:
         assert len(all_query_no) == len(all_query_idx)
         query_start_time = np.zeros(len(all_query_no)) - 1
@@ -387,7 +390,7 @@ class Executor:
             df.to_csv(
                 os.path.join(
                     save_result_dir,
-                    f"timeout_{self.timeout}_warmup_run.csv",
+                    f"{save_prefix}_timeout_{self.timeout}_warmup_run.csv",
                 ),
                 index=False,
             )
@@ -395,7 +398,7 @@ class Executor:
             df.to_csv(
                 os.path.join(
                     save_result_dir,
-                    f"timeout_{self.timeout}_num_clients{self.num_clients}_baseline.csv",
+                    f"{save_prefix}timeout_{self.timeout}_baseline.csv",
                 ),
                 index=False,
             )
@@ -403,7 +406,7 @@ class Executor:
             df.to_csv(
                 os.path.join(
                     save_result_dir,
-                    f"timeout_{self.timeout}_num_clients{self.num_clients}_ours.csv",
+                    f"{save_prefix}timeout_{self.timeout}_ours.csv",
                 ),
                 index=False,
             )
@@ -564,7 +567,7 @@ class Executor:
             if (
                 save_result_dir is not None
                 and not recently_save
-                and (curr_query_no + 1) % 100 == 0
+                and (curr_query_no + 1) % 50 == 0
             ):
                 self.save_result_as_df(
                     save_result_dir,
@@ -577,9 +580,10 @@ class Executor:
                     all_error,
                     is_baseline=baseline_run,
                     return_df=False,
+                    save_prefix=f"clients_{self.num_clients}_"
                 )
                 recently_save = True
-            if (curr_query_no + 1) % 100 == 1:
+            if (curr_query_no + 1) % 50 == 1:
                 recently_save = False
         df = self.save_result_as_df(
             save_result_dir,
@@ -592,6 +596,7 @@ class Executor:
             all_error,
             is_baseline=baseline_run,
             return_df=True,
+            save_prefix=f"clients_{self.num_clients}_"
         )
         return df
 
@@ -613,12 +618,13 @@ class Executor:
         :param query_file: file that stores all queries
         :param start_idx: where to start in this trace
         """
-        function_start_time = time.time()
         if directory.endswith(".csv"):
             # just one single csv file
             all_trace = pd.read_csv(directory)
+            save_prefix = directory.split("/")[-1].split(".csv")[0]
         else:
             all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
+            save_prefix = ""
         all_trace = all_trace[all_trace["run_time_s"] > 0]
         concurrency_df = create_concurrency_dataset(
             all_trace, engine=None, pre_exec_interval=200
@@ -647,6 +653,7 @@ class Executor:
         else:
             all_query_sql = concurrency_df["sql"].values
         curr_query_no = start_idx
+        function_start_time = time.time()
         for i in range(len(concurrency_df)):
             # replaying the query one-by-one
             original_predictions.append(all_original_predictions[i])
@@ -681,7 +688,7 @@ class Executor:
             if save_result_dir is not None and (i + 1) % 50 == 0:
                 self.save_result_as_df(
                     save_result_dir,
-                    all_query_idx,
+                    all_query_idx[:i],
                     all_query_no,
                     e2e_runtime,
                     sys_runtime,
@@ -690,16 +697,8 @@ class Executor:
                     all_error,
                     is_baseline=baseline_run,
                     return_df=False,
+                    save_prefix=save_prefix
                 )
-                #self.save_result(
-                 #   save_result_dir,
-                  #  original_predictions,
-                 #   e2e_runtime,
-                  #  sys_runtime,
-                   # all_timeout,
-                   # all_error,
-                   # baseline_run,
-                #)
         # finish all queries
         await self.finish_all_queries(
             function_start_time,
@@ -722,16 +721,8 @@ class Executor:
                 all_error,
                 is_baseline=baseline_run,
                 return_df=False,
+                save_prefix=save_prefix
             )
-            #self.save_result(
-             #   save_result_dir,
-              #  original_predictions,
-               # e2e_runtime,
-               # sys_runtime,
-               # all_timeout,
-               # all_error,
-               # baseline_run,
-            #)
         sys_exec_time = np.zeros(len(concurrency_df)) - 1
         scheduler_runtime = np.zeros(len(concurrency_df)) - 1
         for i in sys_runtime:

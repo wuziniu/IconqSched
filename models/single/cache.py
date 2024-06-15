@@ -35,15 +35,15 @@ class CachePredictor:
     def ingest_data(self, df):
         for i, rows in df.groupby("query_idx"):
             if self.use_index:
-                hash_val = i
+                hash_val = int(i)
             else:
                 hash_val = self.hash_feature(rows["feature"].iloc[0])
             if hash_val not in self.running_average:
                 self.all_query_hash_val.append(hash_val)
                 self.running_average[hash_val] = np.average(rows["runtime"])
                 self.median[hash_val] = np.median(rows["runtime"])
-                self.most_recent[hash_val] = rows["runtime"].values[-1]
                 self.running_std[hash_val] = np.std(rows["runtime"])
+                self.most_recent[hash_val] = rows["runtime"].values[-1]
                 self.num_obervation[hash_val] = len(rows)
                 if self.store_all:
                     self.all_rt[hash_val] = list(rows["runtime"])
