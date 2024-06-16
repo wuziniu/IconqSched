@@ -193,6 +193,8 @@ def featurize_queries_complex(
     preserve_order: bool = False,
     use_pre_exec_info: bool = False,
     stagemodel: Optional[SingleStage] = None,
+    ignore_short_running: bool = False,
+    short_running_threshold: float = 5.0
 ) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
     use_pre_exec_info = use_pre_exec_info & ("pre_exec_info" in concurrent_df.columns)
@@ -237,44 +239,49 @@ def featurize_queries_complex(
             )
             global_query_idx.append(i)
 
-            if len(concur_info_full[j]) == 0 and len(pre_exec_info[j]) == 0:
+            concur_query_feature = None
+            for c in pre_exec_info[j] + concur_info_full[j]:
+                if ignore_short_running:
+                    c_runtime = c[2] - c[1]
+                    if c_runtime < short_running_threshold:
+                        continue
+                concur_query_feature = np.zeros(l_feature * 2 + 5)
+                concur_query_feature[:l_feature] = query_feature
+                concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
+                    np.concatenate(
+                        (
+                            np.asarray([predictions[c[0]]]),
+                            single_query_features[c[0]],
+                        )
+                    )
+                )
+                if c in pre_exec_info[j]:
+                    concur_query_feature[2 * l_feature + 3] = 1
+                    concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
+                elif c in concur_info_train[j]:
+                    assert (
+                        c[1] <= start_time[j]
+                    ), f"parsing error in query index {i}, query number {j}"
+                    concur_query_feature[l_feature] = 1
+                    # encode the timestamp with a relative time in second, this is a negative value
+                    # Todo: explore more timestamp embedding options
+                    concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
+                else:
+                    assert (
+                        c[1] >= start_time[j]
+                    ), f"parsing error in query index {i}, query number {j}"
+                    concur_query_feature[l_feature + 1] = 1
+                    # this is a negative value
+                    concur_query_feature[2 * l_feature + 2] = start_time[j] - c[1]
+                if include_exit:
+                    # Todo: provide feature to indicate a query has left the instance? not helpful
+                    end_time = rows["end_time"].values
+                x.append(torch.FloatTensor(concur_query_feature))
+
+            if concur_query_feature is None:
                 concur_query_feature = np.zeros(l_feature * 2 + 5)
                 concur_query_feature[:l_feature] = query_feature
                 x.append(torch.FloatTensor(concur_query_feature))
-            else:
-                for c in pre_exec_info[j] + concur_info_full[j]:
-                    concur_query_feature = np.zeros(l_feature * 2 + 5)
-                    concur_query_feature[:l_feature] = query_feature
-                    concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
-                        np.concatenate(
-                            (
-                                np.asarray([predictions[c[0]]]),
-                                single_query_features[c[0]],
-                            )
-                        )
-                    )
-                    if c in pre_exec_info[j]:
-                        concur_query_feature[2 * l_feature + 3] = 1
-                        concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
-                    elif c in concur_info_train[j]:
-                        assert (
-                            c[1] <= start_time[j]
-                        ), f"parsing error in query index {i}, query number {j}"
-                        concur_query_feature[l_feature] = 1
-                        # encode the timestamp with a relative time in second, this is a negative value
-                        # Todo: explore more timestamp embedding options
-                        concur_query_feature[2 * l_feature + 2] = c[1] - start_time[j]
-                    else:
-                        assert (
-                            c[1] >= start_time[j]
-                        ), f"parsing error in query index {i}, query number {j}"
-                        concur_query_feature[l_feature + 1] = 1
-                        # this is a negative value
-                        concur_query_feature[2 * l_feature + 2] = start_time[j] - c[1]
-                    if include_exit:
-                        # Todo: provide feature to indicate a query has left the instance? not helpful
-                        end_time = rows["end_time"].values
-                    x.append(torch.FloatTensor(concur_query_feature))
             global_x.append(torch.stack(x))
     global_y = torch.FloatTensor(np.concatenate(global_y))
     global_pre_info_length = torch.LongTensor(global_pre_info_length)

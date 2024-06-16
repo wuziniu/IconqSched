@@ -93,6 +93,8 @@ class ConcurrentRNN:
         rnn_type: str = "lstm",
         use_separation: bool = False,
         use_pre_exec_info: bool = True,
+        ignore_short_running: bool = False,
+        short_running_threshold: float = 5.0,
     ):
         """
         :param stage_model: stage model for predicting and featurize one query
@@ -112,6 +114,8 @@ class ConcurrentRNN:
         :param rnn_type: choose among "vanilla", "lstm", "transformer" (only recommend lstm)
         :param use_separation: explicitly separate the influence of queries submitted before and after target query
         :param use_pre_exec_info: adding queries that recently finished in the system
+        :param ignore_short_running: set to true to directly submit short running query to avoid overhead
+        :param shorting_running_threshold: consider query with predicted threshold to be shorting running query
         """
         self.model_prefix = model_prefix
         self.stage_model = stage_model
@@ -127,6 +131,8 @@ class ConcurrentRNN:
         self.last_output = last_output
         self.use_seperation = use_separation
         self.use_pre_exec_info = use_pre_exec_info
+        self.ignore_short_running = ignore_short_running
+        self.short_running_threshold = short_running_threshold
         if rnn_type == "vanilla":
             self.model = RNN(input_size, hidden_size, output_size, num_layers)
         elif rnn_type == "lstm":
@@ -193,6 +199,8 @@ class ConcurrentRNN:
             single_query_features,
             include_exit=self.include_exit,
             use_pre_exec_info=self.use_pre_exec_info,
+            ignore_short_running=self.ignore_short_running,
+            short_running_threshold=self.short_running_threshold
         )
         (
             train_x,
@@ -205,6 +213,8 @@ class ConcurrentRNN:
             single_query_features,
             include_exit=self.include_exit,
             use_pre_exec_info=self.use_pre_exec_info,
+            ignore_short_running=self.ignore_short_running,
+            short_running_threshold=self.short_running_threshold
         )
 
         train_dataset = QueryFeatureSeparatedDataset(

@@ -21,30 +21,36 @@ async def submit_query_and_wait_for_result(
     query_idx: int,
     timeout_s: Optional[int] = None,
     database: Optional[str] = None,
+    max_retry: int = 3
 ) -> Tuple[Union[int, str], int, float, bool, bool]:
     error = False
     timeout = False
-    connection = await psycopg.AsyncConnection.connect(**database_kwargs)
-    async with connection.cursor() as cur:
-        if timeout_s:
-            if timeout_s <= 0:
-                return query_rep, query_idx, 0.0, True, error
-            timeout_ms = int(timeout_s * 1000)
-            await cur.execute(f"set statement_timeout = {timeout_ms};")
-            await connection.commit()
-        if database is not None and database == "redshift":
-            await cur.execute("SET enable_result_cache_for_session = OFF;")
-            await connection.commit()
-        t = time.time()
+    for try_iter in range(max_retry):
         try:
-            await cur.execute(sql)
-            await cur.fetchall()
-        except psycopg.errors.QueryCanceled as e:
-            # this occurs in timeout
-            timeout = True
+            connection = await psycopg.AsyncConnection.connect(**database_kwargs)
+            async with connection.cursor() as cur:
+                if timeout_s:
+                    if timeout_s <= 0:
+                        return query_rep, query_idx, 0.0, True, error
+                    timeout_ms = int(timeout_s * 1000)
+                    await cur.execute(f"set statement_timeout = {timeout_ms};")
+                    await connection.commit()
+                if database is not None and database == "redshift":
+                    await cur.execute("SET enable_result_cache_for_session = OFF;")
+                    await connection.commit()
+                t = time.time()
+                try:
+                    await cur.execute(sql)
+                    await cur.fetchall()
+                except psycopg.errors.QueryCanceled as e:
+                    # this occurs in timeout
+                    timeout = True
+                except:
+                    error = True
+                runtime = time.time() - t
+            break
         except:
-            error = True
-        runtime = time.time() - t
+            print("Trying to reconnect and re-execute")
     return query_rep, query_idx, runtime, timeout, error
 
 
@@ -621,7 +627,7 @@ class Executor:
         if directory.endswith(".csv"):
             # just one single csv file
             all_trace = pd.read_csv(directory)
-            save_prefix = directory.split("/")[-1].split(".csv")[0]
+            save_prefix = directory.split("/")[-1].split(".csv")[0] + "_"
         else:
             all_raw_trace, all_trace = load_trace(directory, 8, concat=True)
             save_prefix = ""

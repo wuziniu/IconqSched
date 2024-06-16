@@ -104,6 +104,8 @@ def train_concurrent_rnn() -> None:
         num_layers=args.num_layers,
         rnn_type=args.rnn_type,
         use_separation=args.use_separation,
+        ignore_short_running=args.ignore_short_running,
+        short_running_threshold=args.short_running_threshold
     )
     rnn.train(
         train_trace_df,
@@ -131,6 +133,8 @@ def load_concurrent_rnn_stage_model() -> Tuple[SingleStage, ConcurrentRNN]:
         num_layers=args.num_layers,
         rnn_type=args.rnn_type,
         use_separation=args.use_separation,
+        ignore_short_running=args.ignore_short_running,
+        short_running_threshold=args.short_running_threshold
     )
     rnn.load_model(args.target_path)
     return ss, rnn
@@ -194,7 +198,7 @@ def replay_workload(
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
-            shorting_running_threshold=args.shorting_running_threshold,
+            short_running_threshold=args.short_running_threshold,
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -265,7 +269,7 @@ def run_k_client_in_parallel(
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
-            shorting_running_threshold=args.shorting_running_threshold,
+            short_running_threshold=args.short_running_threshold,
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -348,7 +352,7 @@ if __name__ == "__main__":
     parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--alpha", type=float, default=0.2)
     parser.add_argument("--start_idx", type=int, default=0)
-    parser.add_argument("--shorting_running_threshold", type=float, default=5.0)
+    parser.add_argument("--short_running_threshold", type=float, default=5.0)
     parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--seed", type=int, default=24)

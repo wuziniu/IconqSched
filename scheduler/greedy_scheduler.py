@@ -19,7 +19,7 @@ class GreedyScheduler(BaseScheduler):
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
-        shorting_running_threshold: float = 5.0,
+        short_running_threshold: float = 5.0,
         steps_into_future: int = 2,
     ):
         """
@@ -31,7 +31,7 @@ class GreedyScheduler(BaseScheduler):
         :param starve_penalty: Give a penalty for starving a query for too long
         :param debug: set to true to print and log execution info
         :param ignore_short_running: set to true to directly submit short running query to avoid overhead
-        :param shorting_running_threshold: consider query with predicted threshold to be shorting running query
+        :param short_running_threshold: consider query with predicted threshold to be shorting running query
         :param steps_into_future: consider how many steps into the future
         """
         super(GreedyScheduler, self).__init__(
@@ -44,7 +44,7 @@ class GreedyScheduler(BaseScheduler):
         self.starve_penalty = starve_penalty
         self.alpha = alpha
         self.ignore_short_running = ignore_short_running
-        self.shorting_running_threshold = shorting_running_threshold
+        self.short_running_threshold = short_running_threshold
         self.steps_into_future = steps_into_future
         self.logger = logger
 
@@ -82,7 +82,7 @@ class GreedyScheduler(BaseScheduler):
             query_feature = self.stage_model.featurize_online(query_idx)
             if self.ignore_short_running:
                 pred = query_feature[0]
-                if pred < self.shorting_running_threshold:
+                if pred < self.short_running_threshold:
                     should_immediate_re_ingest = True
                     scheduled_submit = (query_str, query_sql, query_idx, 0)
                     if self.debug and self.logger:
@@ -228,7 +228,7 @@ class GreedyScheduler(BaseScheduler):
                         - (start_t - self.queued_queries_enter_time[i])
                         * self.starve_penalty
                     )
-                if score < 0:  # or curr_pred < self.shorting_running_threshold:
+                if score < 0:  # or curr_pred < self.short_running_threshold:
                     # when the current system state benefit the current query more than
                     # this query's (probably negative) impact on the running queries
                     # more optimal to submit now than later
