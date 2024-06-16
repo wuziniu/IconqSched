@@ -25,7 +25,7 @@ async def submit_query_and_wait_for_result(
 ) -> Tuple[Union[int, str], int, float, bool, bool]:
     error = False
     timeout = False
-    for try_iter in range(max_retry):
+    for _ in range(max_retry):
         try:
             connection = await psycopg.AsyncConnection.connect(**database_kwargs)
             async with connection.cursor() as cur:
@@ -48,10 +48,10 @@ async def submit_query_and_wait_for_result(
                 except:
                     error = True
                 runtime = time.time() - t
-            break
+            return query_rep, query_idx, runtime, timeout, error
         except:
             print("Trying to reconnect and re-execute")
-    return query_rep, query_idx, runtime, timeout, error
+    assert False, f"Connection failed after {max_retry}. This is a bug with psycopg.AsyncConnection."
 
 
 class Executor:
