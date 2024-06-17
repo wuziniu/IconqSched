@@ -51,13 +51,16 @@ def create_concurrent_df_from_results(
     exec_time: np.ndarray,
     e2e_time: np.ndarray,
     save_path: Optional[str] = None,
+    start_idx: int = 0
 ) -> pd.DataFrame:
     # This function turns the results in the save format as training data
     trace = pd.read_csv(trace_path)
+    trace = trace.iloc[start_idx:]
     queueing_time = np.maximum(e2e_time - exec_time, 0)
     # assert np.sum(queueing_time < 0) == 0, "some queries with negative queueing time"
     new_start_time = []
     start_s = trace["g_offset_since_start_s"].values
+    start_s = start_s - np.min(start_s[start_s >= 0])
     query_idx = trace["query_idx"].values
     new_query_idx = []
     run_time_s = []
@@ -86,6 +89,7 @@ def create_concurrent_df_from_results(
 def realign_execution_start_time(path: str, inplace: bool = True) -> pd.DataFrame:
     results = pd.read_csv(path)
     g_offset_since_start_s = results["g_offset_since_start_s"].values
+    g_offset_since_start_s = g_offset_since_start_s - np.min(g_offset_since_start_s[g_offset_since_start_s >= 0])
     queueing_time = np.maximum(
         results["run_time_s"].values - results["exec_time"].values, 0
     )

@@ -102,7 +102,10 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
         query_idx.append(row["query_idx"])
         runtime.append(row["run_time_s"])
         curr_start_t = row["g_offset_since_start_s"]
-        curr_end_t = curr_start_t + row["run_time_s"]
+        if "exec_time" in trace.columns:
+            curr_end_t = curr_start_t + row["exec_time"]
+        else:
+            curr_end_t = curr_start_t + row["run_time_s"]
         start_time.append(curr_start_t)
         end_time.append(curr_end_t)
 
@@ -140,7 +143,10 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
                 break
             next_row = trace.iloc[j]
             next_start_t = next_row["g_offset_since_start_s"]
-            next_end_t = next_start_t + next_row["run_time_s"]
+            if "exec_time" in trace.columns:
+                next_end_t = next_start_t + next_row["exec_time"]
+            else:
+                next_end_t = next_start_t + next_row["run_time_s"]
             if next_start_t >= curr_end_t:
                 break
             cur_concur_info.append((next_row["query_idx"], next_start_t, next_end_t))
@@ -160,7 +166,8 @@ def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
             "num_concurrent_queries_train": num_concurrent_queries_train,
         }
     )
-    if "ground_truth_runtime" in trace.columns:
-        concurrency_df["ground_truth_runtime"] = trace["ground_truth_runtime"]
+    for col in ["ground_truth_runtime", "exec_time", "run_time_s"]:
+        if col in trace.columns:
+            concurrency_df[col] = trace[col]
     concurrency_df = concurrency_df.reset_index()
     return concurrency_df
