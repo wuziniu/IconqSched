@@ -49,7 +49,8 @@ async def submit_query_and_wait_for_result(
                     error = True
                 runtime = time.time() - t
             return query_rep, query_idx, runtime, timeout, error
-        except:
+        except Exception as e:
+            print("Error: ", e)
             print("Trying to reconnect and re-execute")
     assert False, f"Connection failed after {max_retry}. This is a bug with psycopg.AsyncConnection."
 
