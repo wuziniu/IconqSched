@@ -356,8 +356,8 @@ class ConcurrentRNN:
         queued_query_features: List[np.ndarray],
         existing_start_time: List[float],
         current_time: float,
-        next_finish_idx: Optional[int] = None,
-        next_finish_time: Optional[float] = None,
+        next_finish_idx: Optional[Union[int, List[int]]] = None,
+        next_finish_time: Optional[Union[float, List[float]]] = None,
         get_next_finish: bool = False,
         get_next_finish_running_performance: bool = False,
     ) -> Tuple[torch.Tensor, List[torch.Tensor], torch.Tensor]:

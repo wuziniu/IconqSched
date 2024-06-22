@@ -640,6 +640,7 @@ class Executor:
         # the original prediction is for reference only
         print(f"Starting the replay of workload at index {start_idx}")
         concurrency_df = concurrency_df[start_idx:]
+
         all_original_predictions = self.scheduler.make_original_prediction(
             concurrency_df
         )
@@ -652,6 +653,7 @@ class Executor:
         all_timeout = []
         all_error = []
         all_start_time = concurrency_df["start_time"].values
+        all_start_time = all_start_time - all_start_time[0]
         all_query_idx = concurrency_df["query_idx"].values
         if "sql" not in concurrency_df.columns:
             with open(query_file, "r") as f:

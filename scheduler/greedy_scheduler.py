@@ -67,28 +67,35 @@ class GreedyScheduler(BaseScheduler):
                 self.existing_finish_time[i] = max(
                     self.existing_finish_time[i], self.current_time + randomness
                 )
-                self.existing_runtime_prediction[i] = (
-                    self.existing_finish_time[i] - self.existing_enter_time[i]
-                )
+                #self.existing_runtime_prediction[i] = (
+                 #   self.existing_finish_time[i] - self.existing_enter_time[i]
+                #)
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
         if query_str is not None:
-            if self.debug and self.logger:
-                self.logger.info(
-                    f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& "
-                )
-                self.logger.info(f"     Ingesting query {query_str}")
+            if self.debug:
+                if self.logger:
+                    self.logger.info(
+                        f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& "
+                    )
+                    self.logger.info(f"     Ingesting query {query_str}")
+                else:
+                    print(f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ")
+                    print(f"     Ingesting query {query_str}")
             query_feature = self.stage_model.featurize_online(query_idx)
             if self.ignore_short_running:
                 pred = query_feature[0]
                 if pred < self.short_running_threshold:
                     should_immediate_re_ingest = True
                     scheduled_submit = (query_str, query_sql, query_idx, 0)
-                    if self.debug and self.logger:
-                        self.logger.info(
-                            f"    ||||directly submit {query_str} with predicted average runtime of {pred}"
-                        )
+                    if self.debug:
+                        if self.logger:
+                            self.logger.info(
+                                f"    ||||directly submit {query_str} with predicted average runtime of {pred}"
+                            )
+                        else:
+                            print(f"    ||||directly submit {query_str} with predicted average runtime of {pred}")
                     return (
                         should_immediate_re_ingest,
                         should_pause_and_re_ingest,
@@ -108,11 +115,15 @@ class GreedyScheduler(BaseScheduler):
                 scheduled_submit,
             )
         if len(self.existing_finish_time) == 0:
-            next_finish_idx = None
-            next_finish_time = None
+            next_finish_idx_list = []
+            next_finish_time_list = []
+        elif len(self.existing_finish_time) <= self.steps_into_future:
+            next_finish_idx_list = list(range(len(self.existing_finish_time)))
+            next_finish_time_list = copy.deepcopy(self.existing_finish_time)
         else:
-            next_finish_idx = np.argmin(self.existing_finish_time)
-            next_finish_time = self.existing_finish_time[next_finish_idx]
+            argsort_idx = np.argsort(self.existing_finish_time)
+            next_finish_idx_list = list(argsort_idx[: self.steps_into_future])
+            next_finish_time_list = [self.existing_finish_time[nfi] for nfi in next_finish_idx_list]
 
         predictions, global_x, global_pre_info_length = self.predictor.online_inference(
             self.existing_query_features,
@@ -121,8 +132,8 @@ class GreedyScheduler(BaseScheduler):
             self.queued_query_features,
             self.existing_start_time,
             start_t,
-            next_finish_idx=next_finish_idx,
-            next_finish_time=next_finish_time,
+            next_finish_idx=next_finish_idx_list,
+            next_finish_time=next_finish_time_list,
             get_next_finish=True,
             get_next_finish_running_performance=True,
         )
@@ -131,8 +142,8 @@ class GreedyScheduler(BaseScheduler):
         if len(self.running_queries) == 0:
             # submit the shortest running query in queue when there is no query running
             # Todo: this is not optimal, do batch scheduling optimization
-            assert len(predictions) == 2 * len(self.queued_queries)
-            predictions_query = predictions[0:-1:2]
+            assert len(predictions) == len(self.queued_queries)
+            predictions_query = predictions
             selected_idx = np.argmin(predictions_query)
             queueing_time = max(
                 start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5
@@ -152,7 +163,7 @@ class GreedyScheduler(BaseScheduler):
                 self.queued_queries_enter_time[selected_idx],
                 float(predictions_query[selected_idx]) + start_t,
                 None,
-                int(global_pre_info_length[selected_idx * 2]),
+                int(global_pre_info_length[selected_idx]),
             )
             should_immediate_re_ingest = True
             return (
@@ -169,76 +180,88 @@ class GreedyScheduler(BaseScheduler):
                 None,
             )
         else:
+            future_len = len(next_finish_idx_list) + 1
+            prediction_len_per_query = future_len * (len(self.existing_query_concur_features) + 1)
             assert (
-                len(predictions) % (2 + 2 * len(self.existing_query_concur_features))
+                len(predictions) % prediction_len_per_query
                 == 0
             )
             all_score = []
             all_query_idx = []
             for i in range(len(self.queued_queries)):
-                pred_idx = i * (2 + 2 * len(self.existing_query_concur_features))
+                pred_idx = i * prediction_len_per_query
                 curr_pred = predictions[pred_idx]
-                submit_after_pred = predictions[pred_idx + 1]
-                # how does the predicted runtime of submitting now compare to submitting later
-                curr_delta = (
-                    curr_pred - submit_after_pred - (next_finish_time - start_t)
-                )
                 old_existing_pred = np.asarray(self.existing_runtime_prediction)
                 new_existing_pred = predictions[
-                    (pred_idx + 2) : (
-                        pred_idx + 2 * len(self.existing_query_concur_features) + 1
-                    ) : 2
-                ]
-                future_existing_pred = predictions[
-                    (pred_idx + 3) : (
-                        pred_idx + 2 * len(self.existing_query_concur_features) + 2
-                    ) : 2
-                ]
-                # how will this query change the runtime of existing queries in the system
+                                    (pred_idx + future_len): (
+                                            pred_idx + future_len + future_len * len(self.existing_query_concur_features)
+                                    ): future_len
+                                    ]
+                # how will this query change the runtime of existing queries in the system if submitting now
                 delta_existing = new_existing_pred - old_existing_pred
                 delta_existing_sum = np.sum(delta_existing)
-                # how will this query change the runtime of existing queries compare to submitting later
-                delta = new_existing_pred - future_existing_pred
-                if next_finish_idx is not None:
+
+                curr_deltas = []
+                future_deltas = []
+                for j in range(len(next_finish_idx_list)):
+                    next_finish_idx = next_finish_idx_list[j]
+                    next_finish_time = next_finish_time_list[j]
+                    submit_after_pred = predictions[pred_idx + 1 + j]
+                    # how does the predicted runtime of submitting now compare to submitting later
+                    curr_delta = (
+                        curr_pred - submit_after_pred - (next_finish_time - start_t)
+                    )
+                    curr_deltas.append(curr_delta)
+                    future_existing_pred = predictions[
+                        (pred_idx + future_len + j + 1): (
+                            pred_idx + future_len + j + 1 + future_len * len(self.existing_query_concur_features)
+                        ): future_len
+                    ]
+
+                    # how will this query change the runtime of existing queries compare to submitting later
+                    delta = new_existing_pred - future_existing_pred
                     delta = delta[
                         [
                             temp_idx
                             for temp_idx in range(len(delta))
-                            if temp_idx != next_finish_idx
+                            if temp_idx not in next_finish_idx_list[: (j+1)]
                         ]
                     ]
-                delta_sum = np.sum(delta)
+                    delta_sum = np.sum(delta)
+                    starve_penalty = max(start_t - self.queued_queries_enter_time[i], 0.1) * self.starve_penalty
+                    future_deltas.append(curr_delta + delta_sum - starve_penalty)
+
                 # TODO: is there more clever score?
                 # for every query first judge whether it is good to wait
-                if curr_delta + delta_existing_sum < 0:
+                score = None
+                if curr_deltas[0] + delta_existing_sum < 0 or max(future_deltas) < 0:
                     # submitting the current query has a positive effect on itself and running queries
+                    # or there is no consider future time that would be better than submitting now
                     score = (
-                        curr_delta
+                        curr_deltas[0]
                         + delta_existing_sum
                         - (start_t - self.queued_queries_enter_time[i])
                         * self.starve_penalty
                     )
-                else:
-                    # Even if the current query may have a negative effect, it may still make sense to submit it because
-                    # submitting it later will have a even worse effect
-                    score = (
-                        curr_delta
-                        + delta_existing_sum * self.alpha
-                        + delta_sum * (1 - self.alpha)
-                        - (start_t - self.queued_queries_enter_time[i])
-                        * self.starve_penalty
-                    )
-                if score < 0:  # or curr_pred < self.short_running_threshold:
-                    # when the current system state benefit the current query more than
-                    # this query's (probably negative) impact on the running queries
-                    # more optimal to submit now than later
                     all_score.append(score)
                     all_query_idx.append(i)
-                if self.debug and self.logger:
-                    self.logger.info(
-                        f"    ||||queued query {self.queued_queries[i]} "
-                        f"with curr_pred {curr_pred}, curr_delta {curr_delta}, delta_sum {delta_sum}, score {score}"
-                    )
+                if self.debug:
+                    if self.logger:
+                        self.logger.info(
+                            f"    ||||queued query {self.queued_queries[i]} "
+                            f"with curr_pred {curr_pred}, curr_delta {curr_deltas}, future_delta_score {future_deltas}"
+                        )
+                        if score is not None:
+                            self.logger.info(
+                                f"----------------Positive score: {score}------------"
+                            )
+                    else:
+                        print(f"    ||||queued query {self.queued_queries[i]} "
+                            f"with curr_pred {curr_pred}, curr_delta {curr_deltas}, future_delta_score {future_deltas}")
+                        if score is not None:
+                            print(
+                                f"----------------Positive score: {score}------------"
+                            )
             if len(all_score) == 0:
                 should_immediate_re_ingest = False
                 should_pause_and_re_ingest = False
@@ -247,16 +270,14 @@ class GreedyScheduler(BaseScheduler):
                 # TODO: use linear programming rather than argmax
                 best_query_idx = np.argmin(all_score)
                 selected_idx = all_query_idx[best_query_idx]
-                converted_idx = selected_idx * (
-                    2 + len(self.existing_query_concur_features)
-                )
+                converted_idx = selected_idx * prediction_len_per_query
                 curr_pred_runtime = predictions[converted_idx]
                 finish_t = start_t + curr_pred_runtime
                 existing_query_concur_features = global_x[converted_idx]
                 new_existing_pred = predictions[
-                    (converted_idx + 2) : (
-                        converted_idx + len(self.existing_query_concur_features) + 2
-                    )
+                    (converted_idx + future_len): (
+                            converted_idx + future_len + future_len * len(self.existing_query_concur_features)
+                    ): future_len
                 ]
                 new_existing_finish_time = []
                 for i in range(len(self.existing_start_time)):
@@ -264,12 +285,13 @@ class GreedyScheduler(BaseScheduler):
                         new_existing_pred[i] + self.existing_start_time[i]
                     )
                 new_existing_query_concur_feature = global_x[
-                    (converted_idx + 2) : (
-                        converted_idx + len(self.existing_query_concur_features) + 2
-                    )
+                                                    (converted_idx + future_len): (
+                                                            converted_idx + future_len + future_len * len(
+                                                        self.existing_query_concur_features)
+                                                    ): future_len
                 ]
                 queueing_time = max(
-                    start_t - self.queued_queries_enter_time[selected_idx] + 0.1, 0.5
+                    start_t - self.queued_queries_enter_time[selected_idx], 0.1
                 )
                 scheduled_submit = (
                     copy.deepcopy(self.queued_queries[selected_idx]),
