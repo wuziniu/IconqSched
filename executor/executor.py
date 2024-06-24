@@ -45,7 +45,8 @@ async def submit_query_and_wait_for_result(
                 except psycopg.errors.QueryCanceled as e:
                     # this occurs in timeout
                     timeout = True
-                except:
+                except Exception as e:
+                    print(f"Executing query {query_rep} with index {query_idx}, encountered error: ", e)
                     error = True
                 runtime = time.time() - t
             return query_rep, query_idx, runtime, timeout, error
