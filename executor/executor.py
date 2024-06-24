@@ -658,7 +658,7 @@ class Executor:
         if "sql" not in concurrency_df.columns:
             with open(query_file, "r") as f:
                 queries = f.readlines()
-                all_query_sql = [queries[i] for i in all_query_idx]
+                all_query_sql = [queries[int(i)] for i in all_query_idx]
         else:
             all_query_sql = concurrency_df["sql"].values
         curr_query_no = start_idx
