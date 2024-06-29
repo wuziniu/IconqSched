@@ -209,7 +209,7 @@ class GreedyScheduler(BaseScheduler):
                     submit_after_pred = predictions[pred_idx + 1 + j]
                     # how does the predicted runtime of submitting now compare to submitting later
                     curr_delta = (
-                        curr_pred - submit_after_pred - (next_finish_time - start_t)
+                        curr_pred - submit_after_pred - max(next_finish_time - start_t, 5)
                     )
                     curr_deltas.append(curr_delta)
                     future_existing_pred = predictions[
