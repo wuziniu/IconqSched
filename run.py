@@ -357,7 +357,7 @@ if __name__ == "__main__":
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--seed", type=int, default=24)
     parser.add_argument("--baseline", action="store_true")
-    parser.add_argument("--exec_for_s", type=int, default=3600)
+    parser.add_argument("--exec_for_s", type=int, default=24 * 3600)
     parser.add_argument("--num_clients_list", type=str, default=None)
     parser.add_argument("--selected_query_idx_path", type=str)
     parser.add_argument("--scheduler_type", default="greedy", type=str)

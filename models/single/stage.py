@@ -41,6 +41,7 @@ class SingleStage:
         self.local_model = SingleXGBoost(
             n_estimators, max_depth, eta, eval_metric, early_stopping_rounds
         )
+        self.memory_est_cache = dict()
         self.num_operators = num_operators
         self.use_size = use_size
         self.use_log = use_log
@@ -79,15 +80,18 @@ class SingleStage:
         self.all_feature = dict()
         for i in range(len(plans["parsed_plans"])):
             plan = plans["parsed_plans"][i]
-            feature = featurize_one_plan(
+            feature, memory_est = featurize_one_plan(
                 plan,
                 self.operators,
                 self.all_table_size,
                 use_size=self.use_size,
                 use_log=self.use_log,
                 true_card=self.true_card,
+                return_memory_est=True
             )
+            self.memory_est_cache[i] = memory_est
             self.all_feature[i] = feature
+
         # Todo: should include data featurization for adhoc_queries, should be straight forward to add in
         features_df = []
         all_query_idx = df["query_idx"].values

@@ -16,7 +16,7 @@ class BaseScheduler:
     def __init__(
         self,
         stage_model: SingleStage,
-        predictor: ConcurrentRNN,
+        predictor: Optional[ConcurrentRNN],
         max_concurrency_level: int = 10,
         min_concurrency_level: int = 2,
         future_time_interval: float = 5.0,

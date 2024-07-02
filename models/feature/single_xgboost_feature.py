@@ -65,6 +65,7 @@ def dfs_find_operator_size(
     use_log,
     true_card,
     use_table_selectivity,
+    return_cardinalities
 ):
     if "plan_parameters" in plan and "op_name" in plan["plan_parameters"]:
         op = plan["plan_parameters"]["op_name"]
@@ -80,6 +81,7 @@ def dfs_find_operator_size(
                 card = plan["plan_parameters"]["est_card"]
             if use_size:
                 card = card * plan["plan_parameters"]["est_width"]
+            return_cardinalities.append(card / 1024 / 1024)
             if use_log:
                 features[idx * 2 + 1] += max(np.log(card + 1e-5), 0)
             else:
@@ -117,6 +119,7 @@ def dfs_find_operator_size(
                 use_log,
                 true_card,
                 use_table_selectivity,
+                return_cardinalities
             )
 
 
@@ -128,12 +131,14 @@ def featurize_one_plan(
     use_log=True,
     true_card=False,
     use_table_selectivity=False,
+    return_memory_est=False
 ):
     features = np.zeros(len(operators) * 2)
     if all_table_size is not None:
         table_features = np.zeros(len(all_table_size))
     else:
         table_features = None
+    return_cardinalities = []
     dfs_find_operator_size(
         plan,
         operators,
@@ -144,7 +149,11 @@ def featurize_one_plan(
         use_log,
         true_card,
         use_table_selectivity,
+        return_cardinalities
     )
     if table_features is not None:
         features = np.concatenate((features, table_features))
-    return features
+    if return_memory_est:
+        return features, np.max(return_cardinalities)
+    else:
+        return features

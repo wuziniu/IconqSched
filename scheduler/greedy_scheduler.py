@@ -234,7 +234,8 @@ class GreedyScheduler(BaseScheduler):
                 # TODO: is there more clever score?
                 # for every query first judge whether it is good to wait
                 score = None
-                if curr_deltas[0] + delta_existing_sum < 0 or max(future_deltas) < 0:
+                if (curr_deltas[0] + delta_existing_sum < 0 or max(future_deltas) < 0 or
+                        (self.ignore_short_running and curr_pred < self.short_running_threshold)):
                     # submitting the current query has a positive effect on itself and running queries
                     # or there is no consider future time that would be better than submitting now
                     score = (

@@ -11,6 +11,7 @@ from utils.load_brad_trace import (
     create_concurrency_dataset,
 )
 from scheduler.base_scheduler import BaseScheduler
+from scheduler.pgm_scheduler import PGMScheduler
 from simulator.simulator import QueryBank
 
 
@@ -19,7 +20,7 @@ async def submit_query_and_wait_for_result(
     query_rep: Union[int, str],
     sql: str,
     query_idx: int,
-    timeout_s: Optional[int] = None,
+    timeout_s: Optional[float] = None,
     database: Optional[str] = None,
     max_retry: int = 3
 ) -> Tuple[Union[int, str], int, float, bool, bool]:
@@ -63,7 +64,7 @@ class Executor:
         database_kwargs: Mapping[str, Union[str, int]],
         timeout: int,
         database: str,
-        scheduler: Optional[BaseScheduler],
+        scheduler: Optional[Union[BaseScheduler, PGMScheduler]],
         query_bank: Optional[QueryBank] = None,
         pause_wait_s: float = 5.0,
         debug: bool = False,
@@ -556,9 +557,9 @@ class Executor:
                 # reschedule the existing query when there are finished queries
                 self.replay_one_query(current_time)
             if len(self.pending_jobs) < num_clients:
-                selected_query_idx = all_possible_query_idx[
+                selected_query_idx = int(all_possible_query_idx[
                     np.random.randint(len(all_possible_query_idx))
-                ]
+                ])
                 selected_query_sql = queries[selected_query_idx]
                 all_query_idx.append(selected_query_idx)
                 all_query_no.append(curr_query_no)
@@ -642,10 +643,14 @@ class Executor:
         print(f"Starting the replay of workload at index {start_idx}")
         concurrency_df = concurrency_df[start_idx:]
 
-        all_original_predictions = self.scheduler.make_original_prediction(
-            concurrency_df
-        )
-        assert len(concurrency_df) == len(all_original_predictions)
+        if isinstance(self.scheduler, BaseScheduler):
+            all_original_predictions = self.scheduler.make_original_prediction(
+                concurrency_df
+            )
+            assert len(concurrency_df) == len(all_original_predictions)
+        else:
+            all_original_predictions = np.zeros(len(concurrency_df))
+
         sys_runtime = dict()
         original_predictions = []
         e2e_runtime = dict()
