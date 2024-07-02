@@ -220,6 +220,14 @@ class GreedyScheduler(BaseScheduler):
 
                     # how will this query change the runtime of existing queries compare to submitting later
                     delta = new_existing_pred - future_existing_pred
+                    if self.debug:
+                        if self.logger:
+                            self.logger.info(
+                                f"      ***********next_finish_idx {next_finish_idx} "
+                                f"      next_finish_time {next_finish_time}"
+                                f"      new_existing_pred {new_existing_pred}"
+                                f"      new_existing_pred {future_existing_pred}"
+                            )
                     delta = delta[
                         [
                             temp_idx
@@ -228,7 +236,7 @@ class GreedyScheduler(BaseScheduler):
                         ]
                     ]
                     delta_sum = np.sum(delta)
-                    starve_penalty = max(start_t - self.queued_queries_enter_time[i], 0.1) * self.starve_penalty
+                    starve_penalty = max(next_finish_time - self.queued_queries_enter_time[i], 0.1) * self.starve_penalty
                     future_deltas.append(curr_delta + delta_sum - starve_penalty)
 
                 # TODO: is there more clever score?

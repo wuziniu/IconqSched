@@ -3,32 +3,38 @@ import numpy as np
 import logging
 from typing import Optional, Tuple, List, Union, MutableMapping
 from models.single.stage import SingleStage
+from models.single.query_clustering import KMeansCluster
 
 
 class QShuffler:
     def __init__(
         self,
         stage_model: SingleStage,
+        cluster_model: KMeansCluster,
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
         short_running_threshold: float = 5.0,
-        use_memory: bool = True,
-        admission_threshold: float = 1000,
-        consider_top_k: int = 2
+        lookahead: int = 10,
+        cost_threshold: float = 1000,
+        mpl: int = 5,
     ):
         """
         :param stage_model: prediction and featurization for a single query
+        :param cluster_model: KMeans clustering algorithm
         :param debug: set to true to print and log execution info
         :param ignore_short_running: set to true to directly submit short running query to avoid overhead
         :param short_running_threshold: consider query with predicted threshold to be shorting running query
         :param use_memory: if true use the estimated memory as threshold to control MPL, else use the estimated runtime
-        :param admission_threshold: admit a query if the sum of manipulated variable is below this threshold
-        :param consider_top_k: only consider whether to admit the top k queries in the priority queue
+        :param cost_threshold: theta in the original paper
+        :param mpl: The multi-programming level, will not submit query if number of concurrent query >= MPL
+        :param lookahead: The size of the queue. If there are more queries in the queue than lookahead, the algorithm
+                          will force to submit query regardless of MPL
         """
-        assert consider_top_k >= 1 and admission_threshold > 0
+        assert mpl >= 1 and cost_threshold > 0
 
         self.stage_model = stage_model
+        self.cluster_model = cluster_model
         self.running_queries: List[int] = []
         self.running_queries_prediction: List[float] = []
         self.running_queries_enter_time: List[float] = []
