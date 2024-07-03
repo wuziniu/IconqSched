@@ -235,9 +235,10 @@ class GreedyScheduler(BaseScheduler):
                         if self.logger:
                             self.logger.info(
                                 f"      ***********next_finish_idx {next_finish_idx} "
-                                f"      next_finish_time {next_finish_time}"
+                                f"      next_finish_time {next_finish_time - start_t}"
+                                f"      old_existing_pred {old_existing_pred}"
                                 f"      new_existing_pred {new_existing_pred}"
-                                f"      new_existing_pred {future_existing_pred}"
+                                f"      future_existing_pred {future_existing_pred}"
                             )
                     delta = delta[
                         [
@@ -278,7 +279,7 @@ class GreedyScheduler(BaseScheduler):
                     if self.logger:
                         self.logger.info(
                             f"    ||||queued query {self.queued_queries[i]} "
-                            f"with curr_pred {curr_pred}, curr_delta {curr_deltas}, future_delta_score {future_deltas}"
+                            f"with curr_pred {curr_pred}, curr_delta {curr_deltas}, delta_existing_sum {delta_existing_sum}, future_delta_score {future_deltas}"
                         )
                         if score is not None:
                             self.logger.info(
