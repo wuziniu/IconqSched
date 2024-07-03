@@ -4,9 +4,7 @@ from models.single.stage import SingleStage
 
 
 class KMeansCluster:
-    def __init__(self,
-                 stage_model: SingleStage,
-                 num_clusters: int = 10):
+    def __init__(self, stage_model: SingleStage, num_clusters: int = 10):
         self.stage_model = stage_model
         self.num_clusters = num_clusters
         self.model = KMeans(self.num_clusters)
@@ -24,4 +22,3 @@ class KMeansCluster:
 
     def infer(self, query_idx: int):
         return self.clusters[query_idx]
-

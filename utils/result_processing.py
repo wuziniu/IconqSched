@@ -51,7 +51,7 @@ def create_concurrent_df_from_results(
     exec_time: np.ndarray,
     e2e_time: np.ndarray,
     save_path: Optional[str] = None,
-    start_idx: int = 0
+    start_idx: int = 0,
 ) -> pd.DataFrame:
     # This function turns the results in the save format as training data
     trace = pd.read_csv(trace_path)
@@ -89,7 +89,9 @@ def create_concurrent_df_from_results(
 def realign_execution_start_time(path: str, inplace: bool = True) -> pd.DataFrame:
     results = pd.read_csv(path)
     g_offset_since_start_s = results["g_offset_since_start_s"].values
-    g_offset_since_start_s = g_offset_since_start_s - np.min(g_offset_since_start_s[g_offset_since_start_s >= 0])
+    g_offset_since_start_s = g_offset_since_start_s - np.min(
+        g_offset_since_start_s[g_offset_since_start_s >= 0]
+    )
     queueing_time = np.maximum(
         results["run_time_s"].values - results["exec_time"].values, 0
     )

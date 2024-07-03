@@ -87,7 +87,7 @@ class SingleStage:
                 use_size=self.use_size,
                 use_log=self.use_log,
                 true_card=self.true_card,
-                return_memory_est=True
+                return_memory_est=True,
             )
             self.memory_est_cache[i] = memory_est
             self.all_feature[i] = feature

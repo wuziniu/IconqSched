@@ -200,7 +200,7 @@ class ConcurrentRNN:
             include_exit=self.include_exit,
             use_pre_exec_info=self.use_pre_exec_info,
             ignore_short_running=self.ignore_short_running,
-            short_running_threshold=self.short_running_threshold
+            short_running_threshold=self.short_running_threshold,
         )
         (
             train_x,
@@ -214,7 +214,7 @@ class ConcurrentRNN:
             include_exit=self.include_exit,
             use_pre_exec_info=self.use_pre_exec_info,
             ignore_short_running=self.ignore_short_running,
-            short_running_threshold=self.short_running_threshold
+            short_running_threshold=self.short_running_threshold,
         )
 
         train_dataset = QueryFeatureSeparatedDataset(

@@ -4,13 +4,14 @@ import logging
 from typing import Optional, Tuple, List, Union, MutableMapping
 from models.single.stage import SingleStage
 from models.single.query_clustering import KMeansCluster
+from models.concurrency.baselines.qshuffler_estimator import QEstimator
 
 
 class QShuffler:
     def __init__(
         self,
         stage_model: SingleStage,
-        cluster_model: KMeansCluster,
+        cost_model: QEstimator,
         debug: bool = False,
         logger: Optional[logging.Logger] = None,
         ignore_short_running: bool = False,
@@ -21,36 +22,36 @@ class QShuffler:
     ):
         """
         :param stage_model: prediction and featurization for a single query
-        :param cluster_model: KMeans clustering algorithm
+        :param cost_model: predicting the runtime of query mix
         :param debug: set to true to print and log execution info
         :param ignore_short_running: set to true to directly submit short running query to avoid overhead
         :param short_running_threshold: consider query with predicted threshold to be shorting running query
-        :param use_memory: if true use the estimated memory as threshold to control MPL, else use the estimated runtime
-        :param cost_threshold: theta in the original paper
-        :param mpl: The multi-programming level, will not submit query if number of concurrent query >= MPL
+        :param cost_threshold: theta_NRO in the original paper
+        :param mpl: The multi-programing level, will not submit query if number of concurrent query >= MPL
         :param lookahead: The size of the queue. If there are more queries in the queue than lookahead, the algorithm
                           will force to submit query regardless of MPL
         """
         assert mpl >= 1 and cost_threshold > 0
 
         self.stage_model = stage_model
-        self.cluster_model = cluster_model
+        self.cost_model = cost_model
         self.running_queries: List[int] = []
-        self.running_queries_prediction: List[float] = []
+        self.running_queries_type: List[float] = []
         self.running_queries_enter_time: List[float] = []
         self.running_queries_start_time: List[float] = []
+        self.running_queries_feature = np.zeros(self.cost_model.num_cluster)
         self.queued_queries: List[int] = []
         self.queued_queries_sql: List[str] = []
         self.queued_queries_index: List[int] = []
-        self.queued_queries_prediction: List[float] = []
+        self.queued_queries_type: List[int] = []
         self.queued_queries_enter_time: List[float] = []
         self.all_query_runtime: MutableMapping[int, float] = dict()
 
-        self.use_memory = use_memory
+        self.lookahead = lookahead
         self.ignore_short_running = ignore_short_running
         self.short_running_threshold = short_running_threshold
-        self.admission_threshold = admission_threshold
-        self.consider_top_k = consider_top_k
+        self.cost_threshold = cost_threshold
+        self.mpl = mpl
 
         self.debug = debug
         self.logger = logger
@@ -59,19 +60,20 @@ class QShuffler:
         self,
         pos_in_queue: int,
         query_rep: int,
-        prediction: float,
+        query_type: int,
         submit_time: float,
         enter_time: float,
     ) -> None:
         self.running_queries.append(query_rep)
-        self.running_queries_prediction.append(prediction)
+        self.running_queries_type.append(query_type)
         self.running_queries_enter_time.append(enter_time)
         self.running_queries_start_time.append(submit_time)
+        self.running_queries_feature[query_type] += 1
 
         self.queued_queries.pop(pos_in_queue)
         self.queued_queries_sql.pop(pos_in_queue)
         self.queued_queries_index.pop(pos_in_queue)
-        self.queued_queries_prediction.pop(pos_in_queue)
+        self.queued_queries_type.pop(pos_in_queue)
         self.queued_queries_enter_time.pop(pos_in_queue)
 
     def finish_query(self, current_time: float, query_str: int) -> None:
@@ -86,9 +88,11 @@ class QShuffler:
             return
         finish_idx = self.running_queries.index(query_str)
         self.running_queries.pop(finish_idx)
-        self.running_queries_prediction.pop(finish_idx)
+        query_type = self.running_queries_type.pop(finish_idx)
         self.running_queries_enter_time.pop(finish_idx)
         self.running_queries_start_time.pop(finish_idx)
+        assert self.running_queries_feature[query_type] > 0
+        self.running_queries_feature[query_type] -= 1
 
     def ingest_query(
         self,
@@ -114,7 +118,7 @@ class QShuffler:
                     print(f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ")
                     print(f"     Ingesting query {query_str}")
             runtime_pred = self.stage_model.cache.online_inference(query_idx, None)
-            memory_pred = self.stage_model.memory_est_cache[query_idx]
+            query_type = self.cost_model.get_query_type(query_idx)
             if self.ignore_short_running:
                 if runtime_pred < self.short_running_threshold:
                     should_immediate_re_ingest = True
@@ -125,7 +129,9 @@ class QShuffler:
                                 f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}"
                             )
                         else:
-                            print(f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}")
+                            print(
+                                f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}"
+                            )
                     return (
                         should_immediate_re_ingest,
                         should_pause_and_re_ingest,
@@ -134,11 +140,8 @@ class QShuffler:
             self.queued_queries.append(query_str)
             self.queued_queries_sql.append(query_sql)
             self.queued_queries_index.append(query_idx)
+            self.queued_queries_type.append(query_type)
             self.queued_queries_enter_time.append(start_t)
-            if self.use_memory:
-                self.queued_queries_prediction.append(memory_pred)
-            else:
-                self.queued_queries_prediction.append(runtime_pred)
 
         if len(self.queued_queries) == 0:
             # nothing to do when there is no query in the queue
@@ -149,16 +152,22 @@ class QShuffler:
             )
         selected_idx = None
         if len(self.queued_queries) == 1:
-            if np.sum(self.running_queries_prediction) + self.queued_queries_prediction[0] <= self.admission_threshold:
+            if len(self.running_queries) < self.mpl:
                 selected_idx = 0
         else:
-            priority_queue = np.argsort(self.queued_queries_prediction)[::-1]
-            for i, idx in enumerate(priority_queue):
-                if i >= self.consider_top_k:
-                    break
-                curr_pred = self.queued_queries_prediction[idx]
-                if np.sum(self.running_queries_prediction) + curr_pred <= self.admission_threshold:
-                    selected_idx = idx
+            if (
+                len(self.running_queries) >= self.mpl
+                and len(self.queued_queries) < self.lookahead
+            ):
+                selected_idx = None
+            else:
+                scores = self.cost_model.online_inference(self.running_queries_feature)
+                priority = 1 / np.abs(self.cost_threshold - scores)
+                priority_queue = np.argsort(priority)[::-1]
+                for idx in priority_queue:
+                    if idx in self.queued_queries_type:
+                        selected_idx = self.queued_queries_type.index(idx)
+                        break
         if selected_idx is not None:
             query_str = self.queued_queries[selected_idx]
             query_sql = self.queued_queries_sql[selected_idx]
@@ -167,19 +176,11 @@ class QShuffler:
             self.submit_query(
                 selected_idx,
                 query_str,
-                prediction=self.queued_queries_prediction[selected_idx],
+                query_type=self.queued_queries_type[selected_idx],
                 submit_time=start_t,
                 enter_time=self.queued_queries_enter_time[selected_idx],
             )
             scheduled_submit = (query_str, query_sql, query_idx, queueing_time)
-            return (
-                True,
-                False,
-                scheduled_submit
-            )
+            return (True, False, scheduled_submit)
         else:
-            return (
-                False,
-                False,
-                None
-            )
+            return (False, False, None)

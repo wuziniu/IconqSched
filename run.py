@@ -105,7 +105,7 @@ def train_concurrent_rnn() -> None:
         rnn_type=args.rnn_type,
         use_separation=args.use_separation,
         ignore_short_running=args.ignore_short_running,
-        short_running_threshold=args.short_running_threshold
+        short_running_threshold=args.short_running_threshold,
     )
     rnn.train(
         train_trace_df,
@@ -134,7 +134,7 @@ def load_concurrent_rnn_stage_model() -> Tuple[SingleStage, ConcurrentRNN]:
         rnn_type=args.rnn_type,
         use_separation=args.use_separation,
         ignore_short_running=args.ignore_short_running,
-        short_running_threshold=args.short_running_threshold
+        short_running_threshold=args.short_running_threshold,
     )
     rnn.load_model(args.target_path)
     return ss, rnn

@@ -106,7 +106,7 @@ def featurize_queries_complex_online(
         for i, exist_q in enumerate(existing_query_features):
             concur_query_feature = np.zeros(l_feature * 2 + 5)
             concur_query_feature[:l_feature] = query_feature
-            concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = exist_q
+            concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = exist_q
             concur_query_feature[l_feature] = 1
             concur_query_feature[2 * l_feature + 2] = (
                 existing_start_time[i] - current_time
@@ -116,14 +116,16 @@ def featurize_queries_complex_online(
                 for j in range(len(next_finish_idx_list)):
                     next_finish_idx = next_finish_idx_list[j]
                     next_finish_time = next_finish_time_list[j]
-                    if i not in next_finish_idx_list[: (j+1)]:
+                    if i not in next_finish_idx_list[: (j + 1)]:
                         unfinished_concur_query_feature = copy.deepcopy(
                             concur_query_feature
                         )
                         unfinished_concur_query_feature[2 * l_feature + 2] = (
-                                existing_start_time[i] - next_finish_time
+                            existing_start_time[i] - next_finish_time
                         )
-                        next_finish_x[j].append(torch.FloatTensor(unfinished_concur_query_feature))
+                        next_finish_x[j].append(
+                            torch.FloatTensor(unfinished_concur_query_feature)
+                        )
         concur_query_feature = np.zeros(l_feature * 2 + 5)
         concur_query_feature[:l_feature] = query_feature
         x.append(torch.FloatTensor(concur_query_feature))
@@ -147,7 +149,7 @@ def featurize_queries_complex_online(
             concur_query_feature[:l_feature] = torch.FloatTensor(
                 existing_query_features[i]
             )
-            concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = (
+            concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
                 torch.FloatTensor(query_feature)
             )
             concur_query_feature[l_feature + 1] = 1.0
@@ -160,15 +162,21 @@ def featurize_queries_complex_online(
                 x = torch.clone(existing_query_concur_features[i])
                 x = torch.cat((x, concur_query_feature.reshape(1, -1)), dim=0)
             global_x.append(x)
-            if get_next_finish_running_performance and next_finish_idx_list is not None and len(next_finish_idx_list) != 0:
+            if (
+                get_next_finish_running_performance
+                and next_finish_idx_list is not None
+                and len(next_finish_idx_list) != 0
+            ):
                 finished_query_features = []
                 for j in range(len(next_finish_idx_list)):
                     next_finish_idx = next_finish_idx_list[j]
                     next_finish_time = next_finish_time_list[j]
-                    finished_query_features.append(existing_query_features[next_finish_idx])
+                    finished_query_features.append(
+                        existing_query_features[next_finish_idx]
+                    )
                     if i not in next_finish_idx_list[: (j + 1)]:
                         concur_query_feature[2 * l_feature + 2] = (
-                                existing_start_time[i] - next_finish_time
+                            existing_start_time[i] - next_finish_time
                         )
                         if existing_query_concur_features[i] is None:
                             x = concur_query_feature.reshape(1, -1)
@@ -176,15 +184,17 @@ def featurize_queries_complex_online(
                             x = []
                             for k in range(len(existing_query_concur_features[i])):
                                 k_query_feature = existing_query_concur_features[i][j][
-                                                  (l_feature + 2): (2 * l_feature + 2)
-                                                  ]
+                                    (l_feature + 2) : (2 * l_feature + 2)
+                                ]
                                 is_finished = False
                                 for finished_query_feature in finished_query_features:
                                     if (
-                                            not torch.sum(
-                                                torch.abs(k_query_feature - finished_query_feature)
+                                        not torch.sum(
+                                            torch.abs(
+                                                k_query_feature - finished_query_feature
                                             )
-                                                <= 1e-4
+                                        )
+                                        <= 1e-4
                                     ):
                                         # remove the finished query from its concurrent feature
                                         is_finished = True
@@ -211,7 +221,7 @@ def featurize_queries_complex(
     use_pre_exec_info: bool = False,
     stagemodel: Optional[SingleStage] = None,
     ignore_short_running: bool = False,
-    short_running_threshold: float = 5.0
+    short_running_threshold: float = 5.0,
 ) -> Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor, torch.Tensor]:
     # Todo: hook predictions and query_features to call Stage model
     use_pre_exec_info = use_pre_exec_info & ("pre_exec_info" in concurrent_df.columns)
@@ -235,7 +245,10 @@ def featurize_queries_complex(
 
         index_in_df = rows["index"].values
         query_order.append(index_in_df)
-        concurrent_rt = rows["runtime"].values
+        if "runtime" in rows.columns:
+            concurrent_rt = rows["runtime"].values
+        else:
+            concurrent_rt = rows["run_time_s"].values
         start_time = rows["start_time"].values
         global_y.append(concurrent_rt)
         n_rows = len(rows)
@@ -261,7 +274,7 @@ def featurize_queries_complex(
                         continue
                 concur_query_feature = np.zeros(l_feature * 2 + 5)
                 concur_query_feature[:l_feature] = query_feature
-                concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = (
+                concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
                     np.concatenate(
                         (
                             np.asarray([predictions[c[0]]]),
@@ -297,7 +310,7 @@ def featurize_queries_complex(
                         continue
                 concur_query_feature = np.zeros(l_feature * 2 + 5)
                 concur_query_feature[:l_feature] = query_feature
-                concur_query_feature[(l_feature + 2): (2 * l_feature + 2)] = (
+                concur_query_feature[(l_feature + 2) : (2 * l_feature + 2)] = (
                     np.concatenate(
                         (
                             np.asarray([predictions[c[0]]]),

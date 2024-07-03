@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from typing import Optional, List
 
 
 class ConcurPredictor:
@@ -7,7 +9,10 @@ class ConcurPredictor:
         self.average_rt_cache = dict()
 
     def get_isolated_runtime_cache(
-        self, trace_df, isolated_trace_df=None, get_avg_runtime=False
+        self,
+        trace_df: pd.DataFrame,
+        isolated_trace_df: Optional[pd.DataFrame] = None,
+        get_avg_runtime: bool = False,
     ):
         if isolated_trace_df is None:
             isolated_trace_df = trace_df[trace_df["num_concurrent_queries"] == 0]
@@ -18,13 +23,18 @@ class ConcurPredictor:
             for i, rows in trace_df.groupby("query_idx"):
                 self.average_rt_cache[i] = np.median(rows["runtime"])
 
-    def train(self, trace_df):
+    def train(self, trace_df: pd.DataFrame, isolated_trace_df: pd.DataFrame):
         raise NotImplemented
 
-    def predict(self, eval_trace_df, use_global):
+    def predict(self, eval_trace_df: pd.DataFrame, use_global: bool):
         raise NotImplemented
 
-    def evaluate_performance(self, eval_trace_df, use_global=False, interval=None):
+    def evaluate_performance(
+        self,
+        eval_trace_df: pd.DataFrame,
+        use_global: bool = False,
+        interval: List[float] = None,
+    ):
         predictions, labels = self.predict(eval_trace_df, use_global)
         pred_all = []
         labels_all = []

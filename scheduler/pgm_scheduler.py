@@ -16,7 +16,7 @@ class PGMScheduler:
         short_running_threshold: float = 5.0,
         use_memory: bool = True,
         admission_threshold: float = 1000,
-        consider_top_k: int = 2
+        consider_top_k: int = 2,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -120,7 +120,9 @@ class PGMScheduler:
                                 f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}"
                             )
                         else:
-                            print(f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}")
+                            print(
+                                f"    ||||directly submit {query_str} with predicted average runtime of {runtime_pred}"
+                            )
                     return (
                         should_immediate_re_ingest,
                         should_pause_and_re_ingest,
@@ -144,7 +146,11 @@ class PGMScheduler:
             )
         selected_idx = None
         if len(self.queued_queries) == 1:
-            if np.sum(self.running_queries_prediction) + self.queued_queries_prediction[0] <= self.admission_threshold:
+            if (
+                np.sum(self.running_queries_prediction)
+                + self.queued_queries_prediction[0]
+                <= self.admission_threshold
+            ):
                 selected_idx = 0
         else:
             priority_queue = np.argsort(self.queued_queries_prediction)[::-1]
@@ -152,7 +158,10 @@ class PGMScheduler:
                 if i >= self.consider_top_k:
                     break
                 curr_pred = self.queued_queries_prediction[idx]
-                if np.sum(self.running_queries_prediction) + curr_pred <= self.admission_threshold:
+                if (
+                    np.sum(self.running_queries_prediction) + curr_pred
+                    <= self.admission_threshold
+                ):
                     selected_idx = idx
         if selected_idx is not None:
             query_str = self.queued_queries[selected_idx]
@@ -167,15 +176,6 @@ class PGMScheduler:
                 enter_time=self.queued_queries_enter_time[selected_idx],
             )
             scheduled_submit = (query_str, query_sql, query_idx, queueing_time)
-            return (
-                True,
-                False,
-                scheduled_submit
-            )
+            return (True, False, scheduled_submit)
         else:
-            return (
-                False,
-                False,
-                None
-            )
-
+            return (False, False, None)

@@ -12,6 +12,7 @@ from utils.load_brad_trace import (
 )
 from scheduler.base_scheduler import BaseScheduler
 from scheduler.pgm_scheduler import PGMScheduler
+from scheduler.qshuffler_scheduler import QShuffler
 from simulator.simulator import QueryBank
 
 
@@ -22,7 +23,7 @@ async def submit_query_and_wait_for_result(
     query_idx: int,
     timeout_s: Optional[float] = None,
     database: Optional[str] = None,
-    max_retry: int = 3
+    max_retry: int = 3,
 ) -> Tuple[Union[int, str], int, float, bool, bool]:
     error = False
     timeout = False
@@ -47,14 +48,19 @@ async def submit_query_and_wait_for_result(
                     # this occurs in timeout
                     timeout = True
                 except Exception as e:
-                    print(f"Executing query {query_rep} with index {query_idx}, encountered error: ", e)
+                    print(
+                        f"Executing query {query_rep} with index {query_idx}, encountered error: ",
+                        e,
+                    )
                     error = True
                 runtime = time.time() - t
             return query_rep, query_idx, runtime, timeout, error
         except Exception as e:
             print("Error: ", e)
             print("Trying to reconnect and re-execute")
-    assert False, f"Connection failed after {max_retry}. This is a bug with psycopg.AsyncConnection."
+    assert (
+        False
+    ), f"Connection failed after {max_retry}. This is a bug with psycopg.AsyncConnection."
 
 
 class Executor:
@@ -64,7 +70,7 @@ class Executor:
         database_kwargs: Mapping[str, Union[str, int]],
         timeout: int,
         database: str,
-        scheduler: Optional[Union[BaseScheduler, PGMScheduler]],
+        scheduler: Optional[Union[BaseScheduler, PGMScheduler, QShuffler]],
         query_bank: Optional[QueryBank] = None,
         pause_wait_s: float = 5.0,
         debug: bool = False,
@@ -557,9 +563,11 @@ class Executor:
                 # reschedule the existing query when there are finished queries
                 self.replay_one_query(current_time)
             if len(self.pending_jobs) < num_clients:
-                selected_query_idx = int(all_possible_query_idx[
-                    np.random.randint(len(all_possible_query_idx))
-                ])
+                selected_query_idx = int(
+                    all_possible_query_idx[
+                        np.random.randint(len(all_possible_query_idx))
+                    ]
+                )
                 selected_query_sql = queries[selected_query_idx]
                 all_query_idx.append(selected_query_idx)
                 all_query_no.append(curr_query_no)

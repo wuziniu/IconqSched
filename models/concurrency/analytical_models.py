@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from typing import Tuple, Mapping
 from xgboost import XGBRegressor
 import torch
 import torch.optim as optim
@@ -78,10 +80,13 @@ class SimpleFitCurve(ConcurPredictor):
         self.a2_global = fit[1]
         self.b1_global = fit[2]
 
-    def predict(self, eval_trace_df, use_global=False):
+    def predict(
+        self, eval_trace_df: pd.DataFrame, use_global: bool = False
+    ) -> Tuple[Mapping[int, np.ndarray], Mapping[int, np.ndarray]]:
         predictions = dict()
         labels = dict()
         for i, rows in eval_trace_df.groupby("query_idx"):
+            i = int(i)
             if i not in self.isolated_rt_cache or i not in self.a1:
                 continue
             isolated_rt = self.isolated_rt_cache[i]
