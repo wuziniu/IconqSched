@@ -199,6 +199,7 @@ def replay_workload(
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
             short_running_threshold=args.short_running_threshold,
+            steps_into_future=args.steps_into_future
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -270,6 +271,7 @@ def run_k_client_in_parallel(
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
             short_running_threshold=args.short_running_threshold,
+            steps_into_future=args.steps_into_future
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -350,6 +352,7 @@ if __name__ == "__main__":
     # Replay workload parameters
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
+    parser.add_argument("--steps_into_future", type=int, default=2)
     parser.add_argument("--alpha", type=float, default=0.2)
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--short_running_threshold", type=float, default=5.0)
