@@ -50,6 +50,21 @@ class PGMScheduler:
         self.debug = debug
         self.logger = logger
 
+    def print_state(self):
+        if self.logger is None:
+            print("current time: ", self.current_time)
+            print(
+                "running_queries: ",
+                self.running_queries,
+            )
+            print("queued_queries: ", self.queued_queries)
+        else:
+            self.logger.info(f"current time: {self.current_time}")
+            self.logger.info(
+                f"running_queries: {self.running_queries}"
+            )
+            self.logger.info(f"queued_queries: {self.queued_queries}")
+
     def submit_query(
         self,
         pos_in_queue: int,

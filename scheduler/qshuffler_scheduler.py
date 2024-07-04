@@ -30,8 +30,6 @@ class QShuffler:
         :param lookahead: The size of the queue. If there are more queries in the queue than lookahead, the algorithm
                           will force to submit query regardless of MPL
         """
-        assert mpl >= 1 and cost_threshold > 0
-
         self.stage_model = stage_model
         self.cost_model = cost_model
         self.running_queries: List[int] = []
@@ -54,9 +52,25 @@ class QShuffler:
         else:
             self.cost_threshold = self.cost_model.cost_threshold
         self.mpl = mpl
+        assert mpl >= 1 and self.cost_threshold > 0
 
         self.debug = debug
         self.logger = logger
+
+    def print_state(self):
+        if self.logger is None:
+            print("current time: ", self.current_time)
+            print(
+                "running_queries: ",
+                self.running_queries,
+            )
+            print("queued_queries: ", self.queued_queries)
+        else:
+            self.logger.info(f"current time: {self.current_time}")
+            self.logger.info(
+                f"running_queries: {self.running_queries}"
+            )
+            self.logger.info(f"queued_queries: {self.queued_queries}")
 
     def submit_query(
         self,
