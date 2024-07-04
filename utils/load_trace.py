@@ -1,9 +1,12 @@
 import pandas as pd
 import os
 import copy
+from typing import List, Union, Optional, Tuple
 
 
-def load_trace(directory, num_client=10, concat=True, version=None):
+def load_trace(directory: str,
+               num_client: int=10, concat: bool=True, version: Optional[int]=None
+               ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[List[pd.DataFrame], List[pd.DataFrame]]]:
     # Load trace data.
     raw_trace = []
     trace = []
@@ -63,7 +66,8 @@ def load_trace(directory, num_client=10, concat=True, version=None):
     return raw_trace, trace
 
 
-def load_trace_all_version(directory, num_client=10, concat=True):
+def load_trace_all_version(directory: str, num_client: int=10, concat: bool=True
+                           ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[List[pd.DataFrame], List[pd.DataFrame]]]:
     exist_versions = []
     for v in range(2, 20):
         if os.path.exists(os.path.join(directory, f"trace_client_0_{v}.csv")):
@@ -82,7 +86,19 @@ def load_trace_all_version(directory, num_client=10, concat=True):
     return all_raw_trace, all_trace
 
 
-def create_concurrency_dataset(trace, engine=None, pre_exec_interval=None):
+def load_all_trace_from_dir(directory: str) -> List[pd.DataFrame]:
+    all_trace = []
+    for file in os.listdir(directory):
+        if file.endswith(".csv"):
+            file = os.path.join(directory, file)
+            df = pd.read_csv(file)
+            df = df[df['run_time_s'] > 0]
+            all_trace.append(df)
+    return all_trace
+
+
+def create_concurrency_dataset(trace: pd.DataFrame, engine: Optional[str]=None,
+                               pre_exec_interval:Optional[List[float]]=None) -> pd.DataFrame:
     query_idx = []
     runtime = []
     start_time = []

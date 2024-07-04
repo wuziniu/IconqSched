@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Optional, Tuple
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
-from utils.load_brad_trace import create_concurrency_dataset
+from utils.load_trace import create_concurrency_dataset
 
 
 def pre_process_snowset(df):

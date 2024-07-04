@@ -65,7 +65,10 @@ class GreedyScheduler(BaseScheduler):
             for i in range(len(self.existing_finish_time)):
                 if self.existing_finish_time[i] < self.current_time + 3:
                     randomness = np.abs(np.random.normal(0.1, 0.05))
-                    self.existing_finish_time[i] = self.current_time + randomness * self.existing_runtime_prediction[i]
+                    self.existing_finish_time[i] = (
+                        self.current_time
+                        + randomness * self.existing_runtime_prediction[i]
+                    )
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None

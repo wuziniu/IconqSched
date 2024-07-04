@@ -6,15 +6,18 @@ import pandas as pd
 import numpy as np
 import copy
 import pickle as pkl
-from utils.load_brad_trace import (
+from utils.load_trace import (
     create_concurrency_dataset,
     load_trace_all_version,
 )
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
+from models.concurrency.baselines.qshuffler_estimator import QEstimator
 from models.concurrency.baselines.gcn_graph_gen import generate_graph_from_trace
 from models.concurrency.baselines.gcn_train import train_gcn_baseline
 from scheduler.greedy_scheduler import GreedyScheduler
+from scheduler.pgm_scheduler import PGMScheduler
+from scheduler.qshuffler_scheduler import QShuffler
 from scheduler.linear_programming_scheduler import LPScheduler
 from simulator.simulator import Simulator
 from executor.executor import Executor
@@ -118,26 +121,35 @@ def train_concurrent_rnn() -> None:
         rnn.save_model(args.target_path)
 
 
-def load_concurrent_rnn_stage_model() -> Tuple[SingleStage, ConcurrentRNN]:
+def load_concurrent_rnn_stage_model(
+    scheduler_type: str = "greedy",
+) -> Tuple[SingleStage, Optional[Union[ConcurrentRNN, QEstimator]]]:
     with open(
         os.path.join(args.target_path, f"{args.model_name}_stage_model.pkl"), "rb"
     ) as f:
         ss = pkl.load(f)
 
-    rnn = ConcurrentRNN(
-        ss,
-        model_prefix=args.model_name,
-        input_size=len(ss.all_feature[0]) * 2 + 7,
-        embedding_dim=args.embedding_dim,
-        hidden_size=args.hidden_size,
-        num_layers=args.num_layers,
-        rnn_type=args.rnn_type,
-        use_separation=args.use_separation,
-        ignore_short_running=args.ignore_short_running,
-        short_running_threshold=args.short_running_threshold,
-    )
-    rnn.load_model(args.target_path)
-    return ss, rnn
+    model = None
+    if scheduler_type == "greedy" or scheduler_type == "lp":
+        model = ConcurrentRNN(
+            ss,
+            model_prefix=args.model_name,
+            input_size=len(ss.all_feature[0]) * 2 + 7,
+            embedding_dim=args.embedding_dim,
+            hidden_size=args.hidden_size,
+            num_layers=args.num_layers,
+            rnn_type=args.rnn_type,
+            use_separation=args.use_separation,
+            ignore_short_running=args.ignore_short_running,
+            short_running_threshold=args.short_running_threshold,
+        )
+        model.load_model(args.target_path)
+    elif scheduler_type == "qshuffler":
+        with open(
+            os.path.join(args.target_path, f"{args.model_name}_qestimator.pkl"), "rb"
+        ) as f:
+            model = pkl.load(f)
+    return ss, model
 
 
 def gen_trace_train_gcn_baseline() -> None:
@@ -174,7 +186,7 @@ def warmup_run(query_bank_path: str) -> None:
 def replay_workload(
     workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool
 ) -> None:
-    ss, rnn = load_concurrent_rnn_stage_model()
+    ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
     if args.debug:
         verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):
@@ -192,17 +204,38 @@ def replay_workload(
     if args.scheduler_type == "greedy":
         scheduler = GreedyScheduler(
             ss,
-            rnn,
+            model,
             debug=args.debug,
             logger=verbose_logger,
             ignore_short_running=args.ignore_short_running,
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
             short_running_threshold=args.short_running_threshold,
-            steps_into_future=args.steps_into_future
+            steps_into_future=args.steps_into_future,
         )
     elif args.scheduler_type == "lp":
-        scheduler = LPScheduler(ss, rnn)
+        scheduler = LPScheduler(ss, model)
+    elif args.scheduler_type == "qshuffler":
+        scheduler = QShuffler(ss,
+                              model,
+                              debug=args.debug,
+                              logger=verbose_logger,
+                              ignore_short_running=args.ignore_short_running,
+                              short_running_threshold=args.short_running_threshold,
+                              lookahead=args.lookahead,
+                              mpl=args.qshuffler_mpl,
+                              )
+    elif args.scheduler_type == "pgm":
+        scheduler = PGMScheduler(
+            ss,
+            debug=args.debug,
+            logger=verbose_logger,
+            ignore_short_running=args.ignore_short_running,
+            short_running_threshold=args.short_running_threshold,
+            use_memory=args.use_memory,
+            admission_threshold=args.admission_threshold,
+            consider_top_k=args.consider_top_k,
+        )
     else:
         assert False, f"{args.scheduler_type} scheduler not implemented"
     if args.simulation:
@@ -271,7 +304,7 @@ def run_k_client_in_parallel(
             starve_penalty=args.starve_penalty,
             alpha=args.alpha,
             short_running_threshold=args.short_running_threshold,
-            steps_into_future=args.steps_into_future
+            steps_into_future=args.steps_into_future,
         )
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, rnn)
@@ -348,6 +381,15 @@ if __name__ == "__main__":
     parser.add_argument("--gcn_dataset", default="sample-plan", type=str)
     parser.add_argument("--n_run_id", default=4, type=int)
     parser.add_argument("--num_epoch", default=100, type=int)
+
+    # PGM scheduler parameter
+    parser.add_argument("--use_memory", action="store_true")
+    parser.add_argument("--admission_threshold", type=int, default=1000)
+    parser.add_argument("--consider_top_k", type=int, default=2)
+
+    # QShuffler parameter
+    parser.add_argument("--lookahead", type=int, default=10)
+    parser.add_argument("--qshuffler_mpl", type=int, default=5)
 
     # Replay workload parameters
     parser.add_argument("--debug", action="store_true")

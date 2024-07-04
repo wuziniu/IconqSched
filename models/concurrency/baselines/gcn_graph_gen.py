@@ -6,7 +6,7 @@ from models.concurrency.baselines.gcn_nodeutils import (
     add_across_plan_relations,
 )
 from parser.utils import load_json
-from utils.load_brad_trace import load_trace_all_version
+from utils.load_trace import load_trace_all_version
 from models.feature.single_xgboost_feature import find_top_k_operators
 
 

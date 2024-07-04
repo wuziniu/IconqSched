@@ -6,7 +6,7 @@ import asyncio
 import time
 import numpy as np
 from typing import Optional, Tuple, Union, MutableMapping, List, Mapping
-from utils.load_brad_trace import (
+from utils.load_trace import (
     load_trace,
     create_concurrency_dataset,
 )

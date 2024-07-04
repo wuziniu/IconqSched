@@ -3,7 +3,6 @@ import numpy as np
 import logging
 from typing import Optional, Tuple, List, Union, MutableMapping
 from models.single.stage import SingleStage
-from models.single.query_clustering import KMeansCluster
 from models.concurrency.baselines.qshuffler_estimator import QEstimator
 
 
@@ -17,7 +16,7 @@ class QShuffler:
         ignore_short_running: bool = False,
         short_running_threshold: float = 5.0,
         lookahead: int = 10,
-        cost_threshold: float = 1000,
+        cost_threshold: Optional[float] = None,
         mpl: int = 5,
     ):
         """
@@ -39,7 +38,7 @@ class QShuffler:
         self.running_queries_type: List[float] = []
         self.running_queries_enter_time: List[float] = []
         self.running_queries_start_time: List[float] = []
-        self.running_queries_feature = np.zeros(self.cost_model.num_cluster)
+        self.running_queries_feature = np.zeros(self.cost_model.num_clusters)
         self.queued_queries: List[int] = []
         self.queued_queries_sql: List[str] = []
         self.queued_queries_index: List[int] = []
@@ -50,7 +49,10 @@ class QShuffler:
         self.lookahead = lookahead
         self.ignore_short_running = ignore_short_running
         self.short_running_threshold = short_running_threshold
-        self.cost_threshold = cost_threshold
+        if cost_threshold is not None:
+            self.cost_threshold = cost_threshold
+        else:
+            self.cost_threshold = self.cost_model.cost_threshold
         self.mpl = mpl
 
         self.debug = debug
@@ -162,7 +164,7 @@ class QShuffler:
                 selected_idx = None
             else:
                 scores = self.cost_model.online_inference(self.running_queries_feature)
-                priority = 1 / np.abs(self.cost_threshold - scores)
+                priority = 1 / np.abs(self.cost_threshold - scores) + 1e-3
                 priority_queue = np.argsort(priority)[::-1]
                 for idx in priority_queue:
                     if idx in self.queued_queries_type:

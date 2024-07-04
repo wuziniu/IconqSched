@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional, Tuple
-from utils.load_brad_trace import (
+from utils.load_trace import (
     load_trace,
     create_concurrency_dataset,
 )

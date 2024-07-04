@@ -18,10 +18,16 @@ class ConcurPredictor:
             isolated_trace_df = trace_df[trace_df["num_concurrent_queries"] == 0]
         # ignore queries that do not run insolation
         for i, rows in isolated_trace_df.groupby("query_idx"):
-            self.isolated_rt_cache[i] = np.median(rows["runtime"])
+            if "runtime" in isolated_trace_df.columns:
+                self.isolated_rt_cache[i] = np.median(rows["runtime"])
+            else:
+                self.isolated_rt_cache[i] = np.median(rows["run_time_s"])
         if get_avg_runtime:
             for i, rows in trace_df.groupby("query_idx"):
-                self.average_rt_cache[i] = np.median(rows["runtime"])
+                if "runtime" in isolated_trace_df.columns:
+                    self.average_rt_cache[i] = np.mean(rows["runtime"])
+                else:
+                    self.average_rt_cache[i] = np.mean(rows["run_time_s"])
 
     def train(self, trace_df: pd.DataFrame, isolated_trace_df: pd.DataFrame):
         raise NotImplemented
