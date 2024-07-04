@@ -124,7 +124,6 @@ class PGMScheduler:
                     print(f" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ")
                     print(f"     Ingesting query {query_str}")
             runtime_pred = self.stage_model.cache.online_inference(query_idx, None)
-            memory_pred = self.stage_model.memory_est_cache[query_idx]
             if self.ignore_short_running:
                 if runtime_pred < self.short_running_threshold:
                     should_immediate_re_ingest = True
@@ -148,6 +147,7 @@ class PGMScheduler:
             self.queued_queries_index.append(query_idx)
             self.queued_queries_enter_time.append(start_t)
             if self.use_memory:
+                memory_pred = self.stage_model.memory_est_cache[query_idx]
                 self.queued_queries_prediction.append(memory_pred)
             else:
                 self.queued_queries_prediction.append(runtime_pred)
