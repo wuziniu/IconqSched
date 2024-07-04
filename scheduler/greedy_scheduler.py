@@ -63,13 +63,9 @@ class GreedyScheduler(BaseScheduler):
         else:
             # adjusting the finishing time of running queries (due to error in estimation)
             for i in range(len(self.existing_finish_time)):
-                randomness = np.abs(np.random.normal(2, 2))
-                self.existing_finish_time[i] = max(
-                    self.existing_finish_time[i], self.current_time + randomness
-                )
-                # self.existing_runtime_prediction[i] = (
-                #   self.existing_finish_time[i] - self.existing_enter_time[i]
-                # )
+                if self.existing_finish_time[i] < self.current_time + 3:
+                    randomness = np.abs(np.random.normal(0.1, 0.05))
+                    self.existing_finish_time[i] = self.current_time + randomness * self.existing_runtime_prediction[i]
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
@@ -259,7 +255,7 @@ class GreedyScheduler(BaseScheduler):
                 score = None
                 if (
                     curr_deltas[0] + delta_existing_sum < 0
-                    or max(future_deltas) < 0
+                    or max(future_deltas) < len(self.running_queries) * 2
                     or (
                         self.ignore_short_running
                         and curr_pred < self.short_running_threshold
