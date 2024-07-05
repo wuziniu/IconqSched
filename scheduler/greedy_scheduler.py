@@ -190,6 +190,12 @@ class GreedyScheduler(BaseScheduler):
             assert len(predictions) % prediction_len_per_query == 0
             all_score = []
             all_query_idx = []
+            new_existing_pred_weight = np.ones(len(self.existing_runtime_prediction))
+            for i in range(len(self.existing_runtime_prediction)):
+                # the weight represent the proportion of the query that has finished running
+                weight = 1 - min((start_t - self.existing_start_time[i]) / self.existing_runtime_prediction[i], 0.8)
+                new_existing_pred_weight[i] = weight
+
             for i in range(len(self.queued_queries)):
                 pred_idx = i * prediction_len_per_query
                 curr_pred = predictions[pred_idx]
@@ -203,7 +209,7 @@ class GreedyScheduler(BaseScheduler):
                 ]
                 # how will this query change the runtime of existing queries in the system if submitting now
                 delta_existing = new_existing_pred - old_existing_pred
-                delta_existing_sum = np.sum(delta_existing)
+                delta_existing_sum = np.sum(delta_existing * new_existing_pred_weight)
 
                 curr_deltas = []
                 future_deltas = []
@@ -229,7 +235,7 @@ class GreedyScheduler(BaseScheduler):
                     ]
 
                     # how will this query change the runtime of existing queries compare to submitting later
-                    delta = new_existing_pred - future_existing_pred
+                    delta = (new_existing_pred - future_existing_pred) * new_existing_pred_weight
                     if self.debug:
                         if self.logger:
                             self.logger.info(
