@@ -644,7 +644,7 @@ class Executor:
             save_prefix = ""
         all_trace = all_trace[all_trace["run_time_s"] > 0]
         concurrency_df = create_concurrency_dataset(
-            all_trace, engine=None, pre_exec_interval=200
+            all_trace, engine=None, pre_exec_interval=200.0
         )
         concurrency_df = concurrency_df.sort_values(by=["start_time"], ascending=True)
         # the original prediction is for reference only

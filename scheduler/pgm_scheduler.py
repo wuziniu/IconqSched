@@ -17,6 +17,7 @@ class PGMScheduler:
         use_memory: bool = True,
         admission_threshold: float = 1000,
         consider_top_k: int = 2,
+        starve_penalty: float = 0.5,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -26,6 +27,7 @@ class PGMScheduler:
         :param use_memory: if true use the estimated memory as threshold to control MPL, else use the estimated runtime
         :param admission_threshold: admit a query if the sum of manipulated variable is below this threshold
         :param consider_top_k: only consider whether to admit the top k queries in the priority queue
+        :param starve_penalty: Give a penalty for starving a query for too long
         """
         assert consider_top_k >= 1 and admission_threshold > 0
 
@@ -46,6 +48,7 @@ class PGMScheduler:
         self.short_running_threshold = short_running_threshold
         self.admission_threshold = admission_threshold
         self.consider_top_k = consider_top_k
+        self.starve_penalty = starve_penalty
 
         self.debug = debug
         self.logger = logger
@@ -60,9 +63,7 @@ class PGMScheduler:
             print("queued_queries: ", self.queued_queries)
         else:
             self.logger.info(f"current time: {self.current_time}")
-            self.logger.info(
-                f"running_queries: {self.running_queries}"
-            )
+            self.logger.info(f"running_queries: {self.running_queries}")
             self.logger.info(f"queued_queries: {self.queued_queries}")
 
     def submit_query(
@@ -168,7 +169,12 @@ class PGMScheduler:
             ):
                 selected_idx = 0
         else:
-            priority_queue = np.argsort(self.queued_queries_prediction)[::-1]
+            weighted_prediction = [
+                (start_t - self.queued_queries_enter_time[i]) * self.starve_penalty
+                + self.queued_queries_prediction[i]
+                for i in range(len(self.queued_queries))
+            ]
+            priority_queue = np.argsort(weighted_prediction)[::-1]
             for i, idx in enumerate(priority_queue):
                 if i >= self.consider_top_k:
                     break

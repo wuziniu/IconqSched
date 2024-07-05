@@ -100,6 +100,7 @@ def realign_execution_start_time(path: str, inplace: bool = True) -> pd.DataFram
     results["e2e_time_s"] = copy.deepcopy(results["run_time_s"].values)
     results["run_time_s"] = results["exec_time"].values
     results = results[results["exec_time"] > 0]
+    results = results[results["error"] == False]
     results = results.sort_values(by=["g_offset_since_start_s"], ascending=True)
     if inplace:
         results.to_csv(path, index=False)

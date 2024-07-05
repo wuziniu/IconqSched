@@ -216,15 +216,16 @@ def replay_workload(
     elif args.scheduler_type == "lp":
         scheduler = LPScheduler(ss, model)
     elif args.scheduler_type == "qshuffler":
-        scheduler = QShuffler(ss,
-                              model,
-                              debug=args.debug,
-                              logger=verbose_logger,
-                              ignore_short_running=args.ignore_short_running,
-                              short_running_threshold=args.short_running_threshold,
-                              lookahead=args.lookahead,
-                              mpl=args.qshuffler_mpl,
-                              )
+        scheduler = QShuffler(
+            ss,
+            model,
+            debug=args.debug,
+            logger=verbose_logger,
+            ignore_short_running=args.ignore_short_running,
+            short_running_threshold=args.short_running_threshold,
+            lookahead=args.lookahead,
+            mpl=args.qshuffler_mpl,
+        )
     elif args.scheduler_type == "pgm":
         scheduler = PGMScheduler(
             ss,
@@ -384,7 +385,7 @@ if __name__ == "__main__":
 
     # PGM scheduler parameter
     parser.add_argument("--use_memory", action="store_true")
-    parser.add_argument("--admission_threshold", type=int, default=1000)
+    parser.add_argument("--admission_threshold", type=int, default=500)
     parser.add_argument("--consider_top_k", type=int, default=2)
 
     # QShuffler parameter
@@ -392,12 +393,13 @@ if __name__ == "__main__":
     parser.add_argument("--qshuffler_mpl", type=int, default=5)
 
     # Replay workload parameters
+    parser.add_argument("--scheduler_type", default="greedy", type=str)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore_short_running", action="store_true")
     parser.add_argument("--steps_into_future", type=int, default=2)
     parser.add_argument("--alpha", type=float, default=0.2)
     parser.add_argument("--start_idx", type=int, default=0)
-    parser.add_argument("--short_running_threshold", type=float, default=5.0)
+    parser.add_argument("--short_running_threshold", type=float, default=10.0)
     parser.add_argument("--starve_penalty", type=float, default=1.0)
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--seed", type=int, default=24)
@@ -405,7 +407,6 @@ if __name__ == "__main__":
     parser.add_argument("--exec_for_s", type=int, default=24 * 3600)
     parser.add_argument("--num_clients_list", type=str, default=None)
     parser.add_argument("--selected_query_idx_path", type=str)
-    parser.add_argument("--scheduler_type", default="greedy", type=str)
     parser.add_argument("--database", default="postgres", type=str)
     parser.add_argument("--save_result_dir", type=str)
     parser.add_argument("--query_bank_path", type=str)

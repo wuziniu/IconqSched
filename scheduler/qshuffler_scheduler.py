@@ -18,6 +18,7 @@ class QShuffler:
         lookahead: int = 10,
         cost_threshold: Optional[float] = None,
         mpl: int = 5,
+        starve_penalty: float = 0.5,
     ):
         """
         :param stage_model: prediction and featurization for a single query
@@ -29,6 +30,7 @@ class QShuffler:
         :param mpl: The multi-programing level, will not submit query if number of concurrent query >= MPL
         :param lookahead: The size of the queue. If there are more queries in the queue than lookahead, the algorithm
                           will force to submit query regardless of MPL
+        :param starve_penalty: Give a penalty for starving a query for too long
         """
         self.stage_model = stage_model
         self.cost_model = cost_model
@@ -52,6 +54,7 @@ class QShuffler:
         else:
             self.cost_threshold = self.cost_model.cost_threshold
         self.mpl = mpl
+        self.starve_penalty = starve_penalty
         assert mpl >= 1 and self.cost_threshold > 0
 
         self.debug = debug
@@ -67,9 +70,7 @@ class QShuffler:
             print("queued_queries: ", self.queued_queries)
         else:
             self.logger.info(f"current time: {self.current_time}")
-            self.logger.info(
-                f"running_queries: {self.running_queries}"
-            )
+            self.logger.info(f"running_queries: {self.running_queries}")
             self.logger.info(f"queued_queries: {self.queued_queries}")
 
     def submit_query(
@@ -178,7 +179,12 @@ class QShuffler:
                 selected_idx = None
             else:
                 scores = self.cost_model.online_inference(self.running_queries_feature)
-                priority = 1 / np.abs(self.cost_threshold - scores) + 1e-3
+                priority = (
+                    1 / (np.abs(self.cost_threshold - scores) + 1e-3)
+                    + (start_t - np.asarray(self.queued_queries_enter_time))
+                    / 100
+                    * self.starve_penalty
+                )
                 priority_queue = np.argsort(priority)[::-1]
                 for idx in priority_queue:
                     if idx in self.queued_queries_type:
