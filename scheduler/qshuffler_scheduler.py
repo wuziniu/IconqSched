@@ -178,18 +178,18 @@ class QShuffler:
             ):
                 selected_idx = None
             else:
-                scores = self.cost_model.online_inference(self.running_queries_feature)
-                priority = (
-                    1 / (np.abs(self.cost_threshold - scores) + 1e-3)
-                    + (start_t - np.asarray(self.queued_queries_enter_time))
-                    / 100
-                    * self.starve_penalty
-                )
-                priority_queue = np.argsort(priority)[::-1]
-                for idx in priority_queue:
-                    if idx in self.queued_queries_type:
-                        selected_idx = self.queued_queries_type.index(idx)
-                        break
+                queued_time = (start_t - np.asarray(self.queued_queries_enter_time)) * self.starve_penalty
+                starve_idx = np.argsort(queued_time)[::-1]
+                if queued_time[starve_idx[0]] >= 100:
+                    selected_idx = starve_idx[0]
+                else:
+                    scores = self.cost_model.online_inference(self.running_queries_feature)
+                    priority = 1 / (np.abs(self.cost_threshold - scores) + 1e-3)
+                    priority_queue = np.argsort(priority)[::-1]
+                    for idx in priority_queue:
+                        if idx in self.queued_queries_type:
+                            selected_idx = self.queued_queries_type.index(idx)
+                            break
         if selected_idx is not None:
             query_str = self.queued_queries[selected_idx]
             query_sql = self.queued_queries_sql[selected_idx]

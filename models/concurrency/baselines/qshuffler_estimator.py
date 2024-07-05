@@ -12,7 +12,7 @@ class QEstimator(ConcurPredictor):
     def __init__(
         self,
         stage_model: SingleStage,
-        cluster_model: Optional[KMeansCluster]=None,
+        cluster_model: Optional[KMeansCluster] = None,
         num_clusters: int = 10,
         mpl: int = 5,
     ):

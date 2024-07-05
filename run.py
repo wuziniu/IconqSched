@@ -385,7 +385,7 @@ if __name__ == "__main__":
 
     # PGM scheduler parameter
     parser.add_argument("--use_memory", action="store_true")
-    parser.add_argument("--admission_threshold", type=int, default=500)
+    parser.add_argument("--admission_threshold", type=int, default=1000)
     parser.add_argument("--consider_top_k", type=int, default=2)
 
     # QShuffler parameter
