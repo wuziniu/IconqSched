@@ -193,7 +193,7 @@ class GreedyScheduler(BaseScheduler):
             new_existing_pred_weight = np.ones(len(self.existing_runtime_prediction))
             for i in range(len(self.existing_runtime_prediction)):
                 # the weight represent the proportion of the query that has finished running
-                weight = 1 - min((start_t - self.existing_start_time[i]) / self.existing_runtime_prediction[i], 0.8)
+                weight = 1 - min((start_t - self.existing_start_time[i]) / self.existing_runtime_prediction[i], 0.7)
                 new_existing_pred_weight[i] = weight
 
             for i in range(len(self.queued_queries)):
