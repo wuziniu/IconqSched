@@ -32,7 +32,7 @@ class QEstimator(ConcurPredictor):
         self.get_isolated_runtime_cache(trace_df, isolated_trace_df)
         if self.cluster_model is None:
             self.cluster_model = KMeansCluster(self.stage_model, self.num_clusters)
-            self.cluster_model.train()
+            self.cluster_model.train(trace_df)
         all_data = dict()
         all_label = dict()
         isolated_runtime_number = dict()
@@ -122,6 +122,7 @@ class QEstimator(ConcurPredictor):
                 x.append(feature)
             x = np.stack(x)
             pred = self.linear_models[cluster].predict(x)
+            pred = np.maximum(pred, 0.01)
             predictions[i] = pred
         return predictions, labels
 
@@ -133,10 +134,13 @@ class QEstimator(ConcurPredictor):
             nro = 0
             for j in self.linear_models:
                 pred_j = self.linear_models[j].predict(temp_feature.reshape(1, -1))[0]
+                pred_j = max(pred_j, 0.01)
                 nro += temp_feature[j] * pred_j / self.isolated_rt[j]
             nro = nro / self.mpl / self.mpl
             nros.append(nro)
-        return np.asarray(nros)
+        nros = np.asarray(nros)
+        nros = np.maximum(nros, 0)
+        return nros
 
     def get_query_type(self, query_idx: int):
         return self.cluster_model.infer(query_idx)
