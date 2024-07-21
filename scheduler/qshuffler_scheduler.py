@@ -178,12 +178,16 @@ class QShuffler:
             ):
                 selected_idx = None
             else:
-                queued_time = (start_t - np.asarray(self.queued_queries_enter_time)) * self.starve_penalty
+                queued_time = (
+                    start_t - np.asarray(self.queued_queries_enter_time)
+                ) * self.starve_penalty
                 starve_idx = np.argsort(queued_time)[::-1]
                 if queued_time[starve_idx[0]] >= 100:
                     selected_idx = starve_idx[0]
                 else:
-                    scores = self.cost_model.online_inference(self.running_queries_feature)
+                    scores = self.cost_model.online_inference(
+                        self.running_queries_feature
+                    )
                     priority = 1 / (np.abs(self.cost_threshold - scores) + 1e-3)
                     priority_queue = np.argsort(priority)[::-1]
                     for idx in priority_queue:

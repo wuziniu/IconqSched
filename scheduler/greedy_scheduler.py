@@ -237,7 +237,7 @@ class GreedyScheduler(BaseScheduler):
                     curr_delta = (
                         curr_pred
                         - submit_after_pred
-                        - max(next_finish_time - start_t, 5)
+                        - max(next_finish_time - start_t, 3) * max(len(self.queued_queries) - 2, 1)
                     )
                     curr_deltas.append(curr_delta)
                     future_existing_pred = predictions[
