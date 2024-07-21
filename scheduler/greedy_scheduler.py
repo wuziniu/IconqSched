@@ -267,7 +267,7 @@ class GreedyScheduler(BaseScheduler):
                 # for every query first judge whether it is good to wait
                 score = None
                 if (
-                    curr_benefits + existing_benefits < -10
+                    curr_benefits * self.alpha + existing_benefits < -1 * curr_pred
                     or max(future_deltas) < 0  # len(self.running_queries) * 2
                     or (
                         self.ignore_short_running
@@ -277,7 +277,7 @@ class GreedyScheduler(BaseScheduler):
                     # submitting the current query has a positive effect on itself and running queries
                     # or there is no consider future time that would be better than submitting now
                     score = (
-                        curr_benefits
+                        curr_benefits * self.alpha
                         + existing_benefits
                         - (start_t - self.queued_queries_enter_time[i])
                         * self.starve_penalty
