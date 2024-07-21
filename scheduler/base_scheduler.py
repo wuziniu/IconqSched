@@ -51,6 +51,7 @@ class BaseScheduler:
             Union[str, int], float
         ] = dict()
         self.existing_runtime_prediction: List[float] = []
+        self.existing_runtime_prediction_adjusted: List[float] = []
         self.existing_enter_time: List[float] = []
 
         self.current_time = 0
@@ -116,6 +117,9 @@ class BaseScheduler:
             self.existing_finish_time = new_existing_finish_time
         if new_existing_runtime_prediction is not None:
             self.existing_runtime_prediction = new_existing_runtime_prediction
+            self.existing_runtime_prediction_adjusted = copy.deepcopy(
+                new_existing_runtime_prediction
+            )
         if new_existing_query_concur_features is not None:
             self.existing_query_concur_features = new_existing_query_concur_features
         self.running_queries.append(query_rep)
@@ -126,6 +130,7 @@ class BaseScheduler:
         self.existing_pre_info_length.append(pre_info_length)
         self.existing_enter_time.append(enter_time)
         self.existing_runtime_prediction.append(pred_runtime)
+        self.existing_runtime_prediction_adjusted.append(pred_runtime)
         self.queued_queries.pop(pos_in_queue)
         self.queued_queries_sql.pop(pos_in_queue)
         self.queued_queries_index.pop(pos_in_queue)
@@ -151,6 +156,7 @@ class BaseScheduler:
         self.existing_enter_time.pop(finish_idx)
         self.existing_query_features.pop(finish_idx)
         popped_pred_runtime = self.existing_runtime_prediction.pop(finish_idx)
+        _ = self.existing_runtime_prediction_adjusted.pop(finish_idx)
         self.existing_start_time.pop(finish_idx)
         self.existing_finish_time.pop(finish_idx)
         # Todo: the last two needs change when we remove a query from its pre info,
@@ -191,6 +197,9 @@ class BaseScheduler:
         )
         self.existing_runtime_prediction = reverse_index_list(
             self.existing_runtime_prediction, pop_index
+        )
+        self.existing_runtime_prediction_adjusted = reverse_index_list(
+            self.existing_runtime_prediction_adjusted, pop_index
         )
         self.existing_start_time = reverse_index_list(
             self.existing_start_time, pop_index

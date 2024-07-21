@@ -69,8 +69,13 @@ class GreedyScheduler(BaseScheduler):
                         self.current_time
                         + randomness * self.existing_runtime_prediction[i]
                     )
-                if self.current_time - self.existing_start_time[i] > self.existing_runtime_prediction[i]:
-                    self.existing_runtime_prediction[i] = self.current_time - self.existing_start_time[i]
+                if (
+                    self.current_time - self.existing_start_time[i]
+                    > self.existing_runtime_prediction_adjusted[i]
+                ):
+                    self.existing_runtime_prediction_adjusted[i] = (
+                        self.current_time - self.existing_start_time[i]
+                    )
         should_immediate_re_ingest = False
         should_pause_and_re_ingest = False
         scheduled_submit = None
@@ -195,14 +200,20 @@ class GreedyScheduler(BaseScheduler):
             new_existing_pred_weight = np.ones(len(self.existing_runtime_prediction))
             for i in range(len(self.existing_runtime_prediction)):
                 # the weight represent the proportion of the query that has finished running
-                weight = 1 - min((start_t - self.existing_start_time[i]) / self.existing_runtime_prediction[i], 0.5)
+                weight = 1 - min(
+                    (start_t - self.existing_start_time[i])
+                    / self.existing_runtime_prediction[i],
+                    0.5,
+                )
                 new_existing_pred_weight[i] = weight
 
             for i in range(len(self.queued_queries)):
                 pred_idx = i * prediction_len_per_query
                 curr_pred = predictions[pred_idx]
                 curr_benefits = curr_pred - self.queued_query_features[i][0]
-                old_existing_pred = np.asarray(self.existing_runtime_prediction)
+                old_existing_pred = np.asarray(
+                    self.existing_runtime_prediction_adjusted
+                )
                 new_existing_pred = predictions[
                     (pred_idx + future_len) : (
                         pred_idx
@@ -212,7 +223,9 @@ class GreedyScheduler(BaseScheduler):
                 ]
                 # how will this query change the runtime of existing queries in the system if submitting now
                 delta_existing = new_existing_pred - old_existing_pred
-                existing_benefits = np.sum(delta_existing)  # * new_existing_pred_weight)
+                existing_benefits = np.sum(
+                    delta_existing
+                )  # * new_existing_pred_weight)
 
                 curr_deltas = []
                 future_deltas = []
@@ -238,15 +251,18 @@ class GreedyScheduler(BaseScheduler):
                     ]
 
                     # how will this query change the runtime of existing queries compare to submitting later
-                    delta = new_existing_pred - future_existing_pred  # * new_existing_pred_weight
+                    delta = (
+                        new_existing_pred - future_existing_pred
+                    )  # * new_existing_pred_weight
                     if self.debug:
                         if self.logger:
                             self.logger.info(
                                 f"      ***********next_finish_idx {next_finish_idx} "
                                 f"      next_finish_time {next_finish_time - start_t}"
+                                f"      curr_pred {curr_pred}, submit_after_pred {submit_after_pred}"
                                 f"      old_existing_pred {old_existing_pred}"
                                 f"      new_existing_pred {new_existing_pred}"
-                                f"      new_existing_pred_weight {new_existing_pred_weight}"
+                                # f"      new_existing_pred_weight {new_existing_pred_weight}"
                                 f"      future_existing_pred {future_existing_pred}"
                             )
                     delta = delta[
@@ -288,7 +304,7 @@ class GreedyScheduler(BaseScheduler):
                     if self.logger:
                         self.logger.info(
                             f"    ||||queued query {self.queued_queries[i]} "
-                            f" with curr_pred {curr_pred}, curr_benefits {curr_benefits}, "
+                            f" curr_benefits {curr_benefits}, "
                             f" existing_benefits {existing_benefits},"
                             f" curr_delta {curr_deltas}, future_delta_score {future_deltas}"
                         )
@@ -302,9 +318,7 @@ class GreedyScheduler(BaseScheduler):
                             f"with curr_pred {curr_pred}, curr_delta {curr_deltas}, future_delta_score {future_deltas}"
                         )
                         if score is not None:
-                            print(
-                                f"----------------Score: {score}------------"
-                            )
+                            print(f"----------------Score: {score}------------")
             if len(all_score) == 0:
                 should_immediate_re_ingest = False
                 should_pause_and_re_ingest = False

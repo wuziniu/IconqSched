@@ -32,7 +32,7 @@ class SingleStage:
         true_card=False,
         use_table_features=False,
         use_table_selectivity=False,
-        use_median=False,
+        use_median=True,
         db_conn=None,
     ):
         self.cache = CachePredictor(
@@ -147,3 +147,20 @@ class SingleStage:
                 df.iloc[not_cached_idx]
             )
         return predictions
+
+    def evaluate(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+        predictions = self.predict(df)
+        if "runtime" in df:
+            labels = df["runtime"].values
+        else:
+            assert False
+        abs_error = np.abs(predictions - labels)
+        q_error = np.maximum(predictions / labels, labels / predictions)
+        print(
+            f"mean absolute error is {np.mean(abs_error)}, q-error is {np.mean(q_error)}"
+        )
+        for p in [50, 90, 95]:
+            p_a = np.percentile(abs_error, p)
+            p_q = np.percentile(q_error, p)
+            print(f"{p}% absolute error is {p_a}, q-error is {p_q}")
+        return predictions, labels

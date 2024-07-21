@@ -331,6 +331,9 @@ class ConcurrentRNN:
         all_query_idx = np.concatenate(all_query_idx)
         abs_error = np.abs(all_pred - all_label)
         q_error = np.maximum(all_pred / all_label, all_label / all_pred)
+        print(
+            f"mean absolute error is {np.mean(abs_error)}, q-error is {np.mean(q_error)}"
+        )
         for p in [50, 90, 95]:
             p_a = np.percentile(abs_error, p)
             p_q = np.percentile(q_error, p)
