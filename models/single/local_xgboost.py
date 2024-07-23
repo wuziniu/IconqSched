@@ -37,10 +37,13 @@ class SingleXGBoost:
 
     def predict(self, df):
         features = df["features"].values
+        if len(features.shape) == 1 and isinstance(features[0], np.ndarray):
+            features = np.stack(features)
         preds = self.model.predict(features)
         preds = np.maximum(preds, 0.01)
         return preds
 
     def online_inference(self, feature: np.ndarray) -> float:
-        pred = self.model.predict(feature)
+        feature = feature.reshape(1, -1)
+        pred = self.model.predict(feature)[0]
         return pred

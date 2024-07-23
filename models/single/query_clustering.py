@@ -2,6 +2,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 import pandas as pd
 from models.single.stage import SingleStage
+from typing import Optional
 
 
 class KMeansCluster:
@@ -31,4 +32,10 @@ class KMeansCluster:
             self.clusters = self.model.fit_predict(all_feature)
 
     def infer(self, query_idx: int):
-        return self.clusters[query_idx]
+        if query_idx <= len(self.clusters):
+            return self.clusters[query_idx]
+        else:
+            feature = self.stage_model.all_feature[query_idx]
+            feature = feature.reshape(1, -1)
+            pred = self.model.predict(feature)[0]
+            return pred

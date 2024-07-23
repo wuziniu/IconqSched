@@ -1,7 +1,9 @@
+import numpy as np
 import pandas as pd
 import os
 import copy
 from typing import List, Union, Optional, Tuple
+from parser.utils import load_json, get_touched_tables
 
 
 def load_trace(
@@ -202,3 +204,21 @@ def create_concurrency_dataset(
             concurrency_df[col] = trace[col]
     concurrency_df = concurrency_df.reset_index()
     return concurrency_df
+
+
+def get_number_join_per_query(
+    df: pd.DataFrame,
+    parsed_queries_path: str,
+) -> pd.DataFrame:
+    plans = load_json(parsed_queries_path, namespace=False)
+    num_joins_per_query = []
+    for i in range(len(plans["parsed_plans"])):
+        tables = get_touched_tables(plans["sql_queries"][i])
+        num_joins_per_query.append(len(tables))
+
+    num_joins = np.zeros(len(df))
+    for i in range(len(df)):
+        query_idx = int(df["query_idx"].iloc[i])
+        num_joins[i] = num_joins_per_query[query_idx]
+    df["num_joins"] = num_joins
+    return df

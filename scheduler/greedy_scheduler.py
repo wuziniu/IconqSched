@@ -126,8 +126,10 @@ class GreedyScheduler(BaseScheduler):
             next_finish_idx_list = []
             next_finish_time_list = []
         elif len(self.existing_finish_time) <= self.steps_into_future:
-            next_finish_idx_list = list(range(len(self.existing_finish_time)))
-            next_finish_time_list = copy.deepcopy(self.existing_finish_time)
+            next_finish_idx_list = list(np.argsort(self.existing_finish_time))
+            next_finish_time_list = [
+                self.existing_finish_time[nfi] for nfi in next_finish_idx_list
+            ]
         else:
             argsort_idx = np.argsort(self.existing_finish_time)
             next_finish_idx_list = list(argsort_idx[: self.steps_into_future])
@@ -237,7 +239,8 @@ class GreedyScheduler(BaseScheduler):
                     curr_delta = (
                         curr_pred
                         - submit_after_pred
-                        - max(next_finish_time - start_t, 3) * max(len(self.queued_queries) - 2, 1)
+                        - max(next_finish_time - start_t, 3)
+                        * max(len(self.queued_queries) - 1, 1)
                     )
                     curr_deltas.append(curr_delta)
                     future_existing_pred = predictions[
@@ -259,6 +262,7 @@ class GreedyScheduler(BaseScheduler):
                             self.logger.info(
                                 f"      ***********next_finish_idx {next_finish_idx} "
                                 f"      next_finish_time {next_finish_time - start_t}"
+                                f"      penalty {max(next_finish_time - start_t, 3) * max(len(self.queued_queries) - 1, 1)}"
                                 f"      curr_pred {curr_pred}, submit_after_pred {submit_after_pred}"
                                 f"      old_existing_pred {old_existing_pred}"
                                 f"      new_existing_pred {new_existing_pred}"
@@ -307,6 +311,7 @@ class GreedyScheduler(BaseScheduler):
                             f" curr_benefits {curr_benefits}, "
                             f" existing_benefits {existing_benefits},"
                             f" curr_delta {curr_deltas}, future_delta_score {future_deltas}"
+                            f" starve penality {(start_t - self.queued_queries_enter_time[i]) * self.starve_penalty}"
                         )
                         if score is not None:
                             self.logger.info(

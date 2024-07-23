@@ -101,7 +101,7 @@ class ConcurPredictor:
                 )
                 abs_error = np.abs(pred - label)
                 q_error = np.maximum(pred / label, label / pred)
-                for p in [50, 90, 95]:
+                for p in [50, 90, 95, 99]:
                     p_a = np.percentile(abs_error, p)
                     p_q = np.percentile(q_error, p)
                     print(f"{p}% absolute error is {p_a}, q-error is {p_q}")

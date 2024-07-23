@@ -312,13 +312,9 @@ class ComplexFitCurve(ConcurPredictor):
                 for c in concur_info[j]:
                     if c[0] in self.average_rt_cache:
                         sum_concurrent_runtime += self.average_rt_cache[c[0]]
-                    else:
-                        print(c[0])
                     if c[0] in self.query_info:
                         sum_concurrent_scan += self.query_info[c[0]]["est_scan"]
                         concurrent_card.extend(self.query_info[c[0]]["all_cardinality"])
-                    else:
-                        print(c[0])
 
                 global_sum_concurrent_runtime.append(sum_concurrent_runtime)
                 global_est_concurrent_scan.append(sum_concurrent_scan)
@@ -411,7 +407,6 @@ class ComplexFitCurve(ConcurPredictor):
                 # torch_analytic_params_lr.append({'params': t_p, 'lr': 0.01 * p ** 0.3})
                 torch_analytic_params_lr.append({"params": t_p, "lr": 1e-4})
                 torch_analytic_params.append(t_p)
-            print(len(torch_analytic_params))
             optimizer = optim.AdamW(torch_analytic_params_lr, weight_decay=2e-5)
             dataset = QueryFeatureDataset(feature, label)
             train_dataloader = DataLoader(
@@ -726,8 +721,6 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
                             # TODO: this is not practical, make it an estimation
                             sum_time_overlap_post += end_time[j] - c[1]
                             sum_time_elapsed_post += c[1] - start_time[j]
-                    else:
-                        print(c[0])
                     if c[0] in self.query_info:
                         if c in concur_info_prev[j]:
                             sum_concurrent_scan_pre += self.query_info[c[0]]["est_scan"]
@@ -741,8 +734,6 @@ class ComplexFitCurveSeparation(ComplexFitCurve):
                             concurrent_card_post.extend(
                                 self.query_info[c[0]]["all_cardinality"]
                             )
-                    else:
-                        print(c[0])
 
                 global_sum_concurrent_runtime_pre.append(sum_concurrent_runtime_pre)
                 global_avg_time_elapsed_pre.append(
