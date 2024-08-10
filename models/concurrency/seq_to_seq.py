@@ -89,9 +89,10 @@ class LSTM(nn.Module):
             seq_lengths = [len(seq) for seq in x]
             x = pad_sequence(x, batch_first=True, padding_value=0)
             x_len = torch.tensor(seq_lengths, dtype=torch.long)
-        x = torch.transpose(x, 1, 2)
-        x = self.bn(x)
-        x = torch.transpose(x, 1, 2)
+        if x.shape[1] > 1:
+            x = torch.transpose(x, 1, 2)
+            x = self.bn(x)
+            x = torch.transpose(x, 1, 2)
         x = self.embedding(x)
         packed_input = pack_padded_sequence(
             x, x_len, batch_first=True, enforce_sorted=False

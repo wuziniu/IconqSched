@@ -3,7 +3,6 @@ import logging
 import copy
 from typing import Optional, Tuple, Union
 from models.single.stage import SingleStage
-from models.concurrency.complex_models import ConcurrentRNN
 from models.concurrency.baselines.gcn_v2 import GCN
 from scheduler.base_scheduler import BaseScheduler
 
@@ -12,7 +11,7 @@ class GreedyScheduler(BaseScheduler):
     def __init__(
         self,
         stage_model: SingleStage,
-        predictor: Union[ConcurrentRNN, GCN],
+        predictor: GCN,
         max_concurrency_level: int = 20,
         min_concurrency_level: int = 1,
         starve_penalty: float = 0.5,

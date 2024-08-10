@@ -138,6 +138,7 @@ class Executor:
                 )
             )
             self.pending_jobs.append(future)
+            self.query_exec_start_time[query_rep] = start_time
         else:
             (
                 should_immediate_re_ingest,
