@@ -82,10 +82,7 @@ def dfs_find_operator_size(
             if use_size:
                 card = card * plan["plan_parameters"]["est_width"]
             return_cardinalities.append(card / 1024 / 1024)
-            if use_log:
-                features[idx * 2 + 1] += max(np.log(card + 1e-5), 0)
-            else:
-                features[idx * 2 + 1] += card / 1024 / 1024  # convert byte to mb
+            features[idx * 2 + 1] += card
             if table_features is not None:
                 if "table" in plan["plan_parameters"]:
                     table_name = plan["plan_parameters"]["table"]
@@ -99,14 +96,12 @@ def dfs_find_operator_size(
                                     card = plan["plan_parameters"]["act_card"]
                             else:
                                 card = plan["plan_parameters"]["est_card"]
-                            table_features[table_idx] = (
+                            table_features[table_idx] += (
                                 card / all_table_size[table_name]
                             )
                         else:
-                            if use_log:
-                                table_features[table_idx] = max(np.log(card + 1e-5), 0)
-                            else:
-                                table_features[table_idx] = card / 1024 / 1024
+                            table_features[table_idx] += card
+
     if "children" in plan:
         for child in plan["children"]:
             dfs_find_operator_size(
@@ -151,7 +146,17 @@ def featurize_one_plan(
         use_table_selectivity,
         return_cardinalities,
     )
+    if use_log:
+        features = np.maximum(np.log(features + 1e-5), 0)
+    else:
+        features = features / 1024 / 1024  # convert byte to mb
     if table_features is not None:
+        if use_table_selectivity:
+            table_features = np.maximum(table_features, 1.0)
+        elif use_log:
+            table_features = np.maximum(np.log(table_features + 1e-5), 0)
+        else:
+            table_features = table_features / 1024 / 1024  # convert byte to mb
         features = np.concatenate((features, table_features))
     if return_memory_est:
         return features, np.max(return_cardinalities)
