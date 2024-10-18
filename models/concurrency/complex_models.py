@@ -9,7 +9,7 @@ from torch.nn.functional import l1_loss, mse_loss
 from tqdm import tqdm
 from typing import Union, Mapping, Tuple, List, Optional
 from models.single.stage import SingleStage
-from models.concurrency.seq_to_seq import RNN, LSTM, TransformerModel
+from models.concurrency.seq_to_seq import RNN, LSTM, TransformerModel, BiLSTM
 from models.feature.complex_rnn_features import (
     collate_fn_padding,
     collate_fn_padding_preserve_order,
@@ -145,6 +145,10 @@ class ConcurrentRNN:
                 dropout,
                 last_output,
                 use_seperation=use_separation,
+            )
+        elif rnn_type == "bilstm":
+            self.model = BiLSTM(
+                input_size, embedding_dim, hidden_size, output_size, num_layers, dropout
             )
         elif rnn_type == "transformer":
             self.model = TransformerModel(

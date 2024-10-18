@@ -121,7 +121,7 @@ def train_concurrent_rnn() -> None:
         lr=args.lr,
         loss_function=args.loss_function,
         val_on_test=args.val_on_test,
-        epochs=args.epochs
+        epochs=args.epochs,
     )
     if args.target_path is not None:
         rnn.save_model(args.target_path)

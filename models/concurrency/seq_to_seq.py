@@ -1,6 +1,6 @@
 import torch
 import math
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
@@ -8,7 +8,7 @@ from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn.utils.rnn import pad_sequence
 
 
-def xavier_init(m):
+def xavier_init(m: nn.Module) -> None:
     if isinstance(m, nn.Module):
         for name, param in m.named_parameters():
             if "weight" in name:
@@ -18,7 +18,14 @@ def xavier_init(m):
 
 
 class RNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers, dropout=0):
+    def __init__(
+        self,
+        input_size: int,
+        hidden_size: int,
+        output_size: int,
+        num_layers: int,
+        dropout: float = 0,
+    ) -> None:
         super(RNN, self).__init__()
         self.hidden_size = hidden_size
         model = []
@@ -31,29 +38,31 @@ class RNN(nn.Module):
         self.model = nn.Sequential(*model)
         self.output_layer = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x, hidden_state):
+    def forward(
+        self, x: torch.Tensor, hidden_state: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         combined = torch.cat((x, hidden_state), 1)
         hidden = self.model(combined)
         output = self.output_layer(hidden)
         output = F.relu(output)
         return output, hidden
 
-    def init_hidden(self):
+    def init_hidden(self) -> torch.Tensor:
         return torch.zeros(torch.empty(1, self.hidden_size))
 
 
 class LSTM(nn.Module):
     def __init__(
         self,
-        input_size,
-        embedding_dim,
-        hidden_size,
-        output_size,
-        num_layers,
-        dropout=0.1,
-        last_output=True,
-        use_seperation=False,
-    ):
+        input_size: int,
+        embedding_dim: int,
+        hidden_size: int,
+        output_size: int,
+        num_layers: int,
+        dropout: float = 0.1,
+        last_output: bool = True,
+        use_seperation: bool = False,
+    ) -> None:
         super(LSTM, self).__init__()
         self.hidden_size = hidden_size
         self.embedding_dim = embedding_dim
@@ -84,7 +93,7 @@ class LSTM(nn.Module):
         h0: Optional[torch.Tensor] = None,
         c0: Optional[torch.Tensor] = None,
         is_padded: bool = True,
-    ):
+    ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         if not is_padded or x_len is None:
             seq_lengths = [len(seq) for seq in x]
             x = pad_sequence(x, batch_first=True, padding_value=0)
@@ -119,7 +128,7 @@ class LSTM(nn.Module):
         x_len: Optional[torch.Tensor] = None,
         pre_info_length: Optional[torch.Tensor] = None,
         is_padded: bool = True,
-    ):
+    ) -> torch.Tensor:
         """
         Seperate queries before and after
         :param x: input feature sequence
@@ -181,7 +190,9 @@ class LSTM(nn.Module):
         output[non_zero_idx] = y
         return output
 
-    def model_forward_pre_info(self, x, pre_info_length):
+    def model_forward_pre_info(
+        self, x: torch.Tensor, pre_info_length: torch.Tensor
+    ) -> torch.Tensor:
         pre_info_x = []
         for i in range(len(x)):
             pre_info_l = max(int(pre_info_length[i]), 1)
@@ -197,7 +208,7 @@ class LSTM(nn.Module):
         x_len: Optional[torch.Tensor] = None,
         pre_info_length: Optional[torch.Tensor] = None,
         is_padded: bool = True,
-    ):
+    ) -> torch.Tensor:
         if pre_info_length is not None and self.use_seperation:
             return self.model_forward_with_seperation(
                 x, x_len, pre_info_length, is_padded
@@ -205,6 +216,80 @@ class LSTM(nn.Module):
         else:
             output, _ = self.model_forward(x, x_len, is_padded=is_padded)
             return output
+
+
+class BiLSTM(nn.Module):
+    def __init__(
+        self,
+        input_size: int,
+        embedding_dim: int,
+        hidden_size: int,
+        output_size: int,
+        num_layers: int,
+        dropout: float = 0.1,
+    ) -> None:
+        super(BiLSTM, self).__init__()
+        self.hidden_size = hidden_size
+        self.embedding_dim = embedding_dim
+        self.bn = nn.BatchNorm1d(input_size)
+        self.embedding = nn.Sequential(
+            nn.Linear(input_size, embedding_dim),
+            nn.Linear(embedding_dim, embedding_dim),
+        )
+        xavier_init(self.embedding)
+        self.num_layers = num_layers
+        self.model = nn.LSTM(
+            embedding_dim,
+            hidden_size,
+            num_layers,
+            dropout=dropout,
+            batch_first=True,
+            bidirectional=True,
+        )
+        xavier_init(self.model)
+        self.output_layer = nn.Sequential(
+            nn.Linear(hidden_size * 2, hidden_size // 2),
+            nn.Linear(hidden_size // 2, output_size),
+        )
+        xavier_init(self.output_layer)
+
+    def forward(
+        self,
+        x: Union[torch.Tensor, List[torch.Tensor]],
+        x_len: torch.Tensor,
+        pre_info_length: Optional[torch.Tensor] = None,
+        h0: Optional[torch.Tensor] = None,
+        c0: Optional[torch.Tensor] = None,
+        is_padded: bool = True,
+    ) -> torch.Tensor:
+        if not is_padded or x_len is None:
+            seq_lengths = [len(seq) for seq in x]
+            x = pad_sequence(x, batch_first=True, padding_value=0)
+            x_len = torch.tensor(seq_lengths, dtype=torch.long)
+        if x.shape[1] > 1:
+            x = torch.transpose(x, 1, 2)
+            x = self.bn(x)
+            x = torch.transpose(x, 1, 2)
+        x = self.embedding(x)
+        packed_input = pack_padded_sequence(
+            x, x_len, batch_first=True, enforce_sorted=False
+        )
+        if h0 is None:
+            h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(
+                x.device
+            )
+        if c0 is None:
+            c0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(
+                x.device
+            )
+        output, _ = self.model(packed_input, (h0, c0))
+        output, _ = pad_packed_sequence(output, batch_first=True)
+        if pre_info_length is None:
+            output = output[torch.arange(len(x_len)), x_len - 1]
+        else:
+            output = output[torch.arange(len(x_len)), pre_info_length - 1]
+        output = self.output_layer(output)
+        return output
 
 
 class PositionalEncoding(nn.Module):
