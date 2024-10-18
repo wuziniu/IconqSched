@@ -9,6 +9,7 @@ import pickle as pkl
 from utils.load_trace import (
     create_concurrency_dataset,
     load_trace_all_version,
+    load_all_csv_from_dir,
 )
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
@@ -29,14 +30,18 @@ np.set_printoptions(suppress=True)
 
 def load_workload(
     train_test_split: bool = True,
+    load_csv: bool = True,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
-    all_raw_trace, all_trace = load_trace_all_version(
-        args.directory, args.num_clients, concat=True
-    )
+    if load_csv:
+        all_trace = load_all_csv_from_dir(args.directory)
+    else:
+        _, all_trace = load_trace_all_version(
+            args.directory, args.num_clients, concat=True
+        )
     all_concurrency_df = []
     for trace in all_trace:
         concurrency_df = create_concurrency_dataset(
-            trace, engine=None, pre_exec_interval=200
+            trace, engine=None, pre_exec_interval=None
         )
         all_concurrency_df.append(concurrency_df)
     concurrency_df = pd.concat(all_concurrency_df, ignore_index=True)
@@ -116,6 +121,7 @@ def train_concurrent_rnn() -> None:
         lr=args.lr,
         loss_function=args.loss_function,
         val_on_test=args.val_on_test,
+        epochs=args.epochs
     )
     if args.target_path is not None:
         rnn.save_model(args.target_path)
@@ -374,8 +380,9 @@ if __name__ == "__main__":
     parser.add_argument("--embedding_dim", default=128, type=int)
     parser.add_argument("--hidden_size", default=256, type=int)
     parser.add_argument("--num_layers", default=2, type=int)
-    parser.add_argument("--lr", default=0.01, type=float)
-    parser.add_argument("--loss_function", default="l1_loss", type=str)
+    parser.add_argument("--lr", default=0.001, type=float)
+    parser.add_argument("--epochs", default=100, type=int)
+    parser.add_argument("--loss_function", default="q_loss", type=str)
     parser.add_argument("--val_on_test", action="store_true")
 
     # GCN baseline parameters
@@ -399,8 +406,8 @@ if __name__ == "__main__":
     parser.add_argument("--steps_into_future", type=int, default=2)
     parser.add_argument("--alpha", type=float, default=0.2)
     parser.add_argument("--start_idx", type=int, default=0)
-    parser.add_argument("--short_running_threshold", type=float, default=10.0)
-    parser.add_argument("--starve_penalty", type=float, default=1.0)
+    parser.add_argument("--short_running_threshold", type=float, default=5.0)
+    parser.add_argument("--starve_penalty", type=float, default=0.5)
     parser.add_argument("--simulation", action="store_true")
     parser.add_argument("--seed", type=int, default=24)
     parser.add_argument("--baseline", action="store_true")

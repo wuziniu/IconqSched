@@ -1,51 +1,88 @@
-## execute Aurora 
-first create a folder called "aurora_trace" under the directory where you execute the following script
+# IconqSched
 
-change line 170 of executor/multi_client_query_execution.py if you want to set a timeout
 
-warm up cluster, this will only start one client 
+## Training Iconq concurrent runtime predictor
+You can find the saved checkpoints in models/_checkpoints and skip the part on collecting training data and training
 
+### Collecting the training data
+In this work we use the IMDB dataset (scaled to 100GB) and the queries used in BRAD paper.
+
+A subset of these queries can be found in workloads/postgres/queries.sql and workloads/redshift/queries.sql. 
+We also included the parsed query plans for these queries (parsed_query_plans.json). 
+The script parser/parse_plan.py invokes the Postgres/Redshift "EXPLAIN" function and parses the outputs.
+
+Execute the queries with k clients issuing queries in a close loop
 ```angular2html
-python3 executor/multi_client.py --schema-name imdb_60g --query-bank-file ~/data/imdb/workloads/aurora_mixed.sql --avg-gap-s 5 --engine aurora --avg-gap-std-s 3 --host 'imdb-100g-primary-00000.xxxx' --port 5432 --user postgres --password 'postgres' --run-warmup --run-warmup-times 4
+mkdir saved_results
+python3 run.py \
+      --run_k_client_in_parallel \
+      --baseline \
+      --database postgres \
+      --directory workloads/postgres/snowset_1453912639619907921_postgres_replay.csv \
+      --save_result_dir saved_results \
+      --host 'postgres-imdb.xxxxx.rds.amazonaws.com' \
+      --port 5432 \
+      --user xxx \
+      --password xxx \
+      --db_name imdb \
+      --query_bank_path workloads/postgres/queries.sql \
+      --num_clients $k$ \
+      --timeout 1000
+```
+Vary k with different values. 
+
+### Training Iconq
+```angular2html
+python3 run.py \
+      --train_concurrent_rnn \
+      --database postgres \
+      --directory saved_results \
+      --target_path models/_checkpoints \
+      --use_size \
+      --use_log \
+      --use_table_features \
 ```
 
+
+
+## Testing the IconqSched's scheduling performance
+
+Execute the workload with the DBMS itself (--baseline)
 ```angular2html
-python3 executor/multi_client.py --schema-name imdb_60g --query-bank-file ~/data/imdb/workloads/aurora_mixed.sql --avg-gap-s 5 --engine aurora --num-clients 5 --avg-gap-std-s 3 --host 'imdb-100g-primary-00000.xxxx' --port 5432 --user postgres --password 'postgres'
+mkdir saved_results
+python3 run.py \
+      --replay_workload \
+      --baseline \
+      --database postgres \
+      --directory workloads/postgres/snowset_1453912639619907921_postgres_replay.csv \
+      --target_path models/_checkpoints \
+      --save_result_dir saved_results \
+      --host 'postgres-imdb.xxxxx.rds.amazonaws.com' \
+      --port 5432 \
+      --user xxx \
+      --password xxx \
+      --db_name imdb \
+      --query_bank_path workloads/postgres/queries.sql \
+      --timeout 1000
 ```
+Change the --database and --query_bank_path to test on Redshift. 
 
-Train LSTM
+Execute the workload with the IconqSched
 ```angular2html
-python3 run.py --use_size --use_log --use_table_features --parsed_queries_path ~/data/concurrency/mixed_aurora/aurora_mixed_parsed_queries.json --directory ~/data/concurrency/mixed_aurora --hidden_size 128 --num_layers 1 --lr 0.01 --loss_function l1_loss --val_on_test
+python3 run.py \
+      --replay_workload \
+      --database postgres \
+      --directory workloads/postgres/snowset_1453912639619907921_postgres_replay.csv \
+      --target_path models/_checkpoints \
+      --save_result_dir saved_results \
+      --host 'postgres-imdb.xxxxx.rds.amazonaws.com' \
+      --port 5432 \
+      --user xxx \
+      --password xxx \
+      --db_name imdb \
+      --query_bank_path workloads/postgres/queries.sql \
+      --debug \
+      --ignore_short_running \
+      --timeout 1000
 ```
-
-Replay workload simulation
-```angular2html
-python3 run.py --replay_workload --simulation --directory /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres --target_path debug/checkpoints --save_result_dir debug/checkpoints 
-```
-
-Replay workload real execution with baseline (the DBMS itself)
-```angular2html
-python3 run.py --replay_workload --baseline --directory /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres --target_path debug/checkpoints --save_result_dir debug/checkpoints --host 'postgres-imdb.c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password postgres --db_name imdb --database postgres --query_bank_path /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres/postgres_mixed.sql
-```
-
-Replay workload real execution with our scheduler
-```angular2html
-python3 run.py --ignore_short_running --replay_workload --debug --directory /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres --target_path debug/checkpoints --save_result_dir debug/checkpoints --host 'postgres-imdb.c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password postgres --db_name imdb --database postgres --query_bank_path /Users/ziniuw/Desktop/research/Data/AWS_trace/mixed_postgres/postgres_mixed.sql --timeout 200
-```
-
-Run K clients in parallel with baseline and our scheduler (the DBMS itself)
-```angular2html
-python3 run.py --run_k_client_in_parallel --replay_workload_ours_and_baseline --baseline --debug --directory debug/save_results/postgres/timeout_600_num_clients4_baseline.csv --target_path debug/checkpoints --save_result_dir debug/save_results/postgres --num_clients 4 --host 'postgres-imdb.c39astlavjy2.us-east-1.rds.amazonaws.com' --port 5432 --user postgres --password postgres --db_name imdb --database postgres --query_bank_path debug/save_results/postgres_mixed.sql --model_name postgres --timeout 600
-```
-
-Replay K clients in parallel with our scheduler
-```angular2html
-
-```
-
-For redshift
-```angular2html
-python3 run.py --replay_workload_ours_and_baseline --baseline --debug --directory debug/save_results/redshift/timeout_600_num_clients10_baseline.csv --target_path debug/save_results --save_result_dir debug/save_results/redshift --host 'brad-redshift-cluster.cmdzoy6ck5ua.us-east-1.redshift.amazonaws.com' --port 5439 --user awsuser --password 'Giftedcoconut!#4' --db_name imdb_100g --database redshift --query_bank_path debug/save_results/mixed_redshift.sql --model_name redshift --timeout 200
-```
-
 

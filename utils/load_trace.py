@@ -73,6 +73,19 @@ def load_trace(
     return raw_trace, trace
 
 
+def load_all_csv_from_dir(directory: str) -> List[pd.DataFrame]:
+    all_trace = []
+    for file in os.listdir(directory):
+        if file.endswith(".csv"):
+            file = os.path.join(directory, file)
+            df = pd.read_csv(file)
+            df = df[df['run_time_s'] > 0]
+            if "error" in df.columns:
+                df = df[df["error"] == False]
+            all_trace.append(df)
+    return all_trace
+
+
 def load_trace_all_version(
     directory: str, num_client: int = 10, concat: bool = True
 ) -> Union[

@@ -30,7 +30,7 @@ class SingleStage:
         use_size=True,
         use_log=True,
         true_card=False,
-        use_table_features=False,
+        use_table_features=True,
         use_table_selectivity=False,
         use_median=True,
         db_conn=None,
