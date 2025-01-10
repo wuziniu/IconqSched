@@ -45,6 +45,9 @@ def convert_to_trace_df(cab_trace_path: str,
     first_start_time = cab_trace['queries'][0]['start'] / 1000
     for query in cab_trace['queries']:
         q_id = query['query_id']
+        if q_id not in query_template:
+            print(f"{q_id} does not exist in query templates")
+            continue
         start_s = query['start'] / 1000
         query_start_time.append(start_s)
         g_offset_since_start_s.append(start_s - first_start_time)
