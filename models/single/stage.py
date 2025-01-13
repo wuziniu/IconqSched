@@ -10,7 +10,7 @@ from models.feature.single_xgboost_feature import (
     get_top_k_table_by_size,
 )
 from parser.utils import load_json
-from parser.parse_plan import parse_plan_online
+from parser.parse_plan import parse_one_plan_online
 
 
 class SingleStage:
@@ -112,7 +112,7 @@ class SingleStage:
         self, query_idx: int, query_sql: Optional[str] = None
     ) -> np.ndarray:
         if query_idx not in self.all_feature:
-            plan = parse_plan_online(
+            plan = parse_one_plan_online(
                 query_sql,
                 self.column_id_mapping,
                 self.partial_column_name_mapping,

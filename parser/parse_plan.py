@@ -1,11 +1,12 @@
 # We adapted the legacy from from https://github.com/DataManagementLab/zero-shot-cost-estimation
 import collections
+import json
 import psycopg
 import re
 from types import SimpleNamespace
 import numpy as np
 from tqdm import tqdm
-from typing import Optional, List, Union, Tuple, Mapping, Set
+from typing import Optional, List, Union, Tuple, Mapping, Set, Dict
 from parser.plan_operator import (
     PlanOperator,
 )
@@ -270,7 +271,7 @@ def parse_plans(
     return parsed_runs, stats
 
 
-def parse_plan_online(
+def parse_one_plan_online(
     sql: str,
     column_id_mapping: Mapping[Tuple[str, str], int],
     partial_column_name_mapping: Mapping[str, Set[str]],
@@ -296,3 +297,69 @@ def parse_plan_online(
     verbose_plan.tables = tables
     verbose_plan.num_tables = len(tables)
     return verbose_plan
+
+
+def transform_dicts(column_stats_names: List[str], column_stats_rows: List) -> List:
+    return [
+        {k: v for k, v in zip(column_stats_names, row)} for row in column_stats_rows
+    ]
+
+
+def get_query_plans(query_file: str,
+                    db_conn: psycopg.connection,
+                    save_file: Optional[str] = None):
+    database_stats: Dict = dict()
+    column_stats_query = """
+                SELECT s.tablename, s.attname, s.null_frac, s.avg_width, s.n_distinct, s.correlation, c.data_type 
+                FROM pg_stats s
+                JOIN information_schema.columns c ON s.tablename=c.table_name AND s.attname=c.column_name
+                WHERE s.schemaname='public';
+            """
+    with db_conn.cursor() as cur:
+        cur.execute(column_stats_query)
+        column_stats_rows = cur.fetchall()
+        column_stats_names = [desc[0] for desc in cur.description]
+    column_stats = transform_dicts(column_stats_names, column_stats_rows)
+    database_stats['column_stats'] = column_stats
+
+    table_stats_query = "SELECT relname, reltuples, relpages from pg_class WHERE relkind = 'r';"
+    with db_conn.cursor() as cur:
+        cur.execute(table_stats_query)
+        table_stats_rows = cur.fetchall()
+        table_stats_names = [desc[0] for desc in cur.description]
+    table_stats = transform_dicts(table_stats_names, table_stats_rows)
+    database_stats['table_stats'] = table_stats
+
+    with open(query_file, "r") as f:
+        queries_text = f.read()
+    queries = queries_text.split(";")[:-1]
+    queries = [q.strip() + ";" for q in queries]
+
+    column_id_mapping: Dict[Tuple[str, str], int] = dict()
+    partial_column_name_mapping: Dict[str, Set[str]] = collections.defaultdict(set)
+    table_id_mapping: Dict[str, int] = dict()
+
+    for i, column_stat in enumerate(column_stats):
+        table = column_stat["tablename"]
+        column = column_stat["attname"]
+        column_id_mapping[(table, column)] = i
+        partial_column_name_mapping[column].add(table)
+
+    for i, table_stat in enumerate(table_stats):
+        table = table_stat["relname"]
+        table_id_mapping[table] = i
+
+    parsed_plans: List = []
+    for query in queries:
+        verbose_plan = parse_one_plan_online(query,
+                                             column_id_mapping,
+                                             partial_column_name_mapping,
+                                             table_id_mapping,
+                                             db_conn)
+        parsed_plans.append(verbose_plan)
+
+    parsed_queries = dict(database_stats=database_stats, parsed_plans=parsed_plans)
+    if save_file:
+        with open(save_file, "w") as outfile:
+            json.dump(parsed_queries, outfile)
+    return parsed_queries
