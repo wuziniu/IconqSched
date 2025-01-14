@@ -244,7 +244,8 @@ def replay_workload(
             consider_top_k=args.consider_top_k,
         )
     else:
-        assert False, f"{args.scheduler_type} scheduler not implemented"
+        scheduler = None
+        assert args.baseline, f"{args.scheduler_type} scheduler not implemented and is not baseline run"
     if args.simulation:
         simulator = Simulator(scheduler)
         original_runtime, new_runtime = simulator.replay_workload(workload_directory)
@@ -286,7 +287,6 @@ def run_k_client_in_parallel(
     save_result_dir: str,
     selected_query_idx_path: Optional[str] = None,
 ) -> None:
-    ss, rnn = load_concurrent_rnn_stage_model()
     if args.debug:
         verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):
@@ -302,6 +302,7 @@ def run_k_client_in_parallel(
     else:
         verbose_logger = None
     if args.scheduler_type == "greedy":
+        ss, rnn = load_concurrent_rnn_stage_model()
         scheduler = GreedyScheduler(
             ss,
             rnn,
@@ -314,9 +315,11 @@ def run_k_client_in_parallel(
             steps_into_future=args.steps_into_future,
         )
     elif args.scheduler_type == "lp":
+        ss, rnn = load_concurrent_rnn_stage_model()
         scheduler = LPScheduler(ss, rnn)
     else:
-        assert False, f"{args.scheduler_type} scheduler not implemented"
+        scheduler = None
+        assert args.baseline, f"{args.scheduler_type} scheduler not implemented and not in a baseline run"
 
     database_kwargs = {
         "host": args.host,
