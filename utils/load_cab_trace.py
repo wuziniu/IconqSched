@@ -7,7 +7,7 @@ import pandas as pd
 
 def _fill_binds(sql: str, binds: List[Any]):
     result = copy.deepcopy(sql)
-    for i in range(len(binds)):
+    for i in range(len(binds) - 1, -1, -1):
         if binds[i] is None:
             return result
         if type(binds[i]) == int or type(binds[i]) == float:
