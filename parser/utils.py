@@ -153,6 +153,8 @@ def load_json(path: str, namespace: bool = False) -> Union[Mapping, SimpleNamesp
 
 
 def dumper(obj):
+    if isinstance(obj, set):
+        return list(obj)
     try:
         return obj.toJSON()
     except:

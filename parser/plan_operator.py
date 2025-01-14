@@ -137,8 +137,8 @@ class PlanOperator(dict):
             if table in table_id_mapping:
                 self.plan_parameters["table"] = table_id_mapping[table]
             else:
-                print(f"!!!!!!{self.plan_parameters['table']} not found")
-                print(table_id_mapping)
+                #print(f"!!!!!!{self.plan_parameters['table']} not found")
+                #print(table_id_mapping)
                 del self.plan_parameters["table"]
 
         return node_tables

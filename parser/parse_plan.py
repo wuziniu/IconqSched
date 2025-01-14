@@ -10,7 +10,8 @@ from typing import Optional, List, Union, Tuple, Mapping, Set, Dict
 from parser.plan_operator import (
     PlanOperator,
 )
-from parser.utils import plan_statistics
+from parser.utils import plan_statistics, dumper
+
 
 planning_time_regex = re.compile("planning time: (?P<planning_time>\d+.\d+) ms")
 ex_time_regex = re.compile("execution time: (?P<execution_time>\d+.\d+) ms")
@@ -322,12 +323,19 @@ def get_query_plans(query_file: str,
     column_stats = transform_dicts(column_stats_names, column_stats_rows)
     database_stats['column_stats'] = column_stats
 
-    table_stats_query = "SELECT relname, reltuples, relpages from pg_class WHERE relkind = 'r';"
+    table_stats_query = """SELECT relname, reltuples, relpages from pg_class 
+                           WHERE relkind = 'r' and relname NOT LIKE 'pg_%' 
+                           and relname NOT LIKE 'sql_%';"""
     with db_conn.cursor() as cur:
         cur.execute(table_stats_query)
         table_stats_rows = cur.fetchall()
         table_stats_names = [desc[0] for desc in cur.description]
     table_stats = transform_dicts(table_stats_names, table_stats_rows)
+    for table in table_stats:
+        if table['relname'] == 'region':
+            # for some reason, region has -1 tuples as in pg_class
+            table['reltuples'] = 5.0
+            table['relpages'] = 1
     database_stats['table_stats'] = table_stats
 
     with open(query_file, "r") as f:
@@ -361,5 +369,5 @@ def get_query_plans(query_file: str,
     parsed_queries = dict(database_stats=database_stats, parsed_plans=parsed_plans)
     if save_file:
         with open(save_file, "w") as outfile:
-            json.dump(parsed_queries, outfile)
+            json.dump(parsed_queries, outfile, default=dumper)
     return parsed_queries
