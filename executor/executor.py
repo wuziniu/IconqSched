@@ -532,7 +532,9 @@ class Executor:
         np.random.seed(seed)
         self.num_clients = num_clients
         with open(query_file, "r") as f:
-            queries = f.readlines()
+            queries_text = f.read()
+        queries = queries_text.split(";")[:-1]
+        queries = [q.strip() + ";" for q in queries]
         if selected_query_idx_path is not None:
             all_possible_query_idx = np.load(selected_query_idx_path)
         else:
