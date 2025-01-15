@@ -126,8 +126,8 @@ def create_concurrency_dataset(
     pre_exec_interval: Optional[float] = None,
 ) -> pd.DataFrame:
     trace = trace[trace["run_time_s"] > 0]
-    #if "error" in trace.columns:
-     #   trace = trace[trace["error"] == False]
+    if "error" in trace.columns:
+        trace = trace[trace["error"] == False]
     trace = trace.sort_values("g_offset_since_start_s", ascending=True)
     query_idx = []
     runtime = []

@@ -165,22 +165,19 @@ class ConcurrentRNN:
 
     def train(
         self,
-        df,
-        test_df=None,
-        lr=0.001,
-        weight_decay=2e-5,
-        epochs=200,
-        loss_function=None,
-        report_every=5,
-        val_on_test=False,
+        df: pd.DataFrame,
+        test_df: Optional[pd.DataFrame] = None,
+        lr: float = 0.001,
+        weight_decay: float = 2e-5,
+        epochs: int = 200,
+        loss_function: Optional[str] = None,
+        report_every: int = 5,
+        val_on_test: bool = False,
     ):
         if loss_function is not None:
             self.loss_func = loss_function
         predictions = self.stage_model.cache.running_average
         single_query_features = self.stage_model.all_feature
-        # single_query_features = dict()
-        # for i, f in enumerate(self.stage_model.all_feature):
-        #   single_query_features[i] = f
 
         if val_on_test:
             assert (
@@ -282,7 +279,10 @@ class ConcurrentRNN:
     ) -> Union[
         Tuple[Mapping[int, list], Mapping[int, list]], Tuple[np.ndarray, np.ndarray]
     ]:
-        predictions = self.stage_model.cache.running_average
+        if hasattr(self.stage_model, "predictions") and self.stage_model.predictions is not None:
+            predictions = self.stage_model.predictions
+        else:
+            predictions = self.stage_model.cache.running_average
         single_query_features = self.stage_model.all_feature
         val_x, val_y, val_pre_info_length, val_query_idx = featurize_queries_complex(
             df,

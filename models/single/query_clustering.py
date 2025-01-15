@@ -5,6 +5,17 @@ from models.single.stage import SingleStage
 from typing import Optional
 
 
+class TemplateCluster:
+    """
+    A simple clustering for TPC-h queries that we cluster by their template (22 unique in total)
+    """
+    def __init__(self, template_idx: np.ndarray):
+        self.template_idx = template_idx
+
+    def infer(self, query_idx: int) -> int:
+        return int(self.template_idx[query_idx])
+
+
 class KMeansCluster:
     def __init__(self, stage_model: SingleStage, num_clusters: int = 10):
         self.stage_model = stage_model
@@ -31,7 +42,7 @@ class KMeansCluster:
             all_feature = np.stack(all_feature)
             self.clusters = self.model.fit_predict(all_feature)
 
-    def infer(self, query_idx: int):
+    def infer(self, query_idx: int) -> int:
         if query_idx <= len(self.clusters):
             return self.clusters[query_idx]
         else:

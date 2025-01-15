@@ -82,7 +82,7 @@ def convert_to_trace_df(cab_trace_path: str,
                 f.write(query)
                 f.write('\n')
         unique_query_templates_path = os.path.join(save_dir, f"tpc_sf{scale_factor}_unique_query_templates.npy")
-        np.save(unique_query_templates_path, np.asarray(unique_query_templates_path, dtype=int))
+        np.save(unique_query_templates_path, np.asarray(unique_query_templates, dtype=int))
         trace_path = os.path.join(save_dir, f"tpc_sf{scale_factor}_query_trace.csv")
         trace_df.to_csv(trace_path, index=False)
     else:

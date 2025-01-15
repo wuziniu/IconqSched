@@ -2,8 +2,7 @@ import copy
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict
 
 
 def report_performance(
@@ -20,6 +19,38 @@ def report_performance(
         np.percentile(runtime, 95),
         np.percentile(runtime, 99),
     )
+
+
+def report_performance_by_tpc_template(preds: Dict[int, List[float]],
+                                       labels: Dict[int, List[float]],
+                                       template_idx: np.ndarray
+                                       ) -> Tuple[Dict[int, List[float]], Dict[int, List[float]]]:
+    new_preds: Dict[int, List[float]] = dict()
+    new_labels: Dict[int, List[float]] = dict()
+
+    query_idx_by_template: Dict[int, List[int]] = dict()
+    for q_id, t_id in enumerate(template_idx):
+        if t_id not in query_idx_by_template:
+            query_idx_by_template[t_id] = [q_id]
+        else:
+            query_idx_by_template[t_id].append(q_id)
+
+    for t_id in sorted(list(query_idx_by_template.keys())):
+        new_preds[t_id] = []
+        new_labels[t_id] = []
+        for q_id in query_idx_by_template[t_id]:
+            if q_id in preds:
+                new_preds[t_id].extend(preds[q_id])
+                new_labels[t_id].extend(labels[q_id])
+        if len(new_preds[t_id]) != 0:
+            curr_preds = np.asarray(new_preds[t_id])
+            curr_labels = np.asarray(new_labels[t_id])
+            q_error = np.maximum(curr_preds/curr_labels, curr_labels/curr_preds)
+            p50 = np.percentile(q_error, 50)
+            p90 = np.percentile(q_error, 90)
+            p99 = np.percentile(q_error, 95)
+            print(f"For tpc-h template Q_{t_id}: p50 {p50}, p90 {p90}, p99 {p99}")
+    return new_preds, new_labels
 
 
 def load_and_report_stats(

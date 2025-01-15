@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pandas as pd
 import collections
@@ -42,6 +44,7 @@ class SingleStage:
             n_estimators, max_depth, eta, eval_metric, early_stopping_rounds
         )
         self.memory_est_cache = dict()
+        self.predictions = None
         self.num_operators = num_operators
         self.use_size = use_size
         self.use_log = use_log
@@ -138,6 +141,10 @@ class SingleStage:
     def train(self, df: pd.DataFrame) -> None:
         self.cache.ingest_data(df)
         self.local_model.train(df)
+        self.predictions = copy.deepcopy(self.cache.running_average)
+        for q_id in self.all_feature:
+            if q_id not in self.predictions:
+                self.predictions = self.local_model.online_inference(self.all_feature[q_id])
 
     def predict(self, df: pd.DataFrame) -> np.ndarray:
         predictions, not_cached_idx = self.cache.predict(df)
