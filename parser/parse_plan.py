@@ -1,6 +1,7 @@
 # We adapted the legacy from from https://github.com/DataManagementLab/zero-shot-cost-estimation
 import collections
 import json
+import psycopg2
 import psycopg
 import re
 from types import SimpleNamespace
@@ -278,9 +279,13 @@ def parse_one_plan_online(
     partial_column_name_mapping: Mapping[str, Set[str]],
     table_id_mapping: Mapping[str, int],
     db_conn: psycopg.connection,
+    verbose: bool = True
 ) -> PlanOperator:
     with db_conn.cursor() as cur:
-        cur.execute("EXPLAIN VERBOSE " + sql)
+        if verbose:
+            cur.execute("EXPLAIN VERBOSE " + sql)
+        else:
+            cur.execute("EXPLAIN " + sql)
         verbose_plan = cur.fetchall()
 
     verbose_plan, _, _ = parse_one_plan(verbose_plan, analyze=False, parse=True)
@@ -308,13 +313,20 @@ def transform_dicts(column_stats_names: List[str], column_stats_rows: List) -> L
 
 def get_query_plans(query_file: str,
                     db_conn: psycopg.connection,
-                    save_file: Optional[str] = None):
+                    database: str,
+                    save_file: Optional[str] = None,
+                    database_kwargs: Optional[Dict[str, Union[str, int]]] = None
+                    ):
+    if db_conn is None:
+        db_conn = psycopg2.connect(**database_kwargs)
     database_stats: Dict = dict()
     column_stats_query = """
                 SELECT s.tablename, s.attname, s.null_frac, s.avg_width, s.n_distinct, s.correlation, c.data_type 
                 FROM pg_stats s
                 JOIN information_schema.columns c ON s.tablename=c.table_name AND s.attname=c.column_name
-                WHERE s.schemaname='public';
+                WHERE s.schemaname='public'
+                AND s.tablename NOT LIKE 'pg_%' 
+                AND s.tablename NOT LIKE 'sql_%';
             """
     with db_conn.cursor() as cur:
         cur.execute(column_stats_query)
@@ -323,9 +335,25 @@ def get_query_plans(query_file: str,
     column_stats = transform_dicts(column_stats_names, column_stats_rows)
     database_stats['column_stats'] = column_stats
 
-    table_stats_query = """SELECT relname, reltuples, relpages from pg_class 
-                           WHERE relkind = 'r' and relname NOT LIKE 'pg_%' 
-                           and relname NOT LIKE 'sql_%';"""
+    if database == "redshift":
+        table_stats_query = """SELECT relname, reltuples, relpages from pg_class 
+                               WHERE relkind = 'r' 
+                               AND relname NOT LIKE 'pg_%' 
+                               AND relname NOT LIKE 'sql_%'
+                               AND relname NOT LIKE 'stll_%'
+                               AND relname NOT LIKE 'stcs_%'
+                               AND relname NOT LIKE 'stv_%'
+                               AND relname NOT LIKE 'sys%'
+                               AND relname NOT LIKE 'padb%'
+                               AND relname NOT LIKE 'mv_%'
+                               ;"""
+        verbose = False
+    else:
+        table_stats_query = """SELECT relname, reltuples, relpages from pg_class 
+                               WHERE relkind = 'r' 
+                               AND relname NOT LIKE 'pg_%' 
+                               AND relname NOT LIKE 'sql_%';"""
+        verbose = True
     with db_conn.cursor() as cur:
         cur.execute(table_stats_query)
         table_stats_rows = cur.fetchall()
@@ -358,16 +386,18 @@ def get_query_plans(query_file: str,
         table_id_mapping[table] = i
 
     parsed_plans: List = []
-    for query in queries:
+    for query in tqdm(queries):
         verbose_plan = parse_one_plan_online(query,
                                              column_id_mapping,
                                              partial_column_name_mapping,
                                              table_id_mapping,
-                                             db_conn)
+                                             db_conn,
+                                             verbose=verbose)
         parsed_plans.append(verbose_plan)
 
     parsed_queries = dict(database_stats=database_stats, parsed_plans=parsed_plans)
     if save_file:
         with open(save_file, "w") as outfile:
             json.dump(parsed_queries, outfile, default=dumper)
-    return parsed_queries
+    else:
+        return parsed_queries

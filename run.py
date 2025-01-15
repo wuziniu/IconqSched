@@ -11,6 +11,7 @@ from utils.load_trace import (
     load_trace_all_version,
     load_all_csv_from_dir,
 )
+from parser.parse_plan import get_query_plans
 from models.single.stage import SingleStage
 from models.concurrency.complex_models import ConcurrentRNN
 from models.concurrency.baselines.qshuffler_estimator import QEstimator
@@ -352,6 +353,7 @@ def run_k_client_in_parallel(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # meta-commands
+    parser.add_argument("--parse_explain", action="store_true")
     parser.add_argument("--train_concurrent_rnn", action="store_true")
     parser.add_argument("--train_gcn_baseline", action="store_true")
     parser.add_argument("--replay_workload", action="store_true")
@@ -430,6 +432,16 @@ if __name__ == "__main__":
     parser.add_argument("--max_iter", type=int, default=100)
 
     args = parser.parse_args()
+    if args.parse_explain:
+        database_kwargs = {
+            "host": args.host,
+            "database": args.db_name,
+            "port": args.port,
+            "user": args.user,
+            "password": args.password,
+        }
+        get_query_plans(args.query_bank_path, None, args.database, args.save_result_dir, database_kwargs)
+
     if args.train_concurrent_rnn:
         train_concurrent_rnn()
 
