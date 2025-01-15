@@ -2,6 +2,8 @@ import copy
 from typing import List, Any, Dict, Optional, Tuple
 import json
 import os
+
+import numpy as np
 import pandas as pd
 
 
@@ -37,6 +39,7 @@ def convert_to_trace_df(cab_trace_path: str,
     query_template = get_all_query_template(query_template_path)
 
     all_unique_queries: List[str] = []
+    unique_query_templates: List[int] = []
     query_start_time: List[float] = []
     g_offset_since_start_s: List[float] = []
     all_queries: List[str] = []
@@ -46,7 +49,6 @@ def convert_to_trace_df(cab_trace_path: str,
     for query in cab_trace['queries']:
         q_id = query['query_id']
         if q_id not in query_template:
-            # print(f"{q_id} does not exist in query templates")
             continue
         start_s = query['start'] / 1000
         query_start_time.append(start_s)
@@ -57,6 +59,7 @@ def convert_to_trace_df(cab_trace_path: str,
         if query_str not in all_unique_queries:
             all_unique_queries.append(query_str)
             query_idx = len(all_unique_queries) - 1
+            unique_query_templates.append(q_id)
         else:
             query_idx = all_unique_queries.index(query_str)
         all_query_idx.append(query_idx)
@@ -78,6 +81,8 @@ def convert_to_trace_df(cab_trace_path: str,
             for query in all_unique_queries:
                 f.write(query)
                 f.write('\n')
+        unique_query_templates_path = os.path.join(save_dir, f"tpc_sf{scale_factor}_unique_query_templates.npy")
+        np.save(unique_query_templates_path, np.asarray(unique_query_templates_path, dtype=int))
         trace_path = os.path.join(save_dir, f"tpc_sf{scale_factor}_query_trace.csv")
         trace_df.to_csv(trace_path, index=False)
     else:
