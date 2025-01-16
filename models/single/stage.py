@@ -144,7 +144,7 @@ class SingleStage:
         self.predictions = copy.deepcopy(self.cache.running_average)
         for q_id in self.all_feature:
             if q_id not in self.predictions:
-                self.predictions = self.local_model.online_inference(self.all_feature[q_id])
+                self.predictions[q_id] = self.local_model.online_inference(self.all_feature[q_id])
 
     def predict(self, df: pd.DataFrame) -> np.ndarray:
         predictions, not_cached_idx = self.cache.predict(df)

@@ -256,11 +256,11 @@ class BiLSTM(nn.Module):
     def forward(
         self,
         x: Union[torch.Tensor, List[torch.Tensor]],
-        x_len: torch.Tensor,
+        x_len: Optional[torch.Tensor],
         pre_info_length: Optional[torch.Tensor] = None,
+        is_padded: bool = True,
         h0: Optional[torch.Tensor] = None,
         c0: Optional[torch.Tensor] = None,
-        is_padded: bool = True,
     ) -> torch.Tensor:
         if not is_padded or x_len is None:
             seq_lengths = [len(seq) for seq in x]

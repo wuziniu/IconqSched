@@ -381,7 +381,10 @@ class ConcurrentRNN:
             get_next_finish_running_performance,
             use_pre_exec_info=self.use_pre_exec_info,
         )
-        predictions = self.model(global_x, None, global_pre_info_length, False)
+        predictions = self.model(global_x,
+                                 None,
+                                 global_pre_info_length,
+                                 is_padded=False)
         return predictions, global_x, global_pre_info_length
 
     def save_model(self, directory: str):
