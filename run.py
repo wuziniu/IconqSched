@@ -193,7 +193,6 @@ def warmup_run(query_bank_path: str) -> None:
 def replay_workload(
     workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool
 ) -> None:
-    ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
     if args.debug:
         verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):
@@ -209,6 +208,7 @@ def replay_workload(
     else:
         verbose_logger = None
     if args.scheduler_type == "greedy":
+        ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
         scheduler = GreedyScheduler(
             ss,
             model,
@@ -221,8 +221,10 @@ def replay_workload(
             steps_into_future=args.steps_into_future,
         )
     elif args.scheduler_type == "lp":
+        ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
         scheduler = LPScheduler(ss, model)
     elif args.scheduler_type == "qshuffler":
+        ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
         scheduler = QShuffler(
             ss,
             model,
@@ -234,6 +236,7 @@ def replay_workload(
             mpl=args.qshuffler_mpl,
         )
     elif args.scheduler_type == "pgm":
+        ss, model = load_concurrent_rnn_stage_model(args.scheduler_type)
         scheduler = PGMScheduler(
             ss,
             debug=args.debug,
