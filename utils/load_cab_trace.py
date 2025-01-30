@@ -2,7 +2,7 @@ import copy
 from typing import List, Any, Dict, Optional, Tuple
 import json
 import os
-
+import numpy.typing as npt
 import numpy as np
 import pandas as pd
 
@@ -67,7 +67,7 @@ def convert_to_trace_df(cab_trace_path: str,
     trace_df = pd.DataFrame(
         {
             "query_idx": all_query_idx,
-            "run_time_s": [1.0] * len(all_query_idx),
+            "run_time_s": [100.0] * len(all_query_idx),
             "g_offset_since_start_s": g_offset_since_start_s,
             "start_s": query_start_time,
             "query_sql": all_queries,
@@ -87,4 +87,66 @@ def convert_to_trace_df(cab_trace_path: str,
         trace_df.to_csv(trace_path, index=False)
     else:
         return scale_factor, all_unique_queries, trace_df
+
+
+def get_num_queries_per_time_interval(
+    rows: pd.DataFrame,
+    time_gap: int = 10,
+) -> (List, npt.NDArray, npt.NDArray):
+    """
+    Get the number of queries per time interval every {time_gap} minutes
+    time_gap: provide aggregated stats every {time_interval} minutes, for current implementation
+            please make it a number divisible by 60
+    """
+    rows = rows.sort_values("time_since_execution_s", ascending=True)
+    time_intervals = []
+    all_time_intervals = []
+    for h in range(24):
+        hour = str(h) if h >= 10 else f"0{h}"
+        for m in range(0, 60, time_gap):
+            minute = str(m) if m >= 10 else f"0{m}"
+            time_intervals.append(f"{hour}:{minute}:00")
+            all_time_intervals.append(h * 3600 + m * 60)
+
+    start_time = rows["time_since_execution_s"].values
+    all_queries_runtime = rows["run_time_s"].values
+    end_time = start_time + all_queries_runtime
+
+    num_queries = []
+    num_concurrent_queries = []
+
+    start_idx = 0  # the start index of the loop
+    for t in all_time_intervals[1:]:
+        end_idx = np.searchsorted(start_time, t)
+        if end_idx == start_idx:
+            num_queries.append(0)
+            num_concurrent_queries.append(0)
+            continue
+        num_queries.append(end_idx - start_idx)
+        num_concurrent_queries_cnt = 0
+        for i in range(start_idx, end_idx):
+            s = start_time[i]
+            e = end_time[i]
+            if i < len(start_time) - 1:
+                ne = np.searchsorted(
+                    start_time[i + 1:], e
+                )  # number of queries start after s and before e
+            else:
+                ne = 0
+            ns = np.sum(
+                end_time[:i] > s
+            )  # number of queries start before s and ends after s
+            num_concurrent_queries_cnt += ne + ns
+        num_concurrent_queries.append(
+            num_concurrent_queries_cnt / (end_idx - start_idx)
+        )
+        start_idx = end_idx
+
+    return (
+        time_intervals,
+        num_queries,
+        num_concurrent_queries,
+        all_queries_runtime,
+    )
+
 

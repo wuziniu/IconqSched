@@ -70,7 +70,7 @@ def get_num_queries_per_time_interval(
     dates: List[str] = None,
     time_gap: int = 10,
     day_type: str = "all",
-    aggregate: bool = True,
+    aggregate: bool = True
 ) -> (List, npt.NDArray, npt.NDArray):
     """
     Get the number of queries per time interval of the given dates
@@ -118,12 +118,13 @@ def get_num_queries_per_time_interval(
 
     start_time = rows["createdTime"].values
     end = rows["endTime"].values
+    all_queries_runtime = rows["durationTotal"].values / 1000
+
     idx = np.argsort(start_time)
     start_time = start_time[idx].astype("datetime64[ns]")
     end_time = end[idx].astype("datetime64[ns]")
 
     num_queries = []
-    all_queries_runtime = rows["durationTotal"].values / 1000
     num_concurrent_queries = []
     all_time_interval = []
     outer_start = 0  # the start index of outer loop

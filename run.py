@@ -193,6 +193,8 @@ def warmup_run(query_bank_path: str) -> None:
 def replay_workload(
     workload_directory: str, save_result_dir: str, query_bank_path: str, baseline: bool
 ) -> None:
+    if not os.path.exists(save_result_dir):
+        os.makedirs(save_result_dir)
     if args.debug:
         verbose_log_dir = os.path.join(save_result_dir, "verbose_logs")
         if not os.path.exists(verbose_log_dir):

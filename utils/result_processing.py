@@ -136,3 +136,19 @@ def realign_execution_start_time(path: str, inplace: bool = True) -> pd.DataFram
     if inplace:
         results.to_csv(path, index=False)
     return results
+
+
+def generate_gaussian_time_gap(start_t: np.ndarray,
+                               time_gap_mean: float = 5.0,
+                               time_gap_var: float = 1.0
+                               ) -> np.ndarray:
+    new_start_t: List[float] = [start_t[0]]
+    for i in range(1, len(start_t)):
+        cur_start_t = start_t[i]
+        old_time_gap = cur_start_t - start_t[i-1]
+        if old_time_gap < time_gap_mean + time_gap_var:
+            time_gap = old_time_gap + np.abs(np.random.normal(time_gap_mean, time_gap_var))
+        else:
+            time_gap = old_time_gap
+        new_start_t.append(new_start_t[i-1] + time_gap)
+    return np.asarray(new_start_t)
