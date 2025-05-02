@@ -439,7 +439,7 @@ class Executor:
         cur = self.get_connection_sync()
         with open(query_file, "r") as f:
             queries_text = f.read()
-        queries = queries_text.split(";")[:-1]
+        queries = queries_text.split(";\n\n")[:-1]
         queries = [q.strip() + ";" for q in queries]
         if selected_query_idx_path is not None:
             all_possible_query_idx = np.load(selected_query_idx_path)
@@ -533,7 +533,7 @@ class Executor:
         self.num_clients = num_clients
         with open(query_file, "r") as f:
             queries_text = f.read()
-        queries = queries_text.split(";")[:-1]
+        queries = queries_text.split(";\n\n")[:-1]
         queries = [q.strip() + ";" for q in queries]
         if selected_query_idx_path is not None:
             all_possible_query_idx = np.load(selected_query_idx_path)
@@ -677,7 +677,7 @@ class Executor:
         if "sql" not in concurrency_df.columns:
             with open(query_file, "r") as f:
                 queries_text = f.read()
-            queries = queries_text.split(";")[:-1]
+            queries = queries_text.split(";\n\n")[:-1]
             all_query_sql = [queries[int(i)].strip() + ';' for i in all_query_idx]
         else:
             all_query_sql = concurrency_df["sql"].values

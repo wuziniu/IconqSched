@@ -8,12 +8,15 @@ You can find the saved checkpoints in models/_checkpoints and skip the part on c
 In this work we use the IMDB dataset (scaled to 100GB) and the queries used in BRAD paper: https://github.com/mitdbg/brad.
 We also used the Cloud Analytic Benchmark based on TPC-H: https://github.com/alexandervanrenen/cab.
 
-A subset of these queries can be found in workloads/postgres/{workload_name}_queries.sql and workloads/redshift/ 
-We also included the parsed query plans for these queries ({workload_name}_parsed_query_plans.json). 
+A subset of these queries can be found in workloads/postgres/{workload_name}_queries.sql and workloads/redshift/
+We also included the parsed query plans for these queries (e.g., {workload_name}_parsed_query_plans.json). 
+
 Example workload traces are provided in workloads/postgres/{snowset or tpc_sf}_query_trace.csv
 For BRAD workload, you can replay other traces using workloads/workload_tools (you can execute python3 run.py --minic_snowset_workload).
 For CAB workload, you can modify cab/benchmark-gen to generate different traces.
-The script parser/parse_plan.py invokes the Postgres/Redshift "EXPLAIN" function and parses the outputs, you can execute python3 run.py --parse_explain.
+
+The script parser/parse_plan.py invokes the Postgres/Redshift "EXPLAIN" function and parses the outputs, 
+you can execute python3 run.py --parse_explain with appropriate arguments
 
 utils/load_database.py provides instructions on loading the tpc/imdb data into your Postgres/Redshift clusters.
 
@@ -35,7 +38,7 @@ python3 run.py \
 ```
 Change --database and --query_bank_path to corresponding workload and engines.
 
-After warming up, execute the queries with k clients issuing queries in a close loop
+After warming up, execute k clients issuing the queries in a close loop
 ```angular2html
 python3 run.py \
       --run_k_client_in_parallel \
@@ -62,7 +65,7 @@ python3 run.py \
       --train_concurrent_rnn \
       --model_name postgres_brad \
       --directory saved_results \
-      --parsed_queries_path workloads/postgres/brad_parsed_query_plans.sql \
+      --parsed_queries_path workloads/postgres/brad_parsed_query_plans.json \
       --target_path models/_checkpoints \
       --rnn_type bilstm \
       --use_size \

@@ -279,7 +279,8 @@ def parse_one_plan_online(
     partial_column_name_mapping: Mapping[str, Set[str]],
     table_id_mapping: Mapping[str, int],
     db_conn: psycopg.connection,
-    verbose: bool = True
+    verbose: bool = True,
+    database: str = 'postgres',
 ) -> PlanOperator:
     with db_conn.cursor() as cur:
         if verbose:
@@ -302,6 +303,9 @@ def parse_one_plan_online(
     )
     verbose_plan.tables = tables
     verbose_plan.num_tables = len(tables)
+    if database == 'redshift':
+        # the redshift explain is not clean, we will process it by removing the internal tables.
+        verbose_plan = verbose_plan.post_processing_redshift_plan(sql, True)
     return verbose_plan
 
 
@@ -368,7 +372,7 @@ def get_query_plans(query_file: str,
 
     with open(query_file, "r") as f:
         queries_text = f.read()
-    queries = queries_text.split(";")[:-1]
+    queries = queries_text.split(";\n\n")[:-1]
     queries = [q.strip() + ";" for q in queries]
 
     column_id_mapping: Dict[Tuple[str, str], int] = dict()
@@ -387,12 +391,28 @@ def get_query_plans(query_file: str,
 
     parsed_plans: List = []
     for query in tqdm(queries):
-        verbose_plan = parse_one_plan_online(query,
-                                             column_id_mapping,
-                                             partial_column_name_mapping,
-                                             table_id_mapping,
-                                             db_conn,
-                                             verbose=verbose)
+        if ";\n" in query:
+            verbose_plan = []
+            for q in query.split(";\n"):
+                q = q.strip()
+                if len(q) != 0:
+                    q += ';'
+                    verbose_plan_q = parse_one_plan_online(q,
+                                                           column_id_mapping,
+                                                           partial_column_name_mapping,
+                                                           table_id_mapping,
+                                                           db_conn,
+                                                           verbose=verbose,
+                                                           database=database)
+                    verbose_plan.append(verbose_plan_q)
+        else:
+            verbose_plan = parse_one_plan_online(query,
+                                                 column_id_mapping,
+                                                 partial_column_name_mapping,
+                                                 table_id_mapping,
+                                                 db_conn,
+                                                 verbose=verbose,
+                                                 database=database)
         parsed_plans.append(verbose_plan)
 
     parsed_queries = dict(database_stats=database_stats, parsed_plans=parsed_plans)

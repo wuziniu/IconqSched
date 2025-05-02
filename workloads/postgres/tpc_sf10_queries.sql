@@ -15,6 +15,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -50,6 +51,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -78,6 +80,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_shipmode,
 	sum(case
@@ -106,6 +109,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	c_name,
 	c_custkey,
@@ -138,6 +142,7 @@ group by
 order by
 	o_totalprice desc,
 	o_orderdate;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -159,6 +164,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -194,6 +200,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -237,6 +244,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -265,6 +273,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -287,6 +296,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	c_custkey,
 	c_name,
@@ -318,6 +328,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -361,6 +372,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -388,6 +400,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -409,6 +422,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -430,6 +444,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -467,6 +482,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -488,6 +504,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	c_custkey,
 	c_name,
@@ -519,6 +536,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	s_name,
 	s_address
@@ -556,6 +574,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	c_count,
 	count(*) as custdist
@@ -576,6 +595,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -613,6 +633,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -656,6 +677,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -665,6 +687,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -674,6 +697,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 8 - 0.01 and 8 + 0.01
 	and l_quantity < 24;
+
 select
 	l_shipmode,
 	sum(case
@@ -702,6 +726,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -715,6 +740,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-09-01'
 	and l_shipdate < date '1996-09-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -752,6 +778,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -784,6 +811,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -797,6 +825,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-11-01'
 	and l_shipdate < date '1994-11-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -834,6 +863,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -877,6 +907,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -914,6 +945,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -936,6 +968,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -979,6 +1012,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -1016,6 +1050,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -1040,6 +1075,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -1067,6 +1103,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -1089,6 +1126,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -1098,6 +1136,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 25;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -1111,6 +1150,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-05-01'
 	and l_shipdate < date '1996-05-01' + interval '1' month;
+
 select
 	c_name,
 	c_custkey,
@@ -1143,6 +1183,7 @@ group by
 order by
 	o_totalprice desc,
 	o_orderdate;
+
 select
 	c_custkey,
 	c_name,
@@ -1174,6 +1215,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -1205,6 +1247,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -1240,6 +1283,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -1277,6 +1321,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	count(*) as numwait
@@ -1316,6 +1361,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -1325,6 +1371,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 24;
+
 select
 	c_custkey,
 	c_name,
@@ -1356,6 +1403,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -1383,6 +1431,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -1407,6 +1456,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -1431,6 +1481,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	s_name,
 	count(*) as numwait
@@ -1470,6 +1521,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -1494,6 +1546,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -1511,6 +1564,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -1524,6 +1578,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-03-01'
 	and l_shipdate < date '1997-03-01' + interval '1' month;
+
 select
 	p_brand,
 	p_type,
@@ -1554,6 +1609,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -1563,6 +1619,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 24;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -1600,6 +1657,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -1632,6 +1690,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -1669,6 +1728,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -1690,6 +1750,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -1721,6 +1782,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -1748,6 +1810,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -1769,6 +1832,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_acctbal,
 	s_name,
@@ -1812,6 +1876,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -1851,6 +1916,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -1873,6 +1939,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -1897,6 +1964,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -1914,6 +1982,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -1953,6 +2022,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -1981,6 +2051,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_year,
 	sum(case
@@ -2018,6 +2089,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -2039,6 +2111,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -2066,6 +2139,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -2079,6 +2153,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-11-01'
 	and l_shipdate < date '1995-11-01' + interval '1' month;
+
 select
 	c_count,
 	count(*) as custdist
@@ -2099,6 +2174,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -2123,6 +2199,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	c_count,
 	count(*) as custdist
@@ -2143,6 +2220,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -2180,6 +2258,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -2217,6 +2296,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -2256,6 +2336,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -2286,6 +2367,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -2295,6 +2377,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 24;
+
 select
 	s_name,
 	count(*) as numwait
@@ -2334,6 +2417,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -2371,6 +2455,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -2408,6 +2493,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -2421,6 +2507,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-05-01'
 	and l_shipdate < date '1994-05-01' + interval '1' month;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -2438,6 +2525,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	nation,
 	o_year,
@@ -2470,6 +2558,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	c_name,
 	c_custkey,
@@ -2502,6 +2591,7 @@ group by
 order by
 	o_totalprice desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -2532,6 +2622,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -2563,6 +2654,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -2580,6 +2672,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -2617,6 +2710,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -2634,6 +2728,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -2671,6 +2766,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -2695,6 +2791,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	c_count,
 	count(*) as custdist
@@ -2715,6 +2812,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -2728,6 +2826,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-06-01'
 	and l_shipdate < date '1993-06-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -2767,6 +2866,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -2784,6 +2884,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -2814,6 +2915,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -2836,6 +2938,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -2857,6 +2960,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_shipmode,
 	sum(case
@@ -2885,6 +2989,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	count(*) as numwait
@@ -2924,6 +3029,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -2937,6 +3043,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-11-01'
 	and l_shipdate < date '1997-11-01' + interval '1' month;
+
 select
 	p_brand,
 	p_type,
@@ -2967,6 +3074,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -2995,6 +3103,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -3030,6 +3139,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -3060,6 +3170,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -3088,6 +3199,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -3120,6 +3232,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -3157,6 +3270,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -3178,6 +3292,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -3209,6 +3324,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -3226,6 +3342,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -3250,6 +3367,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -3293,6 +3411,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -3314,6 +3433,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -3327,6 +3447,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-07-01'
 	and l_shipdate < date '1996-07-01' + interval '1' month;
+
 select
 	nation,
 	o_year,
@@ -3359,6 +3480,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	c_custkey,
 	c_name,
@@ -3390,6 +3512,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -3407,6 +3530,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -3444,6 +3568,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -3481,6 +3606,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -3494,6 +3620,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-11-01'
 	and l_shipdate < date '1993-11-01' + interval '1' month;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -3515,6 +3642,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -3552,6 +3680,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -3587,6 +3716,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -3624,6 +3754,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -3661,6 +3792,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -3682,6 +3814,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -3704,6 +3837,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -3731,6 +3865,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	c_custkey,
 	c_name,
@@ -3762,6 +3897,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	nation,
 	o_year,
@@ -3794,6 +3930,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -3803,6 +3940,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 25;
+
 select
 	l_shipmode,
 	sum(case
@@ -3831,6 +3969,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -3844,6 +3983,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-05-01'
 	and l_shipdate < date '1993-05-01' + interval '1' month;
+
 select
 	c_custkey,
 	c_name,
@@ -3875,6 +4015,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -3910,6 +4051,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -3938,6 +4080,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -3975,6 +4118,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -4012,6 +4156,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -4025,6 +4170,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-04-01'
 	and l_shipdate < date '1997-04-01' + interval '1' month;
+
 select
 	p_brand,
 	p_type,
@@ -4055,6 +4201,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -4087,6 +4234,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -4096,6 +4244,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 25;
+
 select
 	s_name,
 	count(*) as numwait
@@ -4135,6 +4284,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -4165,6 +4315,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -4202,6 +4353,7 @@ where
 	and n_name = 'UNITED KINGDOM'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -4219,6 +4371,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -4262,6 +4415,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -4299,6 +4453,7 @@ where
 	and n_name = 'ARGENTINA'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -4330,6 +4485,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -4358,6 +4514,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -4367,6 +4524,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 25;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -4380,6 +4538,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-06-01'
 	and l_shipdate < date '1995-06-01' + interval '1' month;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -4404,6 +4563,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	c_count,
 	count(*) as custdist
@@ -4424,6 +4584,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -4448,6 +4609,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -4491,6 +4653,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -4512,6 +4675,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	o_year,
 	sum(case
@@ -4549,6 +4713,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -4562,6 +4727,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-08-01'
 	and l_shipdate < date '1997-08-01' + interval '1' month;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -4599,6 +4765,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -4636,6 +4803,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -4673,6 +4841,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -4682,6 +4851,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 25;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -4713,6 +4883,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -4748,6 +4919,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -4791,6 +4963,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -4808,6 +4981,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	c_name,
 	c_custkey,
@@ -4840,6 +5014,7 @@ group by
 order by
 	o_totalprice desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -4883,6 +5058,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	c_count,
 	count(*) as custdist
@@ -4903,6 +5079,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -4924,6 +5101,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -4933,6 +5111,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 24;
+
 select
 	p_brand,
 	p_type,
@@ -4963,6 +5142,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -4984,6 +5164,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -5005,6 +5186,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	supp_nation,
 	cust_nation,
@@ -5044,6 +5226,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -5076,6 +5259,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -5097,6 +5281,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -5121,6 +5306,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -5152,6 +5338,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -5187,6 +5374,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -5224,6 +5412,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	c_custkey,
 	c_name,
@@ -5255,6 +5444,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -5268,6 +5458,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-07-01'
 	and l_shipdate < date '1995-07-01' + interval '1' month;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -5305,6 +5496,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -5314,6 +5506,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 24;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -5335,6 +5528,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -5370,6 +5564,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -5405,6 +5600,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -5426,6 +5622,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	c_count,
 	count(*) as custdist
@@ -5446,6 +5643,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -5489,6 +5687,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -5498,6 +5697,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 24;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -5529,6 +5729,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -5557,6 +5758,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -5596,6 +5798,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -5623,6 +5826,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -5640,6 +5844,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -5671,6 +5876,7 @@ where
 	)
 order by
 	s_suppkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -5702,6 +5908,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -5723,6 +5930,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -5740,6 +5948,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -5777,6 +5986,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -5808,6 +6018,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -5847,6 +6058,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -5890,6 +6102,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -5929,6 +6142,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -5964,6 +6178,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -6001,6 +6216,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -6033,6 +6249,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	count(*) as numwait
@@ -6072,6 +6289,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -6099,6 +6317,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -6112,6 +6331,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-06-01'
 	and l_shipdate < date '1996-06-01' + interval '1' month;
+
 select
 	c_count,
 	count(*) as custdist
@@ -6132,6 +6352,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -6153,6 +6374,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -6162,6 +6384,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 24;
+
 select
 	o_year,
 	sum(case
@@ -6199,6 +6422,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -6234,6 +6458,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -6277,6 +6502,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -6290,6 +6516,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-09-01'
 	and l_shipdate < date '1995-09-01' + interval '1' month;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -6307,6 +6534,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -6344,6 +6572,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -6368,6 +6597,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -6411,6 +6641,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -6450,6 +6681,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -6459,6 +6691,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 25;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -6486,6 +6719,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	c_custkey,
 	c_name,
@@ -6517,6 +6751,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	supp_nation,
 	cust_nation,
@@ -6556,6 +6791,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -6573,6 +6809,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -6582,6 +6819,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 25;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -6609,6 +6847,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -6652,6 +6891,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -6689,6 +6929,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	c_count,
 	count(*) as custdist
@@ -6709,6 +6950,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	nation,
 	o_year,
@@ -6741,6 +6983,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -6768,6 +7011,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -6781,6 +7025,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-12-01'
 	and l_shipdate < date '1994-12-01' + interval '1' month;
+
 select
 	c_custkey,
 	c_name,
@@ -6812,6 +7057,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -6821,6 +7067,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 24;
+
 select
 	p_brand,
 	p_type,
@@ -6851,6 +7098,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -6883,6 +7131,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -6920,6 +7169,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -6955,6 +7205,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -6994,6 +7245,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -7026,6 +7278,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -7050,6 +7303,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -7063,6 +7317,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-07-01'
 	and l_shipdate < date '1993-07-01' + interval '1' month;
+
 select
 	s_acctbal,
 	s_name,
@@ -7106,6 +7361,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	nation,
 	o_year,
@@ -7138,6 +7394,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -7155,6 +7412,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -7194,6 +7452,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -7233,6 +7492,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -7268,6 +7528,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -7303,6 +7564,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -7312,6 +7574,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -7329,6 +7592,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	c_custkey,
 	c_name,
@@ -7360,6 +7624,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -7388,6 +7653,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -7425,6 +7691,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -7468,6 +7735,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -7489,6 +7757,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -7511,6 +7780,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	c_count,
 	count(*) as custdist
@@ -7531,6 +7801,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	o_year,
 	sum(case
@@ -7568,6 +7839,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -7605,6 +7877,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -7642,6 +7915,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -7670,6 +7944,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -7702,6 +7977,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	s_address
@@ -7739,6 +8015,7 @@ where
 	and n_name = 'VIETNAM'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -7761,6 +8038,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -7798,6 +8076,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -7825,6 +8104,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -7838,6 +8118,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-12-01'
 	and l_shipdate < date '1995-12-01' + interval '1' month;
+
 select
 	o_year,
 	sum(case
@@ -7875,6 +8156,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -7914,6 +8196,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -7935,6 +8218,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -7944,6 +8228,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 25;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -7981,6 +8266,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -8002,6 +8288,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -8037,6 +8324,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8054,6 +8342,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -8063,6 +8352,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 24;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -8084,6 +8374,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -8121,6 +8412,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -8142,6 +8434,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	c_custkey,
 	c_name,
@@ -8173,6 +8466,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8190,6 +8484,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -8211,6 +8506,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -8246,6 +8542,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -8274,6 +8571,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -8306,6 +8604,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -8334,6 +8633,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8351,6 +8651,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -8375,6 +8676,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -8406,6 +8708,7 @@ where
 	)
 order by
 	s_suppkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -8437,6 +8740,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8454,6 +8758,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8471,6 +8776,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -8508,6 +8814,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -8525,6 +8832,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -8553,6 +8861,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -8583,6 +8892,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -8604,6 +8914,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	p_brand,
 	p_type,
@@ -8634,6 +8945,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -8664,6 +8976,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -8691,6 +9004,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -8719,6 +9033,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_acctbal,
 	s_name,
@@ -8762,6 +9077,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -8799,6 +9115,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -8838,6 +9155,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -8859,6 +9177,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_shipmode,
 	sum(case
@@ -8887,6 +9206,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_year,
 	sum(case
@@ -8924,6 +9244,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -8963,6 +9284,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -8995,6 +9317,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -9016,6 +9339,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -9059,6 +9383,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -9076,6 +9401,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -9089,6 +9415,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-01-01'
 	and l_shipdate < date '1993-01-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -9128,6 +9455,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -9145,6 +9473,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -9182,6 +9511,7 @@ where
 	and n_name = 'INDIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9217,6 +9547,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -9226,6 +9557,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 24;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -9247,6 +9579,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9282,6 +9615,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -9295,6 +9629,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-12-01'
 	and l_shipdate < date '1997-12-01' + interval '1' month;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -9317,6 +9652,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9352,6 +9688,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -9380,6 +9717,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9415,6 +9753,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -9452,6 +9791,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -9482,6 +9822,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -9491,6 +9832,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 25;
+
 select
 	p_brand,
 	p_type,
@@ -9521,6 +9863,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9556,6 +9899,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -9591,6 +9935,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -9628,6 +9973,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	nation,
 	o_year,
@@ -9660,6 +10006,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -9703,6 +10050,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	c_custkey,
 	c_name,
@@ -9734,6 +10082,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	supp_nation,
 	cust_nation,
@@ -9773,6 +10122,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -9810,6 +10160,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -9847,6 +10198,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -9878,6 +10230,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -9915,6 +10268,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -9946,6 +10300,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	s_address
@@ -9983,6 +10338,7 @@ where
 	and n_name = 'BRAZIL'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -10004,6 +10360,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	nation,
 	o_year,
@@ -10036,6 +10393,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	s_address
@@ -10073,6 +10431,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -10104,6 +10463,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -10131,6 +10491,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	c_count,
 	count(*) as custdist
@@ -10151,6 +10512,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -10172,6 +10534,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	supp_nation,
 	cust_nation,
@@ -10211,6 +10574,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	c_custkey,
 	c_name,
@@ -10242,6 +10606,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -10270,6 +10635,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -10302,6 +10668,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -10329,6 +10696,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -10356,6 +10724,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	o_year,
 	sum(case
@@ -10393,6 +10762,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -10423,6 +10793,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -10451,6 +10822,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -10475,6 +10847,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -10512,6 +10885,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -10521,6 +10895,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 25;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -10542,6 +10917,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	o_year,
 	sum(case
@@ -10579,6 +10955,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -10616,6 +10993,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -10637,6 +11015,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -10672,6 +11051,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -10689,6 +11069,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -10711,6 +11092,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -10748,6 +11130,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -10783,6 +11166,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -10800,6 +11184,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -10839,6 +11224,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -10848,6 +11234,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 24;
+
 select
 	supp_nation,
 	cust_nation,
@@ -10887,6 +11274,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -10924,6 +11312,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -10945,6 +11334,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -10962,6 +11352,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -11001,6 +11392,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -11029,6 +11421,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -11066,6 +11459,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	count(*) as numwait
@@ -11105,6 +11499,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -11137,6 +11532,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -11165,6 +11561,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -11197,6 +11594,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	o_year,
 	sum(case
@@ -11234,6 +11632,7 @@ group by
 	o_year
 order by
 	o_year;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -11265,6 +11664,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	c_custkey,
 	c_name,
@@ -11296,6 +11696,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -11318,6 +11719,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -11348,6 +11750,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -11385,6 +11788,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -11398,6 +11802,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-04-01'
 	and l_shipdate < date '1994-04-01' + interval '1' month;
+
 select
 	s_acctbal,
 	s_name,
@@ -11441,6 +11846,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -11454,6 +11860,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-07-01'
 	and l_shipdate < date '1994-07-01' + interval '1' month;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -11475,6 +11882,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_name,
 	s_address
@@ -11512,6 +11920,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -11533,6 +11942,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -11554,6 +11964,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	nation,
 	o_year,
@@ -11586,6 +11997,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -11617,6 +12029,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -11639,6 +12052,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_shipmode,
 	sum(case
@@ -11667,6 +12081,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -11697,6 +12112,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -11721,6 +12137,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -11743,6 +12160,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	c_custkey,
 	c_name,
@@ -11774,6 +12192,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -11783,6 +12202,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 24;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -11804,6 +12224,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -11825,6 +12246,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	p_brand,
 	p_type,
@@ -11855,6 +12277,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -11892,6 +12315,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -11927,6 +12351,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -11966,6 +12391,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -12003,6 +12429,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -12025,6 +12452,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -12034,6 +12462,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 25;
+
 select
 	o_year,
 	sum(case
@@ -12071,6 +12500,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -12110,6 +12540,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -12132,6 +12563,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	nation,
 	o_year,
@@ -12164,6 +12596,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -12173,6 +12606,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 25;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -12194,6 +12628,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -12211,6 +12646,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -12242,6 +12678,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -12281,6 +12718,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -12318,6 +12756,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -12340,6 +12779,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -12377,6 +12817,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -12414,6 +12855,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	c_custkey,
 	c_name,
@@ -12445,6 +12887,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -12476,6 +12919,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -12489,6 +12933,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-09-01'
 	and l_shipdate < date '1993-09-01' + interval '1' month;
+
 select
 	l_shipmode,
 	sum(case
@@ -12517,6 +12962,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -12544,6 +12990,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -12587,6 +13034,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -12611,6 +13059,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -12628,6 +13077,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -12650,6 +13100,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -12685,6 +13136,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -12702,6 +13154,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -12739,6 +13192,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -12761,6 +13215,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -12791,6 +13246,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -12821,6 +13277,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -12838,6 +13295,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -12873,6 +13331,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -12890,6 +13349,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -12927,6 +13387,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -12970,6 +13431,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -12991,6 +13453,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -13028,6 +13491,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -13059,6 +13523,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -13068,6 +13533,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 24;
+
 select
 	l_shipmode,
 	sum(case
@@ -13096,6 +13562,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -13133,6 +13600,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -13170,6 +13638,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -13187,6 +13656,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -13208,6 +13678,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -13245,6 +13716,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	count(*) as numwait
@@ -13284,6 +13756,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -13305,6 +13778,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -13326,6 +13800,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_shipmode,
 	sum(case
@@ -13354,6 +13829,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -13371,6 +13847,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -13408,6 +13885,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -13445,6 +13923,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -13454,6 +13933,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 24;
+
 select
 	s_name,
 	s_address
@@ -13491,6 +13971,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -13526,6 +14007,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -13558,6 +14040,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	s_address
@@ -13595,6 +14078,7 @@ where
 	and n_name = 'INDIA'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -13625,6 +14109,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -13660,6 +14145,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -13691,6 +14177,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -13730,6 +14217,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -13743,6 +14231,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-10-01'
 	and l_shipdate < date '1995-10-01' + interval '1' month;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -13765,6 +14254,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -13808,6 +14298,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -13845,6 +14336,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -13867,6 +14359,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	supp_nation,
 	cust_nation,
@@ -13906,6 +14399,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -13930,6 +14424,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	o_year,
 	sum(case
@@ -13967,6 +14462,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -14004,6 +14500,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -14041,6 +14538,7 @@ where
 	and n_name = 'CHINA'
 order by
 	s_name;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -14062,6 +14560,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	p_brand,
 	p_type,
@@ -14092,6 +14591,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	c_count,
 	count(*) as custdist
@@ -14112,6 +14612,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	s_name,
 	s_address
@@ -14149,6 +14650,7 @@ where
 	and n_name = 'BRAZIL'
 order by
 	s_name;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -14170,6 +14672,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_name,
 	s_address
@@ -14207,6 +14710,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -14244,6 +14748,7 @@ where
 	and n_name = 'ROMANIA'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -14265,6 +14770,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -14302,6 +14808,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -14334,6 +14841,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -14347,6 +14855,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-04-01'
 	and l_shipdate < date '1995-04-01' + interval '1' month;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -14382,6 +14891,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -14412,6 +14922,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -14442,6 +14953,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -14466,6 +14978,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -14479,6 +14992,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-02-01'
 	and l_shipdate < date '1996-02-01' + interval '1' month;
+
 select
 	o_year,
 	sum(case
@@ -14516,6 +15030,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -14551,6 +15066,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -14588,6 +15104,7 @@ where
 	and n_name = 'VIETNAM'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -14610,6 +15127,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -14645,6 +15163,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -14666,6 +15185,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	l_shipmode,
 	sum(case
@@ -14694,6 +15214,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -14703,6 +15224,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 25;
+
 select
 	o_year,
 	sum(case
@@ -14740,6 +15262,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -14777,6 +15300,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -14786,6 +15310,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -14821,6 +15346,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -14853,6 +15379,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -14888,6 +15415,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -14925,6 +15453,7 @@ where
 	and n_name = 'MOZAMBIQUE'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -14946,6 +15475,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -14983,6 +15513,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -15000,6 +15531,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -15035,6 +15567,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -15052,6 +15585,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -15074,6 +15608,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_shipmode,
 	sum(case
@@ -15102,6 +15637,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -15119,6 +15655,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -15149,6 +15686,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -15184,6 +15722,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -15197,6 +15736,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-08-01'
 	and l_shipdate < date '1995-08-01' + interval '1' month;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -15219,6 +15759,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -15254,6 +15795,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -15293,6 +15835,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -15320,6 +15863,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -15337,6 +15881,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -15374,6 +15919,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -15404,6 +15950,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	c_count,
 	count(*) as custdist
@@ -15424,6 +15971,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -15451,6 +15999,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -15460,6 +16009,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 25;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -15484,6 +16034,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	nation,
 	o_year,
@@ -15516,6 +16067,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -15525,6 +16077,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 24;
+
 select
 	p_brand,
 	p_type,
@@ -15555,6 +16108,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -15587,6 +16141,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -15608,6 +16163,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -15635,6 +16191,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -15678,6 +16235,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -15715,6 +16273,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -15752,6 +16311,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -15765,6 +16325,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-08-01'
 	and l_shipdate < date '1994-08-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -15804,6 +16365,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -15832,6 +16394,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -15841,6 +16404,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 24;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -15854,6 +16418,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-03-01'
 	and l_shipdate < date '1996-03-01' + interval '1' month;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -15891,6 +16456,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	count(*) as numwait
@@ -15930,6 +16496,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -15962,6 +16529,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -15990,6 +16558,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -16011,6 +16580,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_year,
 	sum(case
@@ -16048,6 +16618,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -16069,6 +16640,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_name,
 	s_address
@@ -16106,6 +16678,7 @@ where
 	and n_name = 'GERMANY'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -16128,6 +16701,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -16165,6 +16739,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	s_name,
 	count(*) as numwait
@@ -16204,6 +16779,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -16243,6 +16819,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -16286,6 +16863,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -16303,6 +16881,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -16312,6 +16891,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 24;
+
 select
 	s_name,
 	s_address
@@ -16349,6 +16929,7 @@ where
 	and n_name = 'ARGENTINA'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -16371,6 +16952,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -16392,6 +16974,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	supp_nation,
 	cust_nation,
@@ -16431,6 +17014,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -16452,6 +17036,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -16473,6 +17058,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -16510,6 +17096,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -16538,6 +17125,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -16570,6 +17158,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -16587,6 +17176,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -16615,6 +17205,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -16645,6 +17236,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -16682,6 +17274,7 @@ where
 	and n_name = 'UNITED KINGDOM'
 order by
 	s_name;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -16706,6 +17299,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -16719,6 +17313,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-05-01'
 	and l_shipdate < date '1997-05-01' + interval '1' month;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -16741,6 +17336,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -16763,6 +17359,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -16776,6 +17373,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-03-01'
 	and l_shipdate < date '1995-03-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -16813,6 +17411,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -16856,6 +17455,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	nation,
 	o_year,
@@ -16888,6 +17488,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -16923,6 +17524,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	c_custkey,
 	c_name,
@@ -16954,6 +17556,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	s_name,
 	s_address
@@ -16991,6 +17594,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -17021,6 +17625,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -17038,6 +17643,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -17077,6 +17683,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -17105,6 +17712,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -17126,6 +17734,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -17157,6 +17766,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -17174,6 +17784,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -17202,6 +17813,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -17239,6 +17851,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	l_shipmode,
 	sum(case
@@ -17267,6 +17880,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_shipmode,
 	sum(case
@@ -17295,6 +17909,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -17304,6 +17919,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 25;
+
 select
 	l_shipmode,
 	sum(case
@@ -17332,6 +17948,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -17369,6 +17986,7 @@ where
 	and n_name = 'ROMANIA'
 order by
 	s_name;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -17390,6 +18008,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	nation,
 	o_year,
@@ -17422,6 +18041,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -17465,6 +18085,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -17502,6 +18123,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -17537,6 +18159,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -17574,6 +18197,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -17611,6 +18235,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -17624,6 +18249,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-03-01'
 	and l_shipdate < date '1994-03-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -17663,6 +18289,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -17700,6 +18327,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -17737,6 +18365,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -17776,6 +18405,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -17793,6 +18423,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -17823,6 +18454,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -17844,6 +18476,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_name,
 	s_address
@@ -17881,6 +18514,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -17894,6 +18528,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-01-01'
 	and l_shipdate < date '1997-01-01' + interval '1' month;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -17915,6 +18550,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	supp_nation,
 	cust_nation,
@@ -17954,6 +18590,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -17971,6 +18608,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -18008,6 +18646,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -18038,6 +18677,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -18073,6 +18713,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -18110,6 +18751,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -18138,6 +18780,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -18175,6 +18818,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -18197,6 +18841,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -18232,6 +18877,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -18262,6 +18908,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -18299,6 +18946,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -18331,6 +18979,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -18359,6 +19008,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -18389,6 +19039,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -18432,6 +19083,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -18453,6 +19105,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	p_brand,
 	p_type,
@@ -18483,6 +19136,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -18513,6 +19167,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -18544,6 +19199,7 @@ where
 	)
 order by
 	s_suppkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -18575,6 +19231,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -18592,6 +19249,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -18629,6 +19287,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -18650,6 +19309,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_name,
 	count(*) as numwait
@@ -18689,6 +19349,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -18724,6 +19385,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -18761,6 +19423,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -18783,6 +19446,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -18826,6 +19490,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -18839,6 +19504,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-04-01'
 	and l_shipdate < date '1996-04-01' + interval '1' month;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -18866,6 +19532,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -18894,6 +19561,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -18918,6 +19586,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -18953,6 +19622,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -18990,6 +19660,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -19029,6 +19700,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -19072,6 +19744,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -19107,6 +19780,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -19144,6 +19818,7 @@ where
 	and n_name = 'INDIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -19153,6 +19828,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 24;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -19190,6 +19866,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -19229,6 +19906,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -19272,6 +19950,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -19300,6 +19979,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -19321,6 +20001,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -19364,6 +20045,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -19401,6 +20083,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	p_brand,
 	p_type,
@@ -19431,6 +20114,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -19463,6 +20147,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	o_year,
 	sum(case
@@ -19500,6 +20185,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -19543,6 +20229,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -19560,6 +20247,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	count(*) as numwait
@@ -19599,6 +20287,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -19634,6 +20323,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -19655,6 +20345,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -19690,6 +20381,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -19707,6 +20399,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -19737,6 +20430,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -19780,6 +20474,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -19808,6 +20503,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -19829,6 +20525,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -19864,6 +20561,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -19901,6 +20599,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -19923,6 +20622,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -19936,6 +20636,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-06-01'
 	and l_shipdate < date '1994-06-01' + interval '1' month;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -19953,6 +20654,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -19990,6 +20692,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	s_name,
 	count(*) as numwait
@@ -20029,6 +20732,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -20060,6 +20764,7 @@ where
 	)
 order by
 	s_suppkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -20091,6 +20796,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	p_brand,
 	p_type,
@@ -20121,6 +20827,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -20143,6 +20850,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_shipmode,
 	sum(case
@@ -20171,6 +20879,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -20192,6 +20901,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_year,
 	sum(case
@@ -20229,6 +20939,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	count(*) as numwait
@@ -20268,6 +20979,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -20303,6 +21015,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -20340,6 +21053,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -20383,6 +21097,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -20420,6 +21135,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -20457,6 +21173,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -20494,6 +21211,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -20529,6 +21247,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -20538,6 +21257,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 25;
+
 select
 	supp_nation,
 	cust_nation,
@@ -20577,6 +21297,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -20607,6 +21328,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	supp_nation,
 	cust_nation,
@@ -20646,6 +21368,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -20681,6 +21404,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -20702,6 +21426,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -20724,6 +21449,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -20761,6 +21487,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	count(*) as numwait
@@ -20800,6 +21527,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -20839,6 +21567,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	c_count,
 	count(*) as custdist
@@ -20859,6 +21588,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -20876,6 +21606,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -20898,6 +21629,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -20920,6 +21652,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -20937,6 +21670,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -20974,6 +21708,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -20991,6 +21726,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	c_custkey,
 	c_name,
@@ -21022,6 +21758,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -21043,6 +21780,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -21056,6 +21794,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-01-01'
 	and l_shipdate < date '1995-01-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -21095,6 +21834,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -21138,6 +21878,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -21175,6 +21916,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -21184,6 +21926,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 25;
+
 select
 	s_name,
 	s_address
@@ -21221,6 +21964,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -21238,6 +21982,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -21269,6 +22014,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -21308,6 +22054,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -21351,6 +22098,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -21390,6 +22138,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -21433,6 +22182,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -21463,6 +22213,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -21500,6 +22251,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -21517,6 +22269,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -21554,6 +22307,7 @@ where
 	and n_name = 'ETHIOPIA'
 order by
 	s_name;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -21581,6 +22335,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -21602,6 +22357,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -21623,6 +22379,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -21666,6 +22423,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -21703,6 +22461,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -21746,6 +22505,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -21785,6 +22545,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -21807,6 +22568,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -21844,6 +22606,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	l_shipmode,
 	sum(case
@@ -21872,6 +22635,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -21911,6 +22675,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -21948,6 +22713,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -21985,6 +22751,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -22024,6 +22791,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -22061,6 +22829,7 @@ where
 	and n_name = 'ETHIOPIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -22096,6 +22865,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -22118,6 +22888,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -22153,6 +22924,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -22185,6 +22957,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -22194,6 +22967,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 24;
+
 select
 	p_brand,
 	p_type,
@@ -22224,6 +22998,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -22252,6 +23027,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -22287,6 +23063,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -22308,6 +23085,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -22317,6 +23095,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 25;
+
 select
 	supp_nation,
 	cust_nation,
@@ -22356,6 +23135,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -22383,6 +23163,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -22426,6 +23207,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -22450,6 +23232,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -22493,6 +23276,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -22530,6 +23314,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -22547,6 +23332,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -22568,6 +23354,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -22611,6 +23398,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -22639,6 +23427,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_shipmode,
 	sum(case
@@ -22667,6 +23456,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -22698,6 +23488,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -22707,6 +23498,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 25;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -22742,6 +23534,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -22781,6 +23574,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -22818,6 +23612,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -22857,6 +23652,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -22894,6 +23690,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -22931,6 +23728,7 @@ where
 	and n_name = 'ETHIOPIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -22948,6 +23746,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -22991,6 +23790,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -23028,6 +23828,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	c_count,
 	count(*) as custdist
@@ -23048,6 +23849,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	p_brand,
 	p_type,
@@ -23078,6 +23880,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -23100,6 +23903,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	nation,
 	o_year,
@@ -23132,6 +23936,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -23149,6 +23954,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -23184,6 +23990,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -23193,6 +24000,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 25;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -23230,6 +24038,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -23267,6 +24076,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -23302,6 +24112,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -23332,6 +24143,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -23364,6 +24176,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -23392,6 +24205,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	nation,
 	o_year,
@@ -23424,6 +24238,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -23459,6 +24274,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -23502,6 +24318,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -23532,6 +24349,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -23562,6 +24380,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -23579,6 +24398,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -23596,6 +24416,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -23617,6 +24438,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_name,
 	count(*) as numwait
@@ -23656,6 +24478,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -23699,6 +24522,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -23726,6 +24550,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
@@ -23753,6 +24578,7 @@ group by
 		)
 order by
 	value desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -23796,6 +24622,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -23833,6 +24660,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	l_shipmode,
 	sum(case
@@ -23861,6 +24689,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -23878,6 +24707,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	c_custkey,
 	c_name,
@@ -23909,6 +24739,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -23952,6 +24783,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -23987,6 +24819,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -24004,6 +24837,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -24043,6 +24877,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -24065,6 +24900,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_shipmode,
 	sum(case
@@ -24093,6 +24929,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -24130,6 +24967,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -24162,6 +25000,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -24193,6 +25032,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -24202,6 +25042,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 25;
+
 select
 	o_year,
 	sum(case
@@ -24239,6 +25080,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -24252,6 +25094,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-02-01'
 	and l_shipdate < date '1994-02-01' + interval '1' month;
+
 select
 	p_brand,
 	p_type,
@@ -24282,6 +25125,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -24317,6 +25161,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -24338,6 +25183,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	nation,
 	o_year,
@@ -24370,6 +25216,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	supp_nation,
 	cust_nation,
@@ -24409,6 +25256,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -24444,6 +25292,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -24472,6 +25321,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -24502,6 +25352,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -24532,6 +25383,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -24562,6 +25414,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -24583,6 +25436,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -24596,6 +25450,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-02-01'
 	and l_shipdate < date '1997-02-01' + interval '1' month;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -24618,6 +25473,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -24653,6 +25509,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -24692,6 +25549,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -24724,6 +25582,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -24759,6 +25618,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -24796,6 +25656,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -24833,6 +25694,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -24864,6 +25726,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	s_address
@@ -24901,6 +25764,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -24938,6 +25802,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_year,
 	sum(case
@@ -24975,6 +25840,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -24997,6 +25863,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -25018,6 +25885,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -25049,6 +25917,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -25062,6 +25931,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-10-01'
 	and l_shipdate < date '1996-10-01' + interval '1' month;
+
 select
 	l_shipmode,
 	sum(case
@@ -25090,6 +25960,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -25112,6 +25983,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	nation,
 	o_year,
@@ -25144,6 +26016,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -25187,6 +26060,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -25217,6 +26091,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -25260,6 +26135,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -25299,6 +26175,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -25338,6 +26215,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -25360,6 +26238,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -25397,6 +26276,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -25434,6 +26314,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -25471,6 +26352,7 @@ where
 	and n_name = 'UNITED KINGDOM'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -25493,6 +26375,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -25514,6 +26397,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	supp_nation,
 	cust_nation,
@@ -25553,6 +26437,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -25588,6 +26473,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -25627,6 +26513,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -25662,6 +26549,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -25679,6 +26567,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -25709,6 +26598,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -25730,6 +26620,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_name,
 	s_address
@@ -25767,6 +26658,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -25804,6 +26696,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -25839,6 +26732,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -25876,6 +26770,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -25919,6 +26814,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -25947,6 +26843,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -25984,6 +26881,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -26016,6 +26914,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	supp_nation,
 	cust_nation,
@@ -26055,6 +26954,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -26087,6 +26987,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -26115,6 +27016,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_shipmode,
 	sum(case
@@ -26143,6 +27045,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -26174,6 +27077,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -26195,6 +27099,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_acctbal,
 	s_name,
@@ -26238,6 +27143,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -26273,6 +27179,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	count(*) as numwait
@@ -26312,6 +27219,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -26344,6 +27252,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	nation,
 	o_year,
@@ -26376,6 +27285,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -26398,6 +27308,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -26429,6 +27340,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	p_brand,
 	p_type,
@@ -26459,6 +27371,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -26489,6 +27402,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -26524,6 +27438,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -26561,6 +27476,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -26596,6 +27512,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -26605,6 +27522,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 25;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -26640,6 +27558,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -26649,6 +27568,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 24;
+
 select
 	nation,
 	o_year,
@@ -26681,6 +27601,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	s_address
@@ -26718,6 +27639,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -26755,6 +27677,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -26786,6 +27709,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	s_address
@@ -26823,6 +27747,7 @@ where
 	and n_name = 'ROMANIA'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -26860,6 +27785,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -26890,6 +27816,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -26927,6 +27854,7 @@ where
 	and n_name = 'INDIA'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -26959,6 +27887,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -26994,6 +27923,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -27024,6 +27954,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -27061,6 +27992,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -27096,6 +28028,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -27124,6 +28057,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -27146,6 +28080,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -27181,6 +28116,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -27213,6 +28149,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	nation,
 	o_year,
@@ -27245,6 +28182,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -27280,6 +28218,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -27323,6 +28262,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -27360,6 +28300,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -27397,6 +28338,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -27418,6 +28360,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -27455,6 +28398,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_year,
 	sum(case
@@ -27492,6 +28436,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	nation,
 	o_year,
@@ -27524,6 +28469,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	nation,
 	o_year,
@@ -27556,6 +28502,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -27591,6 +28538,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -27619,6 +28567,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -27656,6 +28605,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -27677,6 +28627,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -27690,6 +28641,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-02-01'
 	and l_shipdate < date '1993-02-01' + interval '1' month;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -27707,6 +28659,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -27724,6 +28677,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -27746,6 +28700,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -27776,6 +28731,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -27819,6 +28775,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -27856,6 +28813,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -27873,6 +28831,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -27890,6 +28849,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -27911,6 +28871,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -27933,6 +28894,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -27968,6 +28930,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -27981,6 +28944,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-05-01'
 	and l_shipdate < date '1995-05-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -28020,6 +28984,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -28059,6 +29024,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -28094,6 +29060,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -28115,6 +29082,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_year,
 	sum(case
@@ -28152,6 +29120,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -28189,6 +29158,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -28202,6 +29172,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-01-01'
 	and l_shipdate < date '1994-01-01' + interval '1' month;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -28211,6 +29182,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 7 - 0.01 and 7 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -28246,6 +29218,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -28281,6 +29254,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -28313,6 +29287,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -28326,6 +29301,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-09-01'
 	and l_shipdate < date '1997-09-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -28363,6 +29339,7 @@ where
 	and n_name = 'CHINA'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -28402,6 +29379,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -28439,6 +29417,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -28476,6 +29455,7 @@ where
 	and n_name = 'BRAZIL'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -28511,6 +29491,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -28548,6 +29529,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -28585,6 +29567,7 @@ where
 	and n_name = 'FRANCE'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -28622,6 +29605,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -28657,6 +29641,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -28694,6 +29679,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -28731,6 +29717,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -28768,6 +29755,7 @@ where
 	and n_name = 'ARGENTINA'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -28800,6 +29788,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	p_brand,
 	p_type,
@@ -28830,6 +29819,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -28867,6 +29857,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_year,
 	sum(case
@@ -28904,6 +29895,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -28947,6 +29939,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -28964,6 +29957,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -28995,6 +29989,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -29030,6 +30025,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -29060,6 +30056,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -29097,6 +30094,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -29125,6 +30123,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -29155,6 +30154,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -29192,6 +30192,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -29214,6 +30215,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -29257,6 +30259,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -29292,6 +30295,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -29329,6 +30333,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -29361,6 +30366,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	c_custkey,
 	c_name,
@@ -29392,6 +30398,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -29414,6 +30421,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_shipmode,
 	sum(case
@@ -29442,6 +30450,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -29459,6 +30468,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -29498,6 +30508,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -29520,6 +30531,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -29557,6 +30569,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -29592,6 +30605,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -29629,6 +30643,7 @@ where
 	and n_name = 'UNITED KINGDOM'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -29666,6 +30681,7 @@ where
 	and n_name = 'GERMANY'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -29688,6 +30704,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -29725,6 +30742,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -29762,6 +30780,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -29775,6 +30794,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-01-01'
 	and l_shipdate < date '1996-01-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -29814,6 +30834,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	c_custkey,
 	c_name,
@@ -29845,6 +30866,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -29867,6 +30889,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -29884,6 +30907,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -29921,6 +30945,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -29964,6 +30989,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -30001,6 +31027,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -30038,6 +31065,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -30075,6 +31103,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -30099,6 +31128,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	p_brand,
 	p_type,
@@ -30129,6 +31159,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -30164,6 +31195,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -30201,6 +31233,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -30214,6 +31247,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-06-01'
 	and l_shipdate < date '1997-06-01' + interval '1' month;
+
 select
 	s_acctbal,
 	s_name,
@@ -30257,6 +31291,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -30288,6 +31323,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_acctbal,
 	s_name,
@@ -30331,6 +31367,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -30370,6 +31407,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -30413,6 +31451,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -30430,6 +31469,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -30439,6 +31479,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 25;
+
 select
 	l_shipmode,
 	sum(case
@@ -30467,6 +31508,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -30489,6 +31531,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -30498,6 +31541,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -30507,6 +31551,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 8 - 0.01 and 8 + 0.01
 	and l_quantity < 25;
+
 select
 	c_count,
 	count(*) as custdist
@@ -30527,6 +31572,7 @@ group by
 order by
 	custdist desc,
 	c_count desc;
+
 select
 	o_year,
 	sum(case
@@ -30564,6 +31610,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -30599,6 +31646,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -30616,6 +31664,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -30646,6 +31695,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -30663,6 +31713,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -30694,6 +31745,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	o_year,
 	sum(case
@@ -30731,6 +31783,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -30761,6 +31814,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -30791,6 +31845,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -30826,6 +31881,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -30856,6 +31912,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -30893,6 +31950,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -30930,6 +31988,7 @@ where
 	and n_name = 'JORDAN'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -30973,6 +32032,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -30986,6 +32046,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1996-08-01'
 	and l_shipdate < date '1996-08-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -31023,6 +32084,7 @@ where
 	and n_name = 'JORDAN'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -31062,6 +32124,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -31099,6 +32162,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -31136,6 +32200,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -31171,6 +32236,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -31206,6 +32272,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -31243,6 +32310,7 @@ where
 	and n_name = 'MOZAMBIQUE'
 order by
 	s_name;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -31256,6 +32324,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1997-07-01'
 	and l_shipdate < date '1997-07-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -31293,6 +32362,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -31302,6 +32372,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 24;
+
 select
 	s_acctbal,
 	s_name,
@@ -31345,6 +32416,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -31373,6 +32445,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -31410,6 +32483,7 @@ where
 	and n_name = 'MOZAMBIQUE'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -31440,6 +32514,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	c_custkey,
 	c_name,
@@ -31471,6 +32546,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	nation,
 	o_year,
@@ -31503,6 +32579,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -31538,6 +32615,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -31573,6 +32651,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -31603,6 +32682,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -31640,6 +32720,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -31679,6 +32760,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -31688,6 +32770,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 5 - 0.01 and 5 + 0.01
 	and l_quantity < 25;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -31725,6 +32808,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -31762,6 +32846,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -31799,6 +32884,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -31842,6 +32928,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -31872,6 +32959,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -31902,6 +32990,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -31930,6 +33019,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -31951,6 +33041,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_year,
 	sum(case
@@ -31988,6 +33079,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -32016,6 +33108,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -32053,6 +33146,7 @@ where
 	and n_name = 'UNITED KINGDOM'
 order by
 	s_name;
+
 select
 	l_shipmode,
 	sum(case
@@ -32081,6 +33175,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -32120,6 +33215,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -32142,6 +33238,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -32159,6 +33256,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -32181,6 +33279,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -32218,6 +33317,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -32255,6 +33355,7 @@ where
 	and n_name = 'KENYA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -32292,6 +33393,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -32313,6 +33415,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -32322,6 +33425,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 25;
+
 select
 	s_name,
 	s_address
@@ -32359,6 +33463,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 select
 	l_shipmode,
 	sum(case
@@ -32387,6 +33492,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -32404,6 +33510,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -32434,6 +33541,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -32455,6 +33563,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_shipmode,
 	sum(case
@@ -32483,6 +33592,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_acctbal,
 	s_name,
@@ -32526,6 +33636,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -32563,6 +33674,7 @@ where
 	and n_name = 'SAUDI ARABIA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -32600,6 +33712,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -32635,6 +33748,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -32678,6 +33792,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -32706,6 +33821,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -32743,6 +33859,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -32774,6 +33891,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -32813,6 +33931,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -32845,6 +33964,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -32873,6 +33993,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -32890,6 +34011,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -32933,6 +34055,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -32961,6 +34084,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
@@ -32985,6 +34109,7 @@ group by
 	n_name
 order by
 	revenue desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -33020,6 +34145,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -33029,6 +34155,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 8 - 0.01 and 8 + 0.01
 	and l_quantity < 25;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -33064,6 +34191,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -33092,6 +34220,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	p_brand,
 	p_type,
@@ -33122,6 +34251,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -33154,6 +34284,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -33189,6 +34320,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -33232,6 +34364,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -33263,6 +34396,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	o_year,
 	sum(case
@@ -33300,6 +34434,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -33321,6 +34456,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -33338,6 +34474,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -33347,6 +34484,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 24;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -33378,6 +34516,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -33417,6 +34556,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	count(*) as numwait
@@ -33456,6 +34596,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -33473,6 +34614,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -33510,6 +34652,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -33547,6 +34690,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -33564,6 +34708,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -33594,6 +34739,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -33607,6 +34753,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-09-01'
 	and l_shipdate < date '1994-09-01' + interval '1' month;
+
 select
 	p_brand,
 	p_type,
@@ -33637,6 +34784,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -33672,6 +34820,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -33702,6 +34851,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -33719,6 +34869,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -33758,6 +34909,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -33789,6 +34941,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	count(*) as numwait
@@ -33828,6 +34981,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -33865,6 +35019,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -33900,6 +35055,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -33932,6 +35088,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -33954,6 +35111,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -33991,6 +35149,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -34034,6 +35193,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -34073,6 +35233,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -34110,6 +35271,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -34140,6 +35302,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -34177,6 +35340,7 @@ where
 	and n_name = 'CANADA'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -34216,6 +35380,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -34253,6 +35418,7 @@ where
 	and n_name = 'CHINA'
 order by
 	s_name;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -34275,6 +35441,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -34312,6 +35479,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	c_custkey,
 	c_name,
@@ -34343,6 +35511,7 @@ group by
 	c_comment
 order by
 	revenue desc;
+
 select
 	supp_nation,
 	cust_nation,
@@ -34382,6 +35551,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -34412,6 +35582,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -34434,6 +35605,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -34471,6 +35643,7 @@ where
 	and n_name = 'INDONESIA'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -34514,6 +35687,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -34544,6 +35718,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	supp_nation,
 	cust_nation,
@@ -34583,6 +35758,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -34620,6 +35796,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -34657,6 +35834,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -34688,6 +35866,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -34716,6 +35895,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -34755,6 +35935,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -34792,6 +35973,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -34809,6 +35991,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -34852,6 +36035,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -34880,6 +36064,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -34902,6 +36087,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -34937,6 +36123,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -34965,6 +36152,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_year,
 	sum(case
@@ -35002,6 +36190,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -35039,6 +36228,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -35060,6 +36250,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_shipmode,
 	sum(case
@@ -35088,6 +36279,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -35123,6 +36315,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -35158,6 +36351,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -35195,6 +36389,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -35232,6 +36427,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -35260,6 +36456,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -35277,6 +36474,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -35316,6 +36514,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -35353,6 +36552,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -35388,6 +36588,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -35425,6 +36626,7 @@ where
 	and n_name = 'GERMANY'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -35462,6 +36664,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	supp_nation,
 	cust_nation,
@@ -35501,6 +36704,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -35538,6 +36742,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -35559,6 +36764,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -35590,6 +36796,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	o_year,
 	sum(case
@@ -35627,6 +36834,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -35664,6 +36872,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -35703,6 +36912,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -35746,6 +36956,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_acctbal,
 	s_name,
@@ -35789,6 +37000,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -35810,6 +37022,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_name,
 	s_address
@@ -35847,6 +37060,7 @@ where
 	and n_name = 'JORDAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -35884,6 +37098,7 @@ where
 	and n_name = 'SAUDI ARABIA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -35921,6 +37136,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -35956,6 +37172,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -35984,6 +37201,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -36023,6 +37241,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -36040,6 +37259,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -36057,6 +37277,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -36094,6 +37315,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -36111,6 +37333,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -36148,6 +37371,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -36185,6 +37409,7 @@ where
 	and n_name = 'INDONESIA'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -36215,6 +37440,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_name,
 	s_address
@@ -36252,6 +37478,7 @@ where
 	and n_name = 'BRAZIL'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -36289,6 +37516,7 @@ where
 	and n_name = 'INDONESIA'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -36306,6 +37534,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36341,6 +37570,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -36378,6 +37608,7 @@ where
 	and n_name = 'VIETNAM'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -36415,6 +37646,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36450,6 +37682,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -36487,6 +37720,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -36515,6 +37749,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_acctbal,
 	s_name,
@@ -36558,6 +37793,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -36595,6 +37831,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	nation,
 	o_year,
@@ -36627,6 +37864,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -36644,6 +37882,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -36681,6 +37920,7 @@ where
 	and n_name = 'IRAQ'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -36724,6 +37964,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -36761,6 +38002,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_shipmode,
 	sum(case
@@ -36789,6 +38031,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_year,
 	sum(case
@@ -36826,6 +38069,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36861,6 +38105,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -36883,6 +38128,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36918,6 +38164,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36953,6 +38200,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -36988,6 +38236,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -37005,6 +38254,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -37042,6 +38292,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -37081,6 +38332,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -37118,6 +38370,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -37157,6 +38410,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -37178,6 +38432,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -37221,6 +38476,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -37256,6 +38512,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -37293,6 +38550,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -37323,6 +38581,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -37354,6 +38613,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -37376,6 +38636,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -37411,6 +38672,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	nation,
 	o_year,
@@ -37443,6 +38705,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	nation,
 	o_year,
@@ -37475,6 +38738,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -37497,6 +38761,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -37519,6 +38784,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -37549,6 +38815,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -37581,6 +38848,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	o_year,
 	sum(case
@@ -37618,6 +38886,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -37653,6 +38922,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -37690,6 +38960,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -37733,6 +39004,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -37761,6 +39033,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -37770,6 +39043,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 8 - 0.01 and 8 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -37779,6 +39053,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 9 - 0.01 and 9 + 0.01
 	and l_quantity < 25;
+
 select
 	supp_nation,
 	cust_nation,
@@ -37818,6 +39093,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -37855,6 +39131,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -37894,6 +39171,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -37929,6 +39207,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -37946,6 +39225,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -37983,6 +39263,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -38026,6 +39307,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -38063,6 +39345,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_year,
 	sum(case
@@ -38100,6 +39383,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -38143,6 +39427,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -38173,6 +39458,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -38208,6 +39494,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -38230,6 +39517,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -38251,6 +39539,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -38282,6 +39571,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	nation,
 	o_year,
@@ -38314,6 +39604,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	p_brand,
 	p_type,
@@ -38344,6 +39635,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -38379,6 +39671,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -38409,6 +39702,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -38439,6 +39733,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -38482,6 +39777,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -38510,6 +39806,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -38532,6 +39829,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	supp_nation,
 	cust_nation,
@@ -38571,6 +39869,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -38614,6 +39913,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -38651,6 +39951,7 @@ where
 	and n_name = 'ARGENTINA'
 order by
 	s_name;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -38672,6 +39973,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -38715,6 +40017,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -38754,6 +40057,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -38791,6 +40095,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -38828,6 +40133,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -38863,6 +40169,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -38906,6 +40213,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -38928,6 +40236,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	nation,
 	o_year,
@@ -38960,6 +40269,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	o_year,
 	sum(case
@@ -38997,6 +40307,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -39032,6 +40343,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -39069,6 +40381,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -39099,6 +40412,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -39120,6 +40434,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -39157,6 +40472,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -39196,6 +40512,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -39217,6 +40534,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	s_acctbal,
 	s_name,
@@ -39260,6 +40578,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -39295,6 +40614,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -39325,6 +40645,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -39353,6 +40674,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -39390,6 +40712,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -39433,6 +40756,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -39470,6 +40794,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -39509,6 +40834,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -39544,6 +40870,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -39581,6 +40908,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -39618,6 +40946,7 @@ where
 	and n_name = 'RUSSIA'
 order by
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -39655,6 +40984,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -39692,6 +41022,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -39705,6 +41036,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-10-01'
 	and l_shipdate < date '1993-10-01' + interval '1' month;
+
 select
 	s_acctbal,
 	s_name,
@@ -39748,6 +41080,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -39787,6 +41120,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -39822,6 +41156,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -39852,6 +41187,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -39895,6 +41231,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -39912,6 +41249,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -39949,6 +41287,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -39971,6 +41310,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -40001,6 +41341,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -40036,6 +41377,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -40073,6 +41415,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -40110,6 +41453,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40127,6 +41471,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -40162,6 +41507,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -40190,6 +41536,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -40229,6 +41576,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -40266,6 +41614,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -40303,6 +41652,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -40338,6 +41688,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -40377,6 +41728,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -40414,6 +41766,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -40451,6 +41804,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -40482,6 +41836,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40499,6 +41854,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -40530,6 +41886,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -40565,6 +41922,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -40608,6 +41966,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -40645,6 +42004,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_acctbal,
 	s_name,
@@ -40688,6 +42048,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -40716,6 +42077,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40733,6 +42095,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40750,6 +42113,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -40789,6 +42153,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -40819,6 +42184,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -40841,6 +42207,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -40871,6 +42238,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40888,6 +42256,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -40925,6 +42294,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	nation,
 	o_year,
@@ -40957,6 +42327,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -40974,6 +42345,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -41009,6 +42381,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -41048,6 +42421,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -41085,6 +42459,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -41102,6 +42477,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	nation,
 	o_year,
@@ -41134,6 +42510,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	o_year,
 	sum(case
@@ -41171,6 +42548,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -41188,6 +42566,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -41197,6 +42576,7 @@ where
 	and l_shipdate < date '1995-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 25;
+
 select
 	p_brand,
 	p_type,
@@ -41227,6 +42607,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -41249,6 +42630,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	supp_nation,
 	cust_nation,
@@ -41288,6 +42670,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -41318,6 +42701,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -41361,6 +42745,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -41389,6 +42774,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	o_year,
 	sum(case
@@ -41426,6 +42812,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -41463,6 +42850,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -41484,6 +42872,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	p_brand,
 	p_type,
@@ -41514,6 +42903,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -41551,6 +42941,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -41588,6 +42979,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -41605,6 +42997,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	nation,
 	o_year,
@@ -41637,6 +43030,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_shipmode,
 	sum(case
@@ -41665,6 +43059,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -41682,6 +43077,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -41699,6 +43095,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_name,
 	s_address
@@ -41736,6 +43133,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -41767,6 +43165,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -41806,6 +43205,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	o_year,
 	sum(case
@@ -41843,6 +43243,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -41852,6 +43253,7 @@ where
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -41887,6 +43289,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -41924,6 +43327,7 @@ where
 	and n_name = 'ROMANIA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -41961,6 +43365,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -41993,6 +43398,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_acctbal,
 	s_name,
@@ -42036,6 +43442,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -42071,6 +43478,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -42108,6 +43516,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -42145,6 +43554,7 @@ where
 	and n_name = 'JORDAN'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -42182,6 +43592,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	o_year,
 	sum(case
@@ -42219,6 +43630,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -42256,6 +43668,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	s_name,
 	s_address
@@ -42293,6 +43706,7 @@ where
 	and n_name = 'INDIA'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -42330,6 +43744,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	nation,
 	o_year,
@@ -42362,6 +43777,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	s_name,
 	s_address
@@ -42399,6 +43815,7 @@ where
 	and n_name = 'JAPAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -42436,6 +43853,7 @@ where
 	and n_name = 'MOROCCO'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -42471,6 +43889,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -42501,6 +43920,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -42529,6 +43949,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -42546,6 +43967,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -42585,6 +44007,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	nation,
 	o_year,
@@ -42617,6 +44040,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -42652,6 +44076,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -42691,6 +44116,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -42730,6 +44156,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -42760,6 +44187,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	s_acctbal,
 	s_name,
@@ -42803,6 +44231,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -42825,6 +44254,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -42862,6 +44292,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -42901,6 +44332,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -42931,6 +44363,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -42953,6 +44386,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	supp_nation,
 	cust_nation,
@@ -42992,6 +44426,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43027,6 +44462,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -43049,6 +44485,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -43086,6 +44523,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -43123,6 +44561,7 @@ where
 	and n_name = 'UNITED STATES'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -43132,6 +44571,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 2 - 0.01 and 2 + 0.01
 	and l_quantity < 24;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43167,6 +44607,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -43204,6 +44645,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -43221,6 +44663,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43256,6 +44699,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	o_year,
 	sum(case
@@ -43293,6 +44737,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43328,6 +44773,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -43345,6 +44791,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -43384,6 +44831,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -43415,6 +44863,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	o_year,
 	sum(case
@@ -43452,6 +44901,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -43465,6 +44915,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-12-01'
 	and l_shipdate < date '1993-12-01' + interval '1' month;
+
 select
 	o_year,
 	sum(case
@@ -43502,6 +44953,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43537,6 +44989,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -43565,6 +45018,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -43596,6 +45050,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	s_name,
 	s_address
@@ -43633,6 +45088,7 @@ where
 	and n_name = 'INDONESIA'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -43676,6 +45132,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	o_year,
 	sum(case
@@ -43713,6 +45170,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -43735,6 +45193,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_name,
 	s_address
@@ -43772,6 +45231,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -43809,6 +45269,7 @@ where
 	and n_name = 'IRAN'
 order by
 	s_name;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -43846,6 +45307,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	s_name,
 	s_address
@@ -43883,6 +45345,7 @@ where
 	and n_name = 'CHINA'
 order by
 	s_name;
+
 select
 	s_acctbal,
 	s_name,
@@ -43926,6 +45389,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -43961,6 +45425,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -43991,6 +45456,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	p_brand,
 	p_type,
@@ -44021,6 +45487,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -44034,6 +45501,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-10-01'
 	and l_shipdate < date '1994-10-01' + interval '1' month;
+
 select
 	s_name,
 	s_address
@@ -44071,6 +45539,7 @@ where
 	and n_name = 'ETHIOPIA'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -44103,6 +45572,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -44124,6 +45594,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_acctbal,
 	s_name,
@@ -44167,6 +45638,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -44204,6 +45676,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -44226,6 +45699,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -44261,6 +45735,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -44296,6 +45771,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -44339,6 +45815,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -44378,6 +45855,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -44387,6 +45865,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 6 - 0.01 and 6 + 0.01
 	and l_quantity < 25;
+
 select
 	l_shipmode,
 	sum(case
@@ -44415,6 +45894,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_acctbal,
 	s_name,
@@ -44458,6 +45938,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -44480,6 +45961,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	s_acctbal,
 	s_name,
@@ -44523,6 +46005,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_acctbal,
 	s_name,
@@ -44566,6 +46049,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_shipmode,
 	sum(case
@@ -44594,6 +46078,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -44633,6 +46118,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -44668,6 +46154,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_shipmode,
 	sum(case
@@ -44696,6 +46183,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -44735,6 +46223,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_acctbal,
 	s_name,
@@ -44778,6 +46267,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	p_brand,
 	p_type,
@@ -44808,6 +46298,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -44843,6 +46334,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -44860,6 +46352,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -44897,6 +46390,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -44934,6 +46428,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -44971,6 +46466,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -45010,6 +46506,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
@@ -45023,6 +46520,7 @@ where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1993-04-01'
 	and l_shipdate < date '1993-04-01' + interval '1' month;
+
 select
 	supp_nation,
 	cust_nation,
@@ -45062,6 +46560,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45079,6 +46578,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -45116,6 +46616,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -45137,6 +46638,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -45159,6 +46661,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	o_year,
 	sum(case
@@ -45196,6 +46699,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45213,6 +46717,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -45243,6 +46748,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -45280,6 +46786,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45297,6 +46804,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -45318,6 +46826,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	p_brand,
 	p_type,
@@ -45348,6 +46857,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	l_shipmode,
 	sum(case
@@ -45376,6 +46886,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_name,
 	s_address
@@ -45413,6 +46924,7 @@ where
 	and n_name = 'VIETNAM'
 order by
 	s_name;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45430,6 +46942,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -45460,6 +46973,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	supp_nation,
 	cust_nation,
@@ -45499,6 +47013,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -45521,6 +47036,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -45558,6 +47074,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -45593,6 +47110,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -45602,6 +47120,7 @@ where
 	and l_shipdate < date '1997-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 24;
+
 select
 	s_name,
 	count(*) as numwait
@@ -45641,6 +47160,7 @@ group by
 order by
 	numwait desc,
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -45671,6 +47191,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -45706,6 +47227,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45723,6 +47245,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -45766,6 +47289,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -45803,6 +47327,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -45825,6 +47350,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	p_brand,
 	p_type,
@@ -45855,6 +47381,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -45890,6 +47417,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -45920,6 +47448,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -45929,6 +47458,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 8 - 0.01 and 8 + 0.01
 	and l_quantity < 25;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -45946,6 +47476,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -45981,6 +47512,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -46002,6 +47534,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -46023,6 +47556,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -46060,6 +47594,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -46077,6 +47612,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	supp_nation,
 	cust_nation,
@@ -46116,6 +47652,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -46151,6 +47688,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -46172,6 +47710,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	o_orderpriority,
 	count(*) as order_count
@@ -46193,6 +47732,7 @@ group by
 	o_orderpriority
 order by
 	o_orderpriority;
+
 select
 	o_year,
 	sum(case
@@ -46230,6 +47770,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	p_brand,
 	p_type,
@@ -46260,6 +47801,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -46297,6 +47839,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -46325,6 +47868,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -46364,6 +47908,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -46381,6 +47926,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -46411,6 +47957,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -46428,6 +47975,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -46465,6 +48013,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -46496,6 +48045,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -46531,6 +48081,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -46568,6 +48119,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	supp_nation,
 	cust_nation,
@@ -46607,6 +48159,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	p_brand,
 	p_type,
@@ -46637,6 +48190,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -46672,6 +48226,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_acctbal,
 	s_name,
@@ -46715,6 +48270,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_acctbal,
 	s_name,
@@ -46758,6 +48314,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	l_returnflag,
 	l_linestatus,
@@ -46779,6 +48336,7 @@ group by
 order by
 	l_returnflag,
 	l_linestatus;
+
 select
 	s_name,
 	s_address
@@ -46816,6 +48374,7 @@ where
 	and n_name = 'VIETNAM'
 order by
 	s_name;
+
 select
 	nation,
 	o_year,
@@ -46848,6 +48407,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -46865,6 +48425,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	p_brand,
 	p_type,
@@ -46895,6 +48456,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -46932,6 +48494,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -46971,6 +48534,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -46980,6 +48544,7 @@ where
 	and l_shipdate < date '1993-01-01' + interval '1' year
 	and l_discount between 4 - 0.01 and 4 + 0.01
 	and l_quantity < 24;
+
 select
 	p_brand,
 	p_type,
@@ -47010,6 +48575,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	nation,
 	o_year,
@@ -47042,6 +48608,7 @@ group by
 order by
 	nation,
 	o_year desc;
+
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
@@ -47059,6 +48626,7 @@ where
 		where
 			l_partkey = p_partkey
 	);
+
 select
 	o_year,
 	sum(case
@@ -47096,6 +48664,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -47133,6 +48702,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -47155,6 +48725,7 @@ group by
 order by
 	revenue desc,
 	o_orderdate;
+
 select
 	supp_nation,
 	cust_nation,
@@ -47194,6 +48765,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -47231,6 +48803,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -47266,6 +48839,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	s_name,
 	s_address
@@ -47303,6 +48877,7 @@ where
 	and n_name = 'EGYPT'
 order by
 	s_name;
+
 with revenue_s as (
 		select
 			l_suppkey as supplier_no,
@@ -47334,6 +48909,7 @@ where
 	)
 order by
 	s_suppkey;
+
 select
 	supp_nation,
 	cust_nation,
@@ -47373,6 +48949,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
@@ -47382,6 +48959,7 @@ where
 	and l_shipdate < date '1994-01-01' + interval '1' year
 	and l_discount between 3 - 0.01 and 3 + 0.01
 	and l_quantity < 24;
+
 select
 	cntrycode,
 	count(*) as numcust,
@@ -47419,6 +48997,7 @@ group by
 	cntrycode
 order by
 	cntrycode;
+
 select
 	l_shipmode,
 	sum(case
@@ -47447,6 +49026,7 @@ group by
 	l_shipmode
 order by
 	l_shipmode;
+
 select
 	s_acctbal,
 	s_name,
@@ -47490,6 +49070,7 @@ order by
 	n_name,
 	s_name,
 	p_partkey;
+
 select
 	s_name,
 	s_address
@@ -47527,6 +49108,7 @@ where
 	and n_name = 'ALGERIA'
 order by
 	s_name;
+
 select
 	o_year,
 	sum(case
@@ -47564,6 +49146,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	supp_nation,
 	cust_nation,
@@ -47603,6 +49186,7 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
+
 select
 	s_name,
 	s_address
@@ -47640,6 +49224,7 @@ where
 	and n_name = 'JORDAN'
 order by
 	s_name;
+
 select
 	s_name,
 	s_address
@@ -47677,6 +49262,7 @@ where
 	and n_name = 'PERU'
 order by
 	s_name;
+
 select
 	p_brand,
 	p_type,
@@ -47707,6 +49293,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
@@ -47742,6 +49329,7 @@ where
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
 	);
+
 select
 	p_brand,
 	p_type,
@@ -47772,6 +49360,7 @@ order by
 	p_brand,
 	p_type,
 	p_size;
+
 select
 	o_year,
 	sum(case
@@ -47809,6 +49398,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -47846,6 +49436,7 @@ group by
 	o_year
 order by
 	o_year;
+
 select
 	o_year,
 	sum(case
@@ -47883,3 +49474,4 @@ group by
 	o_year
 order by
 	o_year;
+

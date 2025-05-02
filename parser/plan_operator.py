@@ -1,4 +1,5 @@
 # We adapted the legacy from from https://github.com/DataManagementLab/zero-shot-cost-estimation
+import copy
 import math
 import re
 from typing import List, Optional, Mapping, Any, MutableMapping, Tuple, Set
@@ -142,6 +143,38 @@ class PlanOperator(dict):
                 del self.plan_parameters["table"]
 
         return node_tables
+
+    def post_processing_redshift_plan(self, sql, root=True) -> 'PlanOperator':
+        #if "op_name" in self.plan_parameters:
+        #    self.plan_parameters["op_name"] = self.plan_parameters["op_name"].replace("XN ", "")
+        #    self.plan_parameters["op_name"] = self.plan_parameters["op_name"].replace("DS_BCAST_INNER", "")
+        #    self.plan_parameters["op_name"] = self.plan_parameters["op_name"].replace("volt_dt_1", "")
+        #    self.plan_parameters["op_name"] = self.plan_parameters["op_name"].replace("DS_DIST_NONE", "")
+        #    self.plan_parameters["op_name"] = self.plan_parameters["op_name"].strip()
+        #for child in self.children:
+        #    child.post_processing_redshift_plan(sql, False)
+
+        sql = sql.strip().lower()
+        if sql.startswith("insert into "):
+            ops = "XN Insert"
+        elif sql.startswith("delete from "):
+            ops = "XN Delete"
+        else:
+            return self
+
+        plan_parameters = {
+            "op_name": ops,
+            "act_children_card": 1,
+            "est_children_card": self.plan_parameters["est_card"],
+            "est_startup_cost": self.plan_parameters["est_cost"],
+            "est_card": self.plan_parameters["est_card"],
+            "est_width": self.plan_parameters["est_width"],
+            "est_cost": self.plan_parameters["est_cost"] + self.plan_parameters["est_card"] * 1000,
+        }
+        root_ops = PlanOperator([],
+                                plan_parameters=plan_parameters)
+        root_ops.children.append(self)
+        return root_ops
 
     def lookup_column_id(
         self, c, column_id_mapping, node_tables, partial_column_name_mapping, alias_dict

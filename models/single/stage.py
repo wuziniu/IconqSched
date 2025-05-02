@@ -83,15 +83,35 @@ class SingleStage:
         self.all_feature = dict()
         for i in range(len(plans["parsed_plans"])):
             plan = plans["parsed_plans"][i]
-            feature, memory_est = featurize_one_plan(
-                plan,
-                self.operators,
-                self.all_table_size,
-                use_size=self.use_size,
-                use_log=self.use_log,
-                true_card=self.true_card,
-                return_memory_est=True,
-            )
+            if isinstance(plan, list):
+                # one query has multiple subqueries
+                feature = None
+                memory_est = 0
+                for p in plan:
+                    p_feature, p_memory_est = featurize_one_plan(
+                        p,
+                        self.operators,
+                        self.all_table_size,
+                        use_size=self.use_size,
+                        use_log=self.use_log,
+                        true_card=self.true_card,
+                        return_memory_est=True,
+                    )
+                    if feature is None:
+                        feature = p_feature
+                    else:
+                        feature = feature + p_feature
+                    memory_est += p_memory_est
+            else:
+                feature, memory_est = featurize_one_plan(
+                    plan,
+                    self.operators,
+                    self.all_table_size,
+                    use_size=self.use_size,
+                    use_log=self.use_log,
+                    true_card=self.true_card,
+                    return_memory_est=True,
+                )
             self.memory_est_cache[i] = memory_est
             self.all_feature[i] = feature
 

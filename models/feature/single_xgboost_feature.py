@@ -24,7 +24,11 @@ def find_top_k_operators(parsed_queries_path=None, plans=None, k=15, verbose=Fal
         plans = load_json(parsed_queries_path, namespace=False)
     all_operators = dict()
     for plan in plans["parsed_plans"]:
-        dfs_all_operators(plan, all_operators)
+        if isinstance(plan, list):
+            for p in plan:
+                dfs_all_operators(p, all_operators)
+        else:
+            dfs_all_operators(plan, all_operators)
     op_names = []
     op_counts = []
     for op in all_operators:

@@ -96,6 +96,7 @@ def train_concurrent_rnn() -> None:
         true_card=args.true_card,
         use_table_features=args.use_table_features,
         use_table_selectivity=args.use_table_selectivity,
+        num_operators=args.num_operators,
     )
     df = ss.featurize_data(train_trace_df, args.parsed_queries_path)
     ss.train(df)
@@ -376,6 +377,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_log", action="store_true")
     parser.add_argument("--true_card", action="store_true")
     parser.add_argument("--rnn_type", default="lstm", type=str)
+    parser.add_argument("--num_operators", type=int, default=20)
     parser.add_argument("--use_separation", action="store_true")
     parser.add_argument("--use_table_features", action="store_true")
     parser.add_argument("--use_table_selectivity", action="store_true")

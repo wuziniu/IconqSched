@@ -49,7 +49,9 @@ class TraceManager:
         self.timeout = timeout
 
         with open(query_file, "r") as f:
-            self.query_sql = f.readlines()
+            queries_text = f.read()
+        queries = queries_text.split(";\n\n")[:-1]
+        self.query_sql = [q.strip() + ";" for q in queries]
         self.average = np.zeros(len(self.query_sql))
         self.std = np.zeros(len(self.query_sql))
         self.prepare()
