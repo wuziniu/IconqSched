@@ -14,6 +14,7 @@ from scheduler.base_scheduler import BaseScheduler
 from scheduler.pgm_scheduler import PGMScheduler
 from scheduler.qshuffler_scheduler import QShuffler
 from simulator.simulator import QueryBank
+logger = logging.getLogger(__name__)
 
 
 async def submit_query_and_wait_for_result(
@@ -43,12 +44,15 @@ async def submit_query_and_wait_for_result(
                 t = time.time()
                 try:
                     await cur.execute(sql)
-                    await cur.fetchall()
+                    try:
+                        await cur.fetchall()
+                    except Exception as e:
+                        logger.info(f"Executing query {query_rep} with index {query_idx}, no results to fetch")
                 except psycopg.errors.QueryCanceled as e:
                     # this occurs in timeout
                     timeout = True
                 except Exception as e:
-                    print(
+                    logger.info(
                         f"Executing query {query_rep} with index {query_idx}, encountered error: ",
                         e,
                     )
@@ -56,11 +60,11 @@ async def submit_query_and_wait_for_result(
                 runtime = time.time() - t
             return query_rep, query_idx, runtime, timeout, error
         except Exception as e:
-            print("Error: ", e)
-            print("Trying to reconnect and re-execute")
+            logger.info("Error: ", e)
+            logger.info("Trying to reconnect and re-execute")
     assert (
         False
-    ), f"Connection failed after {max_retry}. This is a bug with psycopg.AsyncConnection."
+    ), f"Connection failed after {max_retry}."
 
 
 class Executor:
